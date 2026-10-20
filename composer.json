@@ -1,0 +1,69 @@
+{
+    "name": "gingerminds/symfony-cms",
+    "description": "Menus, pages, content blocks and search for Gingerminds Symfony projects",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Gingerminds"
+        }
+    ],
+    "require": {
+        "php": "^8.4",
+        "api-platform/doctrine-orm": "^4.4",
+        "api-platform/symfony": "^4.4",
+        "doctrine/doctrine-bundle": "^2.18 || ^3.0",
+        "doctrine/orm": "^3.5",
+        "gingerminds/symfony-core": "^1.6",
+        "gingerminds/symfony-media-manager": "^1.0",
+        "gingerminds/symfony-multisite": "^1.0",
+        "symfony/asset-mapper": "^8.1",
+        "symfony/doctrine-bridge": "^8.1",
+        "symfony/form": "^8.1",
+        "symfony/framework-bundle": "^8.1",
+        "symfony/property-access": "^8.1",
+        "symfony/security-bundle": "^8.1",
+        "symfony/serializer": "^8.1",
+        "symfony/translation": "^8.1",
+        "symfony/twig-bundle": "^8.1",
+        "symfony/validator": "^8.1"
+    },
+    "require-dev": {
+        "dama/doctrine-test-bundle": "^8.2",
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "league/flysystem-memory": "^3.0",
+        "phpstan/phpstan": "^2.0",
+        "phpstan/phpstan-doctrine": "^2.0",
+        "phpstan/phpstan-symfony": "^2.0",
+        "phpunit/phpunit": "^12.0",
+        "rector/rector": "^2.0",
+        "squizlabs/php_codesniffer": "^3.0",
+        "symfony/browser-kit": "^8.1",
+        "symfony/css-selector": "^8.1",
+        "symfony/phpunit-bridge": "^8.1",
+        "symfony/yaml": "^8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Gingerminds\\CmsBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Gingerminds\\CmsBundle\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "platform": {
+            "ext-gd": "8.4"
+        },
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": false,
+            "symfony/flex": false,
+            "symfony/runtime": false
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
