@@ -23,15 +23,15 @@ class PageCategoryRepository extends AbstractRepository
     }
 
     /**
-     * Every category of the current site with its translations, by a single query, children
-     * grouped by parent id (0: the roots), ordered by position then code.
+     * Every category of the current site with its translations, by a single query, ordered by
+     * position then code within each level.
      *
-     * @return array<int, list<PageCategoryInterface>>
+     * @return list<PageCategoryInterface>
      */
     public function findTree(): array
     {
-        /** @var list<PageCategoryInterface> $categories */
-        $categories = $this->createQueryBuilder('c')
+        /** @var list<PageCategoryInterface> */
+        return $this->createQueryBuilder('c')
             ->addSelect('t', 'l')
             ->leftJoin('c.translations', 't')
             ->leftJoin('t.language', 'l')
@@ -39,32 +39,6 @@ class PageCategoryRepository extends AbstractRepository
             ->addOrderBy('c.code')
             ->getQuery()
             ->getResult();
-
-        $children = [];
-
-        foreach ($categories as $category) {
-            $children[$category->getParent()?->getId() ?? 0][] = $category;
-        }
-
-        return $children;
-    }
-
-    /**
-     * The tree, depth-first, each category with its depth.
-     *
-     * @return list<array{PageCategoryInterface, int}>
-     */
-    public function findFlatTree(): array
-    {
-        $children = $this->findTree();
-        $flatten = static function (int $parentId, int $depth) use (&$flatten, $children): iterable {
-            foreach ($children[$parentId] ?? [] as $category) {
-                yield [$category, $depth];
-                yield from $flatten((int) $category->getId(), $depth + 1);
-            }
-        };
-
-        return iterator_to_array($flatten(0, 0), false);
     }
 
     /**

@@ -45,12 +45,12 @@ export default class extends Controller {
 }
 
 export function slugify(value) {
-    return value
+    // Each run of other characters (hyphens included) becomes a single hyphen: at most one on each end.
+    const slug = value
         .normalize('NFKD')
         .replace(/\p{M}/gu, '')
         .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+/, '')
-        .replace(/-+$/, '');
+        .replace(/[^a-z0-9]+/g, '-');
+
+    return slug.slice(slug.startsWith('-') ? 1 : 0, slug.endsWith('-') ? -1 : undefined);
 }

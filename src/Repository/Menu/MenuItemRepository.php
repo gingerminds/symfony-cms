@@ -45,29 +45,6 @@ class MenuItemRepository extends AbstractRepository
     }
 
     /**
-     * The tree of a menu, depth-first, each item with its depth.
-     *
-     * @return list<array{MenuItemInterface, int}>
-     */
-    public function findFlatTree(MenuInterface $menu): array
-    {
-        $children = [];
-
-        foreach ($this->findByMenu($menu) as $item) {
-            $children[$item->getParent()?->getId() ?? 0][] = $item;
-        }
-
-        $flatten = static function (int $parentId, int $depth) use (&$flatten, $children): iterable {
-            foreach ($children[$parentId] ?? [] as $item) {
-                yield [$item, $depth];
-                yield from $flatten((int) $item->getId(), $depth + 1);
-            }
-        };
-
-        return iterator_to_array($flatten(0, 0), false);
-    }
-
-    /**
      * Applies the order of one level of a menu tree: ids of other levels or menus are ignored.
      *
      * @param list<int> $ids

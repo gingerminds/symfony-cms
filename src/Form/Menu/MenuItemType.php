@@ -7,6 +7,7 @@ namespace Gingerminds\CmsBundle\Form\Menu;
 use Gingerminds\CmsBundle\Entity\Menu\MenuInterface;
 use Gingerminds\CmsBundle\Entity\Menu\MenuItemInterface;
 use Gingerminds\CmsBundle\GingermindsCmsBundle;
+use Gingerminds\CmsBundle\Model\TreeNodes;
 use Gingerminds\CmsBundle\Repository\Menu\MenuItemRepository;
 use Gingerminds\CoreBundle\Resource\ResourceRegistry;
 use Gingerminds\MultisiteBundle\Form\Type\TranslationsType;
@@ -36,7 +37,7 @@ class MenuItemType extends AbstractType
         /** @var MenuInterface $menu */
         $menu = $options['menu'];
         $item = $builder->getData();
-        [$choices, $depths] = $this->parentChoices($menu, $item instanceof MenuItemInterface ? $item : null);
+        [$choices, $depths] = TreeNodes::parentChoices($this->items->findByMenu($menu), $item instanceof MenuItemInterface ? $item : null);
 
         $builder
             ->add('code', TextType::class, [
@@ -84,35 +85,5 @@ class MenuItemType extends AbstractType
             ])
             ->setRequired('menu')
             ->setAllowedTypes('menu', MenuInterface::class);
-    }
-
-    /**
-     * @return array{list<MenuItemInterface>, array<int, int>} the choices and their depth by id
-     */
-    private function parentChoices(MenuInterface $menu, ?MenuItemInterface $item): array
-    {
-        $choices = [];
-        $depths = [];
-        $excludedDepth = null;
-
-        foreach ($this->items->findFlatTree($menu) as [$choice, $depth]) {
-            // The item and its descendants (the following deeper items) cannot be its parent.
-            if (null !== $excludedDepth && $depth > $excludedDepth) {
-                continue;
-            }
-
-            $excludedDepth = null;
-
-            if ($item instanceof MenuItemInterface && null !== $item->getId() && $choice->getId() === $item->getId()) {
-                $excludedDepth = $depth;
-
-                continue;
-            }
-
-            $choices[] = $choice;
-            $depths[(int) $choice->getId()] = $depth;
-        }
-
-        return [$choices, $depths];
     }
 }

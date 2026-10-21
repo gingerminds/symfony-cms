@@ -6,6 +6,7 @@ namespace Gingerminds\CmsBundle\Form\Page;
 
 use Gingerminds\CmsBundle\Entity\Page\PageCategoryInterface;
 use Gingerminds\CmsBundle\GingermindsCmsBundle;
+use Gingerminds\CmsBundle\Model\TreeNodes;
 use Gingerminds\CmsBundle\Repository\Page\PageCategoryRepository;
 use Gingerminds\CoreBundle\Resource\ResourceRegistry;
 use Gingerminds\MultisiteBundle\Form\Type\TranslationsType;
@@ -37,7 +38,7 @@ class PageCategoryType extends AbstractType
     {
         $category = $builder->getData();
         $category = $category instanceof PageCategoryInterface ? $category : null;
-        [$choices, $depths] = $this->parentChoices($category);
+        [$choices, $depths] = TreeNodes::parentChoices($this->categories->findTree(), $category);
         $isNew = null === $category?->getId();
 
         $builder
@@ -94,35 +95,5 @@ class PageCategoryType extends AbstractType
             'data_class' => $this->resources->getEntityClass('page_category'),
             'translation_domain' => GingermindsCmsBundle::TRANSLATION_DOMAIN,
         ]);
-    }
-
-    /**
-     * @return array{list<PageCategoryInterface>, array<int, int>} the choices and their depth by id
-     */
-    private function parentChoices(?PageCategoryInterface $category): array
-    {
-        $choices = [];
-        $depths = [];
-        $excludedDepth = null;
-
-        foreach ($this->categories->findFlatTree() as [$choice, $depth]) {
-            // The category and its descendants (the following deeper categories) cannot be its parent.
-            if (null !== $excludedDepth && $depth > $excludedDepth) {
-                continue;
-            }
-
-            $excludedDepth = null;
-
-            if (null !== $category?->getId() && $choice->getId() === $category->getId()) {
-                $excludedDepth = $depth;
-
-                continue;
-            }
-
-            $choices[] = $choice;
-            $depths[(int) $choice->getId()] = $depth;
-        }
-
-        return [$choices, $depths];
     }
 }
