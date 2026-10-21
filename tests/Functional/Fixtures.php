@@ -8,6 +8,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Gingerminds\CmsBundle\Entity\Menu\Menu;
 use Gingerminds\CmsBundle\Entity\Menu\MenuItem;
 use Gingerminds\CmsBundle\Entity\Menu\MenuItemTranslation;
+use Gingerminds\CmsBundle\Entity\Page\PageCategory;
+use Gingerminds\CmsBundle\Entity\Page\PageCategoryTranslation;
 use Gingerminds\CmsBundle\Site\Entity\Site;
 use Gingerminds\CoreBundle\Entity\Permission\Permission;
 use Gingerminds\CoreBundle\Entity\Role\Role;
@@ -158,5 +160,32 @@ final readonly class Fixtures
         $this->entityManager->flush();
 
         return $item;
+    }
+
+    /**
+     * @param array<string, array{string, ?string}> $translations [name, prefix] by language iso (languages created on demand)
+     */
+    public function pageCategory(Site $site, string $code, array $translations = [], ?PageCategory $parent = null, int $position = 0, bool $unique = false): PageCategory
+    {
+        $category = new PageCategory();
+        $category->setSite($site);
+        $category->setCode($code);
+        $category->setParent($parent);
+        $category->setPosition($position);
+        $category->setUnique($unique);
+
+        foreach ($translations as $iso => [$name, $prefix]) {
+            $language = $this->entityManager->getRepository(Language::class)->findOneBy(['iso' => $iso]) ?? $this->language($iso);
+            $translation = new PageCategoryTranslation();
+            $translation->setLanguage($language);
+            $translation->setName($name);
+            $translation->setPrefix($prefix);
+            $category->addTranslation($translation);
+        }
+
+        $this->entityManager->persist($category);
+        $this->entityManager->flush();
+
+        return $category;
     }
 }

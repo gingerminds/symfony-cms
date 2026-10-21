@@ -6,6 +6,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use Gingerminds\CmsBundle\Security\Voter\MenuItemVoter;
 use Gingerminds\CmsBundle\Security\Voter\MenuVoter;
+use Gingerminds\CmsBundle\Security\Voter\PageCategoryVoter;
 
 /*
  * Voters.
@@ -16,5 +17,7 @@ return static function (ContainerConfigurator $container): void {
     $services->set('gingerminds_cms.security.voter.menu', MenuVoter::class)
         ->tag('security.voter');
     $services->set('gingerminds_cms.security.voter.menu_item', MenuItemVoter::class)
+        ->tag('security.voter');
+    $services->set('gingerminds_cms.security.voter.page_category', PageCategoryVoter::class)
         ->tag('security.voter');
 };

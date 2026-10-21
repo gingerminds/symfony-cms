@@ -18,7 +18,8 @@ final readonly class CmsAdminMenuProvider implements AdminMenuProviderInterface
     public const string SECTION = 'cms';
 
     private const array ENTRIES = [
-        'menu' => ['bi-menu-button-wide', 10],
+        'page_category' => ['bi-diagram-3', 10],
+        'menu' => ['bi-menu-button-wide', 100],
     ];
 
     public function __construct(

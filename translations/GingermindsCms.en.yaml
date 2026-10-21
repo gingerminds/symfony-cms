@@ -46,6 +46,38 @@ menu_item:
     message:
         no_items: No item in this menu
 
+page_category:
+    name_s: Page category
+    name_p: Page categories
+    manage: Manage the page categories
+    title_new: Add a page category
+    title_edit: Edit a page category
+    tab:
+        general: General
+        translations: Translations
+    form:
+        position: Position
+        options: Options
+    field:
+        code: Code
+        parent: Parent
+        is_unique: Single page
+        is_hidden_from_search: Hidden from search
+        name: Name
+        prefix: URL prefix
+    help:
+        is_unique: Only one page can be put in this category.
+        prefix: "Blank: the category adds nothing to the URL of its pages (not allowed with sub-categories)."
+    placeholder:
+        parent: None (root)
+    status:
+        unique: Single page
+    action:
+        add_child: Add a child
+        move: Move
+    message:
+        no_items: No page category
+
 site:
     field:
         main_menu: Main menu

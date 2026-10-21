@@ -1,0 +1,136 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Gingerminds\CmsBundle\Repository\Page;
+
+use Doctrine\Persistence\ManagerRegistry;
+use Gingerminds\CmsBundle\Entity\Page\PageCategoryInterface;
+use Gingerminds\CoreBundle\Repository\AbstractRepository;
+use Symfony\Component\Form\FormInterface;
+
+/**
+ * @extends AbstractRepository<PageCategoryInterface>
+ */
+class PageCategoryRepository extends AbstractRepository
+{
+    /**
+     * @param class-string<PageCategoryInterface> $entityClass
+     */
+    public function __construct(ManagerRegistry $registry, string $entityClass)
+    {
+        parent::__construct($registry, $entityClass);
+    }
+
+    /**
+     * Every category of the current site with its translations, by a single query, children
+     * grouped by parent id (0: the roots), ordered by position then code.
+     *
+     * @return array<int, list<PageCategoryInterface>>
+     */
+    public function findTree(): array
+    {
+        /** @var list<PageCategoryInterface> $categories */
+        $categories = $this->createQueryBuilder('c')
+            ->addSelect('t', 'l')
+            ->leftJoin('c.translations', 't')
+            ->leftJoin('t.language', 'l')
+            ->orderBy('c.position')
+            ->addOrderBy('c.code')
+            ->getQuery()
+            ->getResult();
+
+        $children = [];
+
+        foreach ($categories as $category) {
+            $children[$category->getParent()?->getId() ?? 0][] = $category;
+        }
+
+        return $children;
+    }
+
+    /**
+     * The tree, depth-first, each category with its depth.
+     *
+     * @return list<array{PageCategoryInterface, int}>
+     */
+    public function findFlatTree(): array
+    {
+        $children = $this->findTree();
+        $flatten = static function (int $parentId, int $depth) use (&$flatten, $children): iterable {
+            foreach ($children[$parentId] ?? [] as $category) {
+                yield [$category, $depth];
+                yield from $flatten((int) $category->getId(), $depth + 1);
+            }
+        };
+
+        return iterator_to_array($flatten(0, 0), false);
+    }
+
+    /**
+     * Applies the order of one level of the tree: ids of other levels are ignored.
+     *
+     * @param list<int> $ids
+     */
+    public function reorder(?int $parentId, array $ids): void
+    {
+        $siblings = [];
+
+        foreach ($this->findBy(['parent' => $parentId]) as $category) {
+            $siblings[(int) $category->getId()] = $category;
+        }
+
+        foreach (array_values($ids) as $position => $id) {
+            if (isset($siblings[$id])) {
+                $siblings[$id]->setPosition($position);
+            }
+        }
+
+        $this->getEntityManager()->flush();
+    }
+
+    /**
+     * A new category, or one moved to another parent, goes to the end of its level.
+     */
+    protected function beforeSave(object $entity, ?FormInterface $form): void
+    {
+        if (!$entity instanceof PageCategoryInterface) {
+            return;
+        }
+
+        $original = $this->getEntityManager()->getUnitOfWork()->getOriginalEntityData($entity);
+
+        if ([] !== $original && ($original['parent'] ?? null) === $entity->getParent()) {
+            return;
+        }
+
+        $qb = $this->createQueryBuilder('c')->select('MAX(c.position)');
+        $parent = $entity->getParent();
+
+        if (!$parent instanceof PageCategoryInterface) {
+            $qb->andWhere('c.parent IS NULL');
+        } else {
+            $qb->andWhere('c.parent = :parent')->setParameter('parent', $parent->getId());
+        }
+
+        if (null !== $entity->getId()) {
+            $qb->andWhere('c.id <> :id')->setParameter('id', $entity->getId());
+        }
+
+        $max = $qb->getQuery()->getSingleScalarResult();
+        $entity->setPosition(null === $max ? 0 : (int) $max + 1);
+    }
+
+    /**
+     * The children of a deleted category move to the root (as `parent_id` ON DELETE SET NULL),
+     * whatever the database.
+     */
+    protected function beforeRemove(object $entity): void
+    {
+        if ($entity instanceof PageCategoryInterface) {
+            foreach ($entity->getChildren() as $child) {
+                $child->setParent(null);
+            }
+        }
+    }
+}

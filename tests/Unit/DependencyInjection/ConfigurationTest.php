@@ -24,6 +24,7 @@ final class ConfigurationTest extends TestCase
         self::assertSame(['disabled' => [], 'order' => []], $config['blocks']);
         self::assertSame(['entity' => null, 'controller' => null, 'form' => null], $config['resources']['menu']);
         self::assertSame(['entity' => null, 'controller' => null, 'form' => null], $config['resources']['menu_item']);
+        self::assertSame(['entity' => null, 'controller' => null, 'form' => null], $config['resources']['page_category']);
     }
 
     public function testCustomPresetsReplaceTheDefaults(): void

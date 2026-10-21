@@ -46,6 +46,38 @@ menu_item:
     message:
         no_items: Aucun élément dans ce menu
 
+page_category:
+    name_s: Catégorie de pages
+    name_p: Catégories de pages
+    manage: Gérer les catégories de pages
+    title_new: Ajouter une catégorie de pages
+    title_edit: Modifier une catégorie de pages
+    tab:
+        general: Général
+        translations: Traductions
+    form:
+        position: Position
+        options: Options
+    field:
+        code: Code
+        parent: Parent
+        is_unique: Page unique
+        is_hidden_from_search: Exclure de la recherche
+        name: Nom
+        prefix: Préfixe d'URL
+    help:
+        is_unique: Une seule page peut être rangée dans cette catégorie.
+        prefix: "Vide : la catégorie n'ajoute rien à l'URL de ses pages (interdit si elle a des sous-catégories)."
+    placeholder:
+        parent: Aucun (racine)
+    status:
+        unique: Page unique
+    action:
+        add_child: Ajouter un enfant
+        move: Déplacer
+    message:
+        no_items: Aucune catégorie de pages
+
 site:
     field:
         main_menu: Menu principal

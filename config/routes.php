@@ -11,4 +11,8 @@ return static function (RoutingConfigurator $routes): void {
         ->controller('%gingerminds_cms.resource.menu_item.controller%::reorder')
         ->requirements(['menuId' => Requirement::DIGITS])
         ->methods(['POST']);
+
+    $routes->add('gingerminds_cms_page_category_reorder', '/%gingerminds_core.admin_prefix%/page-categories/reorder')
+        ->controller('%gingerminds_cms.resource.page_category.controller%::reorder')
+        ->methods(['POST']);
 };

@@ -6,12 +6,16 @@ namespace Gingerminds\CmsBundle;
 
 use Gingerminds\CmsBundle\Controller\Menu\MenuController;
 use Gingerminds\CmsBundle\Controller\Menu\MenuItemController;
+use Gingerminds\CmsBundle\Controller\Page\PageCategoryController;
 use Gingerminds\CmsBundle\Entity\Menu\Menu;
 use Gingerminds\CmsBundle\Entity\Menu\MenuInterface;
 use Gingerminds\CmsBundle\Entity\Menu\MenuItem;
 use Gingerminds\CmsBundle\Entity\Menu\MenuItemInterface;
+use Gingerminds\CmsBundle\Entity\Page\PageCategory;
+use Gingerminds\CmsBundle\Entity\Page\PageCategoryInterface;
 use Gingerminds\CmsBundle\Form\Menu\MenuItemType;
 use Gingerminds\CmsBundle\Form\Menu\MenuType;
+use Gingerminds\CmsBundle\Form\Page\PageCategoryType;
 use Gingerminds\CmsBundle\Site\Entity\Site;
 use Gingerminds\CoreBundle\DependencyInjection\Compiler\OverriddenEntityPass;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -47,6 +51,14 @@ final class GingermindsCmsBundle extends AbstractBundle
             'form' => MenuItemType::class,
             'path' => 'menus/{menuId}/items',
             'permission' => 'menu_items',
+        ],
+        'page_category' => [
+            'entity' => PageCategory::class,
+            'interface' => PageCategoryInterface::class,
+            'controller' => PageCategoryController::class,
+            'form' => PageCategoryType::class,
+            'path' => 'page-categories',
+            'permission' => 'page_categories',
         ],
     ];
 
@@ -110,7 +122,10 @@ final class GingermindsCmsBundle extends AbstractBundle
             ];
         }
 
-        $mappings = ['GingermindsCmsMenu' => $this->mapping('Entity/Menu')];
+        $mappings = [
+            'GingermindsCmsMenu' => $this->mapping('Entity/Menu'),
+            'GingermindsCmsPage' => $this->mapping('Entity/Page'),
+        ];
 
         if (Site::class === $this->multisiteSiteEntity($builder)) {
             $mappings['GingermindsCmsSite'] = $this->mapping('Site/Entity');
@@ -127,7 +142,16 @@ final class GingermindsCmsBundle extends AbstractBundle
         // Prepended: the project configuration still overrides any key.
         $builder->prependExtensionConfig('gingerminds_core', [
             'resources' => $resources,
-            'admin_includes' => ['site_form_sidebar' => ['@GingermindsCms/site/_main_menu.html.twig']],
+            'admin_includes' => [
+                'head' => ['@GingermindsCms/admin/_head.html.twig'],
+                'site_form_sidebar' => ['@GingermindsCms/site/_main_menu.html.twig'],
+            ],
+        ]);
+
+        $builder->prependExtensionConfig('framework', [
+            'asset_mapper' => [
+                'paths' => [$this->getPath() . '/assets' => 'gingerminds-cms'],
+            ],
         ]);
     }
 

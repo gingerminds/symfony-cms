@@ -119,3 +119,5 @@ gingerminds_core:
         menu_form_sidebar: ['admin/_form_include.html.twig']
         menu_item_form_main: ['admin/_form_include.html.twig']
         menu_item_form_sidebar: ['admin/_form_include.html.twig']
+        page_category_form_main: ['admin/_form_include.html.twig']
+        page_category_form_sidebar: ['admin/_form_include.html.twig']

@@ -67,6 +67,7 @@ return static function (DefinitionConfigurator $definition): void {
         ->children();
     $resource($resources, 'menu', 'Menu');
     $resource($resources, 'menu_item', 'MenuItem');
+    $resource($resources, 'page_category', 'PageCategory');
     $resources->end()->end();
 
     $wysiwyg($children);

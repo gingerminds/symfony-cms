@@ -36,8 +36,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `children`), documenting the `X-Site-Id` and `Accept-Language` headers. `main_menu_id` in
   `GET /api/sites` (CMS site). With `gingerminds_multisite.translation_fallback: false`, an
   untranslated item keeps its place with null `name`, `url` and `description`.
+- Page categories: `PageCategory` (overridable `BasePageCategory`, `gingerminds_cms.resources.page_category.*`)
+  and `PageCategoryTranslation` (name, URL prefix), `page_categories` / `page_category_translations`
+  tables as `gingerminds/laravel-cms` plus `page_categories.position`. `getFullPath(language)`: the
+  prefixes of the category and of its ancestors (blank ones skipped). `is_unique` (enforced on the
+  pages later) and `is_hidden_from_search` (used by the search later) are already stored.
+- Admin tree of the page categories (`/admin/page-categories`, `view|edit|delete page_categories`
+  permissions, "CMS" admin menu section): drag & drop reordering of a level, "Add a child", General /
+  Translations tabs (`page_category_form_main|sidebar` form includes), the prefix in an input group
+  (`/<parent path>/` before, `/` after). Code unique per site; parent
+  in the tree of the site, without cycle; prefix in the slug format (`a-z`, `0-9`, `-`), unique per
+  language among the sibling categories (`UniqueSiblingPrefix`), blank allowed (stored as null)
+  unless the category has sub-categories. Deleting a category moves its children to the root.
+- `gm-cms-slug-sync` Stimulus controller (admin `head` include): fills a slug field from a source
+  field, `slug_overwrite.create|edit` (the category prefix from its name).
 
 ### Changed
 
-- Requires `gingerminds/symfony-core` ^1.8 (nested resources), `gingerminds/symfony-media-manager` ^1.1 and
+- CI: PHPUnit coverage (Xdebug, Clover report) sent to SonarQube, which now runs after the tests;
+  line coverage shown on the merge requests. `assets/` analysed by SonarQube.
+- Requires `gingerminds/symfony-core` ^1.9 (nested resources, input groups), `gingerminds/symfony-media-manager` ^1.1 and
   `gingerminds/symfony-multisite` ^1.2 (form include slots, `translation_fallback`).
