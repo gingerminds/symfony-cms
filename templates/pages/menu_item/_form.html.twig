@@ -27,7 +27,7 @@
 
 <div class="tab-content">
     <div class="tab-pane fade{{ active == 'general' ? ' show active' }}" id="menu-item-pane-general"
-         role="tabpanel" aria-labelledby="menu-item-tab-general" tabindex="0">
+         role="tabpanel" aria-labelledby="menu-item-tab-general">
         {% embed '@GingermindsCore/crud/_form_layout.html.twig' %}
             {% trans_default_domain 'GingermindsCms' %}
 
@@ -75,7 +75,7 @@
     </div>
 
     <div class="tab-pane fade{{ active == 'translations' ? ' show active' }}" id="menu-item-pane-translations"
-         role="tabpanel" aria-labelledby="menu-item-tab-translations" tabindex="0">
+         role="tabpanel" aria-labelledby="menu-item-tab-translations">
         <div class="card shadow-sm mb-4">
             <div class="card-body">
                 {{ form_widget(form.translations) }}

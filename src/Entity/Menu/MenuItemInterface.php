@@ -10,7 +10,7 @@ use Gingerminds\CoreBundle\Model\TimestampableInterface;
 use Gingerminds\MultisiteBundle\Model\SiteContextedInterface;
 use Gingerminds\MultisiteBundle\Model\TranslatableInterface;
 
-interface MenuItemInterface extends ResourceInterface, SiteContextedInterface, TranslatableInterface, TimestampableInterface, \Stringable
+interface MenuItemInterface extends ResourceInterface, SiteContextedInterface, TranslatableInterface, MenuItemLinkInterface, TimestampableInterface, \Stringable
 {
     public function getId(): ?int;
 
@@ -48,22 +48,6 @@ interface MenuItemInterface extends ResourceInterface, SiteContextedInterface, T
     public function getPosition(): int;
 
     public function setPosition(int $position): void;
-
-    public function isTargetBlank(): bool;
-
-    public function setTargetBlank(bool $targetBlank): void;
-
-    public function isNoReferrer(): bool;
-
-    public function setNoReferrer(bool $noReferrer): void;
-
-    public function isNoOpener(): bool;
-
-    public function setNoOpener(bool $noOpener): void;
-
-    public function isNoFollow(): bool;
-
-    public function setNoFollow(bool $noFollow): void;
 
     public function getName(): ?string;
 
