@@ -112,7 +112,10 @@ symfonycasts_sass:
     sass_options:
         load_path: ['%kernel.project_dir%/../../vendor/twbs']
 
-# MenuAdminTest: a form include gives the one-column menu form a right column.
+# MenuAdminTest: a form include gives the one-column menu form a right column;
+# MenuItemAdminTest: both columns of the General tab.
 gingerminds_core:
     admin_includes:
         menu_form_sidebar: ['admin/_form_include.html.twig']
+        menu_item_form_main: ['admin/_form_include.html.twig']
+        menu_item_form_sidebar: ['admin/_form_include.html.twig']

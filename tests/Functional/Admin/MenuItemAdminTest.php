@@ -82,6 +82,20 @@ final class MenuItemAdminTest extends ApiTestCase
         self::assertSame('/tondeuses', $item->getUrl());
     }
 
+    public function testTheGeneralTabEndsWithTheFormIncludes(): void
+    {
+        $item = $this->fixtures->menuItem($this->menu, 'home', ['fr' => 'Accueil']);
+        $this->client->loginUser($this->fixtures->user('editor@example.com', superAdmin: true), 'admin');
+
+        $crawler = $this->client->request('GET', $this->base() . '/' . $item->getId() . '/edit');
+
+        self::assertResponseIsSuccessful();
+        $pane = $crawler->filter('#menu-item-pane-general');
+        self::assertSame('home', $pane->filter('.col-lg-8 > .gm-test-form-include')->text());
+        self::assertSame('menu_item', $pane->filter('.col-lg-4 > .gm-test-form-include')->attr('data-form'));
+        self::assertCount(0, $crawler->filter('#menu-item-pane-translations .gm-test-form-include'));
+    }
+
     public function testTheNameIsRequiredInTheDefaultLanguage(): void
     {
         $this->client->loginUser($this->fixtures->user('editor@example.com', superAdmin: true), 'admin');
