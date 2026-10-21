@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Tests\Functional;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Gingerminds\CmsBundle\Entity\Menu\Menu;
+use Gingerminds\CmsBundle\Site\Entity\Site;
 use Gingerminds\CoreBundle\Entity\Permission\Permission;
 use Gingerminds\CoreBundle\Entity\Role\Role;
 use Gingerminds\CoreBundle\Entity\Security\ApiToken;
 use Gingerminds\CoreBundle\Entity\User\Contributor;
 use Gingerminds\CoreBundle\Entity\User\User;
 use Gingerminds\MultisiteBundle\Entity\Language\Language;
-use Gingerminds\MultisiteBundle\Entity\Site\Site;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final readonly class Fixtures
@@ -117,5 +118,16 @@ final readonly class Fixtures
         $this->entityManager->flush();
 
         return $site;
+    }
+
+    public function menu(string $code, Site $site): Menu
+    {
+        $menu = new Menu();
+        $menu->setCode($code);
+        $menu->setSite($site);
+        $this->entityManager->persist($menu);
+        $this->entityManager->flush();
+
+        return $menu;
     }
 }

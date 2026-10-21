@@ -12,17 +12,19 @@ Pour chaque étape : plan détaillé validé → implémentation → tests → `
 ## Décisions
 
 - Statut des pages : enum PHP `PageStatus` (`draft` / `published` / `archived`) + `symfony/workflow` pour les transitions (`published_at` / `archived_at`). Une base Laravel existante doit convertir ses noms de classe Spatie (requête documentée dans `docs/FromLaravel.md`).
-- Dépendances : `gingerminds/symfony-core` ^1.6, `gingerminds/symfony-media-manager` ^1.0, `gingerminds/symfony-multisite` ^1.0.
+- Dépendances : `gingerminds/symfony-core` ^1.7, `gingerminds/symfony-media-manager` ^1.1, `gingerminds/symfony-multisite` ^1.1.
+- Formulaires admin : layout du core (`@GingermindsCore/crud/_form_layout.html.twig`, blocs `main` / `sidebar`), chaque formulaire du bundle expose les slots `<ressource>_form_main` / `<ressource>_form_sidebar`. Les ajouts aux formulaires des autres bundles passent par leurs slots (ex. menu principal → `site_form_sidebar`).
 - Même schéma de base que Laravel (tables, colonnes, index), porté par le mapping Doctrine. Pas de migrations dans le bundle.
 - La migration de backfill `0027` (page_urls) devient une commande de resynchronisation des `PageUrl`.
 - `git init` et remotes faits par l'utilisateur.
+- Menu principal du site (ajout par rapport à Laravel) : colonne nullable `sites.main_menu_id`. Le projet déclare `gingerminds_multisite.resources.site.entity: Gingerminds\CmsBundle\Site\Entity\Site` (ou ajoute `SiteMainMenuTrait` à son propre Site). À documenter dans Installation et `FromLaravel.md` (étape 9).
 
 ## Étapes
 
 | Étape | Contenu | Branche | État |
 |---|---|---|---|
 | 0 | Squelette : `composer.json`, `GingermindsCmsBundle`, arbre de config (`wysiwyg.presets`, `slug_overwrite`, `blocks.disabled` / `blocks.order` ; `resources.*` et `search_resources` arrivent avec leurs étapes), routes, application de test (core + media-manager + multisite + cms, SQLite), `ApiTestCase` / `Fixtures`, `BundleBootTest` / `ConfigurationTest`, CI, Makefile, outils QA, README, CHANGELOG, LICENSE | `master` → 0.1.0 | ✅ |
-| 1 | Menus : entité `Menu` (site contexted), CRUD admin, voter, permissions, section du menu admin | `build` | ⬜ |
+| 1 | Menus : entité `Menu` (site contexted, `site_id` NOT NULL), CRUD admin, voter, permissions, section « CMS » du menu admin ; menu principal du site (`SiteMainMenuTrait`, Site du CMS, champ du formulaire site) | `build` | ✅ |
 | 2 | Éléments de menu : `MenuItem` + `MenuItemTranslation` (name, url, description, rel/target), arbre drag & drop (SortableJS), `reorder`, invalidation du cache ; API `GET /api/menus` avec l'arbre des éléments actifs | `build` | ⬜ |
 | 3 | Catégories de pages : `PageCategory` en arbre, traductions (name, prefix), `is_unique`, CRUD admin avec arbre, `PageCategoryUniquenessValidator` | `build` | ⬜ |
 | 4 | Pages (admin) : `Page` + `PageTranslation` (title, slug, hook, content JSON, visuel principal / vignette via `File`), statut enum + workflow, CRUD admin, filtres, modale « choisir une catégorie », synchro du slug (JS), bouton d'aperçu, libellé du statut | `build` | ⬜ |

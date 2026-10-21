@@ -96,6 +96,10 @@ security:
 gingerminds_multisite:
     translation:
         enabled: false
+    # The CMS site, with its main menu (the recommended setup).
+    resources:
+        site:
+            entity: Gingerminds\CmsBundle\Site\Entity\Site
 
 # In-memory files: nothing is written on disk by the tests.
 flysystem:
@@ -107,3 +111,8 @@ flysystem:
 symfonycasts_sass:
     sass_options:
         load_path: ['%kernel.project_dir%/../../vendor/twbs']
+
+# MenuAdminTest: a form include gives the one-column menu form a right column.
+gingerminds_core:
+    admin_includes:
+        menu_form_sidebar: ['admin/_form_include.html.twig']

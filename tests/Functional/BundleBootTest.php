@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Tests\Functional;
 
+use Gingerminds\CmsBundle\Entity\Menu\Menu;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 final class BundleBootTest extends ApiTestCase
@@ -19,12 +20,12 @@ final class BundleBootTest extends ApiTestCase
         self::assertFalse(self::getContainer()->getParameter('gingerminds_cms.slug_overwrite.edit'));
         self::assertSame([], self::getContainer()->getParameter('gingerminds_cms.blocks.disabled'));
         self::assertSame([], self::getContainer()->getParameter('gingerminds_cms.blocks.order'));
+        self::assertSame(Menu::class, self::getContainer()->getParameter('gingerminds_cms.resource.menu.entity'));
     }
 
     public function testAdminDashboardRenders(): void
     {
-        $language = $this->fixtures->language('fr');
-        $this->fixtures->site('main', [$language], $language);
+        $this->site('main');
 
         $this->client->loginUser($this->fixtures->user('admin@example.com', superAdmin: true), 'admin');
         $this->client->request('GET', '/admin/');

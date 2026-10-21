@@ -1,0 +1,21 @@
+admin_menu:
+    cms: CMS
+
+menu:
+    name_s: Menu
+    name_p: Menus
+    manage: Manage menus
+    title_new: Add a menu
+    title_edit: Edit a menu
+    field:
+        code: Code
+    message:
+        no_items: No menu
+
+site:
+    field:
+        main_menu: Main menu
+    help:
+        main_menu_empty: No menu for this site. Create one in CMS › Menus.
+    placeholder:
+        main_menu: None

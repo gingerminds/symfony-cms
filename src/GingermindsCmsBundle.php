@@ -4,8 +4,18 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle;
 
+use Gingerminds\CmsBundle\Controller\Menu\MenuController;
+use Gingerminds\CmsBundle\Entity\Menu\Menu;
+use Gingerminds\CmsBundle\Entity\Menu\MenuInterface;
+use Gingerminds\CmsBundle\Form\Menu\MenuType;
+use Gingerminds\CmsBundle\Site\Entity\Site;
+use Gingerminds\CoreBundle\DependencyInjection\Compiler\OverriddenEntityPass;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
+use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Exception\LogicException;
+use Symfony\Component\DependencyInjection\Extension\ConfigurationExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 
@@ -14,6 +24,20 @@ use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
  */
 final class GingermindsCmsBundle extends AbstractBundle
 {
+    /**
+     * Overridable entities of the bundle, registered as `gingerminds_core` resources.
+     */
+    public const array RESOURCES = [
+        'menu' => [
+            'entity' => Menu::class,
+            'interface' => MenuInterface::class,
+            'controller' => MenuController::class,
+            'form' => MenuType::class,
+            'path' => 'menus',
+            'permission' => 'menus',
+        ],
+    ];
+
     public const string TRANSLATION_DOMAIN = 'GingermindsCms';
 
     protected string $extensionAlias = 'gingerminds_cms';
@@ -41,5 +65,119 @@ final class GingermindsCmsBundle extends AbstractBundle
         $parameters->set('gingerminds_cms.slug_overwrite.edit', $config['slug_overwrite']['edit']);
         $parameters->set('gingerminds_cms.blocks.disabled', $config['blocks']['disabled']);
         $parameters->set('gingerminds_cms.blocks.order', $config['blocks']['order']);
+
+        foreach (self::RESOURCES as $name => $resource) {
+            $entity = $this->resourceValue($config, $name, 'entity');
+            $parameters->set('gingerminds_cms.resource.' . $name . '.entity', $entity);
+
+            if ($entity !== $resource['entity']) {
+                OverriddenEntityPass::registerOverriddenEntity($builder, $resource['entity']);
+            }
+        }
+    }
+
+    public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
+    {
+        $config = $this->resolveConfig($builder);
+        $resolveTargetEntities = [];
+        $resources = [];
+
+        foreach (self::RESOURCES as $name => $resource) {
+            $resolveTargetEntities[$resource['interface']] = $this->resourceValue($config, $name, 'entity');
+            $resources[$name] = [
+                'entity' => $this->resourceValue($config, $name, 'entity'),
+                'controller' => $this->resourceValue($config, $name, 'controller'),
+                'form' => $this->resourceValue($config, $name, 'form'),
+                'path' => $resource['path'],
+                'permission' => $resource['permission'],
+                'route_prefix' => 'gingerminds_cms_' . $name,
+                'translation_prefix' => $name,
+                'translation_domain' => self::TRANSLATION_DOMAIN,
+                'template_prefix' => '@GingermindsCms/pages/' . $name,
+            ];
+        }
+
+        $mappings = ['GingermindsCmsMenu' => $this->mapping('Entity/Menu')];
+
+        if (Site::class === $this->multisiteSiteEntity($builder)) {
+            $mappings['GingermindsCmsSite'] = $this->mapping('Site/Entity');
+            $builder->prependExtensionConfig('api_platform', ['mapping' => ['paths' => [$this->getPath() . '/src/Site/Entity']]]);
+        }
+
+        $builder->prependExtensionConfig('doctrine', [
+            'orm' => [
+                'resolve_target_entities' => $resolveTargetEntities,
+                'mappings' => $mappings,
+            ],
+        ]);
+
+        // Prepended: the project configuration still overrides any key.
+        $builder->prependExtensionConfig('gingerminds_core', [
+            'resources' => $resources,
+            'admin_includes' => ['site_form_sidebar' => ['@GingermindsCms/site/_main_menu.html.twig']],
+        ]);
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function resourceValue(array $config, string $name, string $key): string
+    {
+        $value = $config['resources'][$name][$key] ?? null;
+
+        return \is_string($value) && '' !== $value ? $value : self::RESOURCES[$name][$key];
+    }
+
+    /**
+     * The bundle configuration needed while prepending: the other keys may hold env placeholders.
+     *
+     * @return array<string, mixed>
+     */
+    private function resolveConfig(ContainerBuilder $builder): array
+    {
+        $extension = $this->getContainerExtension();
+        $configuration = $extension instanceof ConfigurationExtensionInterface ? $extension->getConfiguration([], $builder) : null;
+
+        if (!$configuration instanceof ConfigurationInterface) {
+            throw new LogicException('The GingermindsCmsBundle configuration cannot be resolved.');
+        }
+
+        $configs = array_map(
+            static fn (array $config): array => array_intersect_key($config, ['resources' => true]),
+            $builder->getExtensionConfig($this->extensionAlias),
+        );
+
+        return new Processor()->processConfiguration($configuration, $builder->getParameterBag()->resolveValue($configs));
+    }
+
+    /**
+     * `gingerminds_multisite.resources.site.entity` of the project configuration (the last one wins).
+     */
+    private function multisiteSiteEntity(ContainerBuilder $builder): ?string
+    {
+        $entity = null;
+
+        foreach ($builder->getExtensionConfig('gingerminds_multisite') as $config) {
+            $value = $config['resources']['site']['entity'] ?? null;
+
+            if (\is_string($value) && '' !== $value) {
+                $entity = $builder->getParameterBag()->resolveValue($value);
+            }
+        }
+
+        return \is_string($entity) ? ltrim($entity, '\\') : null;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function mapping(string $directory): array
+    {
+        return [
+            'type' => 'attribute',
+            'is_bundle' => false,
+            'dir' => $this->getPath() . '/src/' . $directory,
+            'prefix' => 'Gingerminds\\CmsBundle\\' . str_replace('/', '\\', $directory),
+        ];
     }
 }

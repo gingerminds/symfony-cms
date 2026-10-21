@@ -28,6 +28,20 @@ gingerminds_cms:
     resource: '@GingermindsCmsBundle/config/routes.php'
 ```
 
+Use the CMS site (it adds the main menu of a site) as the multisite `Site` entity:
+
+```yaml
+# config/packages/gingerminds_multisite.yaml
+gingerminds_multisite:
+    resources:
+        site:
+            entity: Gingerminds\CmsBundle\Site\Entity\Site
+```
+
+A project overriding `Site` itself adds `SiteMainMenuTrait` and `SiteMainMenuInterface` to its entity instead.
+
+Then generate the migration and sync the permissions (`bin/console gingerminds:permissions:sync`).
+
 ## Development
 
 ```bash

@@ -44,7 +44,29 @@ return static function (DefinitionConfigurator $definition): void {
             ->end();
     };
 
+    $resource = static function (NodeBuilder $children, string $name, string $baseClass): void {
+        $children
+            ->arrayNode($name)
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->scalarNode('entity')
+                        ->info('Entity class, extending the bundle Base' . $baseClass . ' (null: the bundle one).')
+                        ->defaultNull()
+                    ->end()
+                    ->scalarNode('controller')->defaultNull()->end()
+                    ->scalarNode('form')->defaultNull()->end()
+                ->end()
+            ->end();
+    };
+
     $children = $definition->rootNode()->children();
+
+    $resources = $children->arrayNode('resources')
+        ->info('Overridable resources of the bundle, registered as gingerminds_core resources.')
+        ->addDefaultsIfNotSet()
+        ->children();
+    $resource($resources, 'menu', 'Menu');
+    $resources->end()->end();
 
     $wysiwyg($children);
 

@@ -33,6 +33,10 @@ final class Kernel extends BaseKernel
     {
         $container->import(__DIR__ . '/config/packages.yaml');
         $container->import(__DIR__ . '/config/services.yaml');
+
+        if ('bundle_site' === $this->environment) {
+            $container->import(__DIR__ . '/config/bundle_site.yaml');
+        }
     }
 
     protected function configureRoutes(RoutingConfigurator $routes): void
