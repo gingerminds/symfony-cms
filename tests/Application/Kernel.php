@@ -37,6 +37,10 @@ final class Kernel extends BaseKernel
         if ('bundle_site' === $this->environment) {
             $container->import(__DIR__ . '/config/bundle_site.yaml');
         }
+
+        if ('test_no_fallback' === $this->environment) {
+            $container->import(__DIR__ . '/config/no_fallback.yaml');
+        }
     }
 
     protected function configureRoutes(RoutingConfigurator $routes): void
@@ -62,7 +66,7 @@ final class Kernel extends BaseKernel
         yield new GingermindsMultisiteBundle();
         yield new GingermindsCmsBundle();
 
-        if ('test' === $this->environment) {
+        if (str_starts_with($this->environment, 'test')) {
             yield new DAMADoctrineTestBundle();
         }
     }

@@ -66,6 +66,7 @@ return static function (DefinitionConfigurator $definition): void {
         ->addDefaultsIfNotSet()
         ->children();
     $resource($resources, 'menu', 'Menu');
+    $resource($resources, 'menu_item', 'MenuItem');
     $resources->end()->end();
 
     $wysiwyg($children);

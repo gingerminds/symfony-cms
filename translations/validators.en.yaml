@@ -1,3 +1,6 @@
 gingerminds_cms:
     menu:
         no_site: No current site. Create a site before adding a menu.
+    menu_item:
+        parent_other_menu: The parent must belong to the same menu.
+        parent_cycle: An item cannot be placed under itself nor under one of its children.

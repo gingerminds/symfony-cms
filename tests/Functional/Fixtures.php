@@ -6,6 +6,8 @@ namespace Gingerminds\CmsBundle\Tests\Functional;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Gingerminds\CmsBundle\Entity\Menu\Menu;
+use Gingerminds\CmsBundle\Entity\Menu\MenuItem;
+use Gingerminds\CmsBundle\Entity\Menu\MenuItemTranslation;
 use Gingerminds\CmsBundle\Site\Entity\Site;
 use Gingerminds\CoreBundle\Entity\Permission\Permission;
 use Gingerminds\CoreBundle\Entity\Role\Role;
@@ -129,5 +131,32 @@ final readonly class Fixtures
         $this->entityManager->flush();
 
         return $menu;
+    }
+
+    /**
+     * @param array<string, string> $names name by language iso (languages created on demand)
+     */
+    public function menuItem(Menu $menu, string $code, array $names = [], ?MenuItem $parent = null, bool $active = true, int $position = 0, ?string $url = null): MenuItem
+    {
+        $item = new MenuItem();
+        $item->setMenu($menu);
+        $item->setCode($code);
+        $item->setParent($parent);
+        $item->setActive($active);
+        $item->setPosition($position);
+
+        foreach ($names as $iso => $name) {
+            $language = $this->entityManager->getRepository(Language::class)->findOneBy(['iso' => $iso]) ?? $this->language($iso);
+            $translation = new MenuItemTranslation();
+            $translation->setLanguage($language);
+            $translation->setName($name);
+            $translation->setUrl($url);
+            $item->addTranslation($translation);
+        }
+
+        $this->entityManager->persist($item);
+        $this->entityManager->flush();
+
+        return $item;
     }
 }

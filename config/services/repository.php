@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use Gingerminds\CmsBundle\Repository\Menu\MenuItemRepository;
 use Gingerminds\CmsBundle\Repository\Menu\MenuRepository;
 
 /*
@@ -17,4 +18,10 @@ return static function (ContainerConfigurator $container): void {
         ->call('setFilterHandlerRegistry', [service('gingerminds_core.filter_handler_registry')])
         ->tag('doctrine.repository_service');
     $services->alias('gingerminds_cms.repository.menu', MenuRepository::class);
+
+    $services->set(MenuItemRepository::class)
+        ->args([service('doctrine'), param('gingerminds_cms.resource.menu_item.entity')])
+        ->call('setFilterHandlerRegistry', [service('gingerminds_core.filter_handler_registry')])
+        ->tag('doctrine.repository_service');
+    $services->alias('gingerminds_cms.repository.menu_item', MenuItemRepository::class);
 };

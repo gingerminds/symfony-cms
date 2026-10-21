@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Tests\Functional;
 
 use Gingerminds\CmsBundle\Entity\Menu\Menu;
+use Gingerminds\CmsBundle\Entity\Menu\MenuItem;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 final class BundleBootTest extends ApiTestCase
@@ -21,6 +22,7 @@ final class BundleBootTest extends ApiTestCase
         self::assertSame([], self::getContainer()->getParameter('gingerminds_cms.blocks.disabled'));
         self::assertSame([], self::getContainer()->getParameter('gingerminds_cms.blocks.order'));
         self::assertSame(Menu::class, self::getContainer()->getParameter('gingerminds_cms.resource.menu.entity'));
+        self::assertSame(MenuItem::class, self::getContainer()->getParameter('gingerminds_cms.resource.menu_item.entity'));
     }
 
     public function testAdminDashboardRenders(): void

@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle;
 
 use Gingerminds\CmsBundle\Controller\Menu\MenuController;
+use Gingerminds\CmsBundle\Controller\Menu\MenuItemController;
 use Gingerminds\CmsBundle\Entity\Menu\Menu;
 use Gingerminds\CmsBundle\Entity\Menu\MenuInterface;
+use Gingerminds\CmsBundle\Entity\Menu\MenuItem;
+use Gingerminds\CmsBundle\Entity\Menu\MenuItemInterface;
+use Gingerminds\CmsBundle\Form\Menu\MenuItemType;
 use Gingerminds\CmsBundle\Form\Menu\MenuType;
 use Gingerminds\CmsBundle\Site\Entity\Site;
 use Gingerminds\CoreBundle\DependencyInjection\Compiler\OverriddenEntityPass;
@@ -35,6 +39,14 @@ final class GingermindsCmsBundle extends AbstractBundle
             'form' => MenuType::class,
             'path' => 'menus',
             'permission' => 'menus',
+        ],
+        'menu_item' => [
+            'entity' => MenuItem::class,
+            'interface' => MenuItemInterface::class,
+            'controller' => MenuItemController::class,
+            'form' => MenuItemType::class,
+            'path' => 'menus/{menuId}/items',
+            'permission' => 'menu_items',
         ],
     ];
 
@@ -69,6 +81,7 @@ final class GingermindsCmsBundle extends AbstractBundle
         foreach (self::RESOURCES as $name => $resource) {
             $entity = $this->resourceValue($config, $name, 'entity');
             $parameters->set('gingerminds_cms.resource.' . $name . '.entity', $entity);
+            $parameters->set('gingerminds_cms.resource.' . $name . '.controller', $this->resourceValue($config, $name, 'controller'));
 
             if ($entity !== $resource['entity']) {
                 OverriddenEntityPass::registerOverriddenEntity($builder, $resource['entity']);

@@ -23,6 +23,7 @@ final class ConfigurationTest extends TestCase
         self::assertSame(['create' => true, 'edit' => false], $config['slug_overwrite']);
         self::assertSame(['disabled' => [], 'order' => []], $config['blocks']);
         self::assertSame(['entity' => null, 'controller' => null, 'form' => null], $config['resources']['menu']);
+        self::assertSame(['entity' => null, 'controller' => null, 'form' => null], $config['resources']['menu_item']);
     }
 
     public function testCustomPresetsReplaceTheDefaults(): void

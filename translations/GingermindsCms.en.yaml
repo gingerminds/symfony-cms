@@ -12,6 +12,40 @@ menu:
     message:
         no_items: No menu
 
+menu_item:
+    name_s: Menu item
+    name_p: Items
+    manage: Manage the menu items
+    title_index: Items of the "%menu%" menu
+    title_new: Add a menu item
+    title_edit: Edit a menu item
+    tab:
+        general: General
+        translations: Translations
+    form:
+        position: Position
+        link: Link
+    field:
+        code: Code
+        is_active: Active
+        parent: Parent
+        is_target_blank: Open in a new tab
+        is_no_referrer: noreferrer
+        is_no_opener: noopener
+        is_no_follow: nofollow
+        name: Name
+        url: URL
+        description: Description
+    placeholder:
+        parent: None (root)
+    status:
+        inactive: Inactive
+    action:
+        add_child: Add a child
+        move: Move
+    message:
+        no_items: No item in this menu
+
 site:
     field:
         main_menu: Main menu

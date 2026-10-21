@@ -12,6 +12,40 @@ menu:
     message:
         no_items: Aucun menu
 
+menu_item:
+    name_s: Élément de menu
+    name_p: Éléments
+    manage: Gérer les éléments du menu
+    title_index: Éléments du menu « %menu% »
+    title_new: Ajouter un élément de menu
+    title_edit: Modifier un élément de menu
+    tab:
+        general: Général
+        translations: Traductions
+    form:
+        position: Position
+        link: Lien
+    field:
+        code: Code
+        is_active: Actif
+        parent: Parent
+        is_target_blank: Ouvrir dans un nouvel onglet
+        is_no_referrer: noreferrer
+        is_no_opener: noopener
+        is_no_follow: nofollow
+        name: Nom
+        url: URL
+        description: Description
+    placeholder:
+        parent: Aucun (racine)
+    status:
+        inactive: Inactif
+    action:
+        add_child: Ajouter un enfant
+        move: Déplacer
+    message:
+        no_items: Aucun élément dans ce menu
+
 site:
     field:
         main_menu: Menu principal
