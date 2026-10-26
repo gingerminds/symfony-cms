@@ -11,7 +11,8 @@ Pour chaque étape : plan détaillé validé → implémentation → tests → `
 
 ## Décisions
 
-- Statut des pages : enum PHP `PageStatus` (`draft` / `published` / `archived`) + `symfony/workflow` pour les transitions (`published_at` / `archived_at`). Une base Laravel existante doit convertir ses noms de classe Spatie (requête documentée dans `docs/FromLaravel.md`).
+- Statut des pages : chaîne pilotée par le workflow `gingerminds_cms_publication` (`symfony/workflow`, places `draft` / `published` / `archived` en constantes `PublicationStatus`), extensible par un projet (places et transitions ajoutées dans sa config) et réutilisable par toute ressource `PublishableInterface` (`PublicationStatusType`, badge `publication/_status.html.twig`, libellés `publication.status.*`). Une base Laravel existante doit convertir ses noms de classe Spatie (requête documentée dans `docs/FromLaravel.md`).
+- Slug des pages unique par site, langue et catégorie (slug vide compris) : l'index Laravel (`site_id`, `language_id`, `slug`) n'est pas repris.
 - Dépendances : `gingerminds/symfony-core` ^1.9, `gingerminds/symfony-media-manager` ^1.1, `gingerminds/symfony-multisite` ^1.2.
 - Traductions dans l'API : option `gingerminds_multisite.translation_fallback` (multisite 1.2). `true` (défaut, comme Laravel) : repli sur la langue par défaut du site ; `false` : champs traduits à `null`, lignes conservées. Admin toujours avec repli. Chaque ressource traduite est testée dans les deux modes (environnement de test `test_no_fallback`).
 - Ressources imbriquées (éléments d'un menu…) : `path: 'menus/{menuId}/items'`, le core 1.8 garde les paramètres de route dans les redirections et les templates (`getRouteParameters()`).
@@ -29,7 +30,7 @@ Pour chaque étape : plan détaillé validé → implémentation → tests → `
 | 1 | Menus : entité `Menu` (site contexted, `site_id` NOT NULL), CRUD admin, voter, permissions, section « CMS » du menu admin ; menu principal du site (`SiteMainMenuTrait`, Site du CMS, champ du formulaire site) | `build` | ✅ |
 | 2 | Éléments de menu : `MenuItem` + `MenuItemTranslation` (name, url, description, rel/target), ressource imbriquée `/admin/menus/{menuId}/items` (core 1.8), arbre drag & drop, `reorder`, invalidation du cache ; API `GET /api/menus` avec l'arbre des éléments actifs, `main_menu_id` dans `GET /api/sites` | `build` | ✅ |
 | 3 | Catégories de pages : `PageCategory` en arbre (+ `position`, glisser-déposer), traductions (name, prefix au format slug, unique entre sœurs, obligatoire avec des sous-catégories), `is_unique` et `is_hidden_from_search` stockés, CRUD admin avec arbre, contrôleur Stimulus `gm-cms-slug-sync` | `build` | ✅ |
-| 4 | Pages (admin) : `Page` + `PageTranslation` (title, slug, hook, content JSON, visuel principal / vignette via `File`), statut enum + workflow, CRUD admin, filtres, modale « choisir une catégorie », synchro du slug (JS), bouton d'aperçu, libellé du statut, règle « page unique » des catégories (`PageCategoryUniquenessValidator`) | `build` | ⬜ |
+| 4 | Pages (admin) : `Page` + `PageTranslation` (title, slug unique par catégorie, hook, content, visuels via `FilePickerType`), workflow de publication extensible, CRUD admin, filtres, modale « choisir une catégorie », slug en input group et synchronisé, aperçu par langue, règle « page unique » des catégories | `build` | ✅ |
 | 5 | URL et API des pages : `PageUrl` + `PageUrlSyncer` (listener Doctrine), collisions d'URL, commande de resynchronisation ; API pages par id / chemin / code, filtres (équivalent `InjectPageFiltersMiddleware`) | `build` | ⬜ |
 | 6 | WYSIWYG : `WysiwygType` + contrôleur Stimulus TipTap, presets configurables, assets via le slot `head` du core | `build` | ⬜ |
 | 7a | Système de blocs : `BlockInterface` / `AbstractBlock`, registre (services tagués), formulaire depuis le schéma de champs, validation, aperçus Twig, `PageBlockController` (form / validate), répéteur, copie de structure entre langues, bloc TitleText, maker `make:gm:cms-block` | `build` | ⬜ |
@@ -44,5 +45,7 @@ Légende : ⬜ à faire · 🔄 en cours · ✅ commité
 - Étape 6 : remplacer le textarea de la description des éléments de menu par le `WysiwygType`.
 - Étape 5 : resynchroniser les `PageUrl` à la modification / suppression d'une catégorie (Laravel `PageUrlSyncer::syncCategorySubtree()`).
 - Étape 8 : effet de `is_hidden_from_search` des catégories (exclusion en cascade de leurs pages).
+- Étape 7 : champ `content` (blocs) dans le formulaire des pages ; étape 6 : hook en WYSIWYG.
+- Étape 9 (`FromLaravel.md`) : écarts volontaires des pages — `status` en chaîne (requête de conversion des noms de classe Spatie), index unique du slug remplacé par l'unicité par catégorie, FK `files` en RESTRICT, aperçu dans la colonne de droite.
 - Étape 9 (`FromLaravel.md`) : écarts volontaires des catégories — colonne `position` (ordre de secours : code), format du préfixe validé côté serveur, préfixe obligatoire si sous-catégories.
 - Étape 9 (`FromLaravel.md`) : écarts volontaires des éléments de menu — parent limité au même menu et sans cycle, plus de champ « position » (glisser-déposer, fin de niveau), `is_no_follow` réellement validé ; `main_menu_id` dans l'API des sites.

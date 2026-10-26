@@ -68,6 +68,7 @@ return static function (DefinitionConfigurator $definition): void {
     $resource($resources, 'menu', 'Menu');
     $resource($resources, 'menu_item', 'MenuItem');
     $resource($resources, 'page_category', 'PageCategory');
+    $resource($resources, 'page', 'Page');
     $resources->end()->end();
 
     $wysiwyg($children);
@@ -94,6 +95,19 @@ return static function (DefinitionConfigurator $definition): void {
                     ->useAttributeAsKey('key')
                     ->normalizeKeys(false)
                     ->integerPrototype()->end()
+                ->end()
+            ->end()
+        ->end()
+        ->arrayNode('publication')
+            ->info('Publication workflow of the pages and of the other PublishableInterface resources.')
+            ->addDefaultsIfNotSet()
+            ->children()
+                ->arrayNode('status_colors')
+                    ->info('Bootstrap color of the status badges by workflow place (secondary for the others).')
+                    ->useAttributeAsKey('status')
+                    ->normalizeKeys(false)
+                    ->scalarPrototype()->cannotBeEmpty()->end()
+                    ->defaultValue(['draft' => 'primary', 'published' => 'success', 'archived' => 'warning'])
                 ->end()
             ->end()
         ->end();

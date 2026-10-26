@@ -1,0 +1,88 @@
+{#
+ # Page form: General tab (core form layout, `page_form_main|sidebar` form includes) and
+ # Translations tab (language tabs). A tab with errors is red, the first invalid one is open.
+ #}
+{% trans_default_domain 'GingermindsCms' %}
+{% set general_valid = form.children|filter((child, name) => name != 'translations' and not child.vars.valid) is empty %}
+{% set tabs = [
+    {id: 'general', label: 'page.tab.general'|trans, valid: general_valid},
+    {id: 'translations', label: 'page.tab.translations'|trans, valid: form.translations.vars.valid},
+] %}
+{% set active = general_valid and not form.translations.vars.valid ? 'translations' : 'general' %}
+
+{{ form_errors(form) }}
+
+<nav class="mb-3">
+    <div class="nav nav-tabs" role="tablist">
+        {% for tab in tabs %}
+            <button type="button" class="nav-link{{ tab.id == active ? ' active' }}{{ tab.valid ? '' : ' text-danger' }}"
+                    id="page-tab-{{ tab.id }}" data-bs-toggle="tab" data-bs-target="#page-pane-{{ tab.id }}"
+                    role="tab" aria-controls="page-pane-{{ tab.id }}" aria-selected="{{ tab.id == active ? 'true' : 'false' }}">
+                {{- tab.label -}}
+                {%- if not tab.valid %} <i class="bi bi-exclamation-circle" aria-hidden="true"></i>{% endif -%}
+            </button>
+        {% endfor %}
+    </div>
+</nav>
+
+<div class="tab-content">
+    <div class="tab-pane fade{{ active == 'general' ? ' show active' }}" id="page-pane-general"
+         role="tabpanel" aria-labelledby="page-tab-general">
+        {% embed '@GingermindsCore/crud/_form_layout.html.twig' %}
+            {% trans_default_domain 'GingermindsCms' %}
+
+            {% block main %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header py-3">
+                        <h5 class="card-title mb-0"><i class="bi bi-file-earmark-text me-1 text-primary"></i> {{ 'page.name_s'|trans }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            {{ form_row(form.code) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header py-3">
+                        <h5 class="card-title mb-0"><i class="bi bi-image me-1 text-primary"></i> {{ 'page.form.visuals'|trans }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            {{ form_row(form.mainVisual, {size_columns: 6}) }}
+                            {{ form_row(form.thumbnail, {size_columns: 6}) }}
+                        </div>
+                    </div>
+                </div>
+            {% endblock %}
+
+            {% block sidebar %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header py-3">
+                        <h5 class="card-title mb-0"><i class="bi bi-send me-1 text-primary"></i> {{ 'page.form.publication'|trans }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            {{ form_row(form.status) }}
+                            {% if entity.publishedAt %}
+                                <div class="col-12 small text-muted">{{ 'page.field.published_at'|trans }} : {{ entity.publishedAt|date('d/m/Y H:i') }}</div>
+                            {% endif %}
+                            {{ form_row(form.category) }}
+                            {{ form_row(form.hiddenFromSearch) }}
+                        </div>
+                    </div>
+                </div>
+            {% endblock %}
+        {% endembed %}
+    </div>
+
+    <div class="tab-pane fade{{ active == 'translations' ? ' show active' }}" id="page-pane-translations"
+         role="tabpanel" aria-labelledby="page-tab-translations">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                {{ form_widget(form.translations) }}
+                {{ form_errors(form.translations) }}
+            </div>
+        </div>
+    </div>
+</div>

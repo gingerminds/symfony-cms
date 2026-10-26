@@ -49,11 +49,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   language among the sibling categories (`UniqueSiblingPrefix`), blank allowed (stored as null)
   unless the category has sub-categories. Deleting a category moves its children to the root.
 - `gm-cms-slug-sync` Stimulus controller (admin `head` include): fills a slug field from a source
-  field, `slug_overwrite.create|edit` (the category prefix from its name).
+  field, `slug_overwrite.create|edit` (without overwrite, a saved or hand typed slug is kept, the
+  one it generated keeps following the source; the category prefix from its name); the letters without
+  Unicode decomposition are transliterated (`œ` → `oe`, `ß` → `ss`...).
+- Pages: `Page` (overridable `BasePage`, `gingerminds_cms.resources.page.*`) and `PageTranslation`
+  (title, slug, hook, content, visuals overriding the page ones), `pages` / `page_translations` tables
+  as `gingerminds/laravel-cms` but the `status` column (a string, see below) and the
+  (`site_id`, `language_id`, `slug`) unique index (replaced by `UniqueSlugInCategory`: a slug, blank
+  included, is unique per language among the pages of the same category). Visuals picked in the
+  file library (`FilePickerType`), `files` foreign keys `RESTRICT`; a file used by a translation
+  shows the page as its usage. `getFullPath(language)`: the category path and the slug.
+- Publication workflow `gingerminds_cms_publication` (`symfony/workflow` state machine on
+  `PublishableInterface` / `PublishableTrait`, reusable by any resource): `draft`, `published`,
+  `archived` places (`PublicationStatus`), `publish` / `unpublish` / `archive` / `restore`
+  transitions as Laravel, `published_at` / `archived_at` set on entering the places. A project adds
+  its own places and transitions in its `framework.workflows.gingerminds_cms_publication`
+  configuration (merged with the bundle one). `PublicationStatusType` (status among the enabled
+  transitions, applied on submit), `@GingermindsCms/publication/_status.html.twig` badge
+  (`gm_cms_status_color()`, `gingerminds_cms.publication.status_colors`), labels
+  `publication.status.<place>`, `PublicationStatus::labels()` for the filters.
+- Admin pages (`/admin/pages`, `view|edit|delete pages` permissions, first entry of the "CMS"
+  section): list with title, category and status, publication date / status / category filters,
+  search on the code and the title, "Add a page" choosing the category first (`?category_id=`).
+  General / Translations tabs (`page_form_main|sidebar` form includes): status among the enabled
+  transitions, category, visuals, slug in an input group after the category path and slugified
+  from the title, front preview links per language and front URL. A category flagged `is_unique`
+  holds one page (`SinglePageCategory`).
+- Layout of each language of the translations (form theme `@GingermindsCms/form/translations_theme.html.twig`,
+  `<type>_widget` blocks with the core form layout): main column and sidebar per language for the
+  pages (preview, hook and visuals in the sidebar), `page_translation_form_main|sidebar`,
+  `page_category_translation_form_*` and `menu_item_translation_form_*` form includes; the fields
+  added without include are rendered at the end.
 
 ### Changed
 
 - CI: PHPUnit coverage (Xdebug, Clover report) sent to SonarQube, which now runs after the tests;
   line coverage shown on the merge requests. `assets/` analysed by SonarQube.
-- Requires `gingerminds/symfony-core` ^1.9 (nested resources, input groups), `gingerminds/symfony-media-manager` ^1.1 and
+- Requires `symfony/workflow` ^8.1, `gingerminds/symfony-core` ^1.9 (nested resources, input groups), `gingerminds/symfony-media-manager` ^1.1 and
   `gingerminds/symfony-multisite` ^1.2 (form include slots, `translation_fallback`).

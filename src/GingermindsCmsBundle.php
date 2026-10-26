@@ -7,15 +7,21 @@ namespace Gingerminds\CmsBundle;
 use Gingerminds\CmsBundle\Controller\Menu\MenuController;
 use Gingerminds\CmsBundle\Controller\Menu\MenuItemController;
 use Gingerminds\CmsBundle\Controller\Page\PageCategoryController;
+use Gingerminds\CmsBundle\Controller\Page\PageController;
 use Gingerminds\CmsBundle\Entity\Menu\Menu;
 use Gingerminds\CmsBundle\Entity\Menu\MenuInterface;
 use Gingerminds\CmsBundle\Entity\Menu\MenuItem;
 use Gingerminds\CmsBundle\Entity\Menu\MenuItemInterface;
+use Gingerminds\CmsBundle\Entity\Page\Page;
 use Gingerminds\CmsBundle\Entity\Page\PageCategory;
 use Gingerminds\CmsBundle\Entity\Page\PageCategoryInterface;
+use Gingerminds\CmsBundle\Entity\Page\PageInterface;
 use Gingerminds\CmsBundle\Form\Menu\MenuItemType;
 use Gingerminds\CmsBundle\Form\Menu\MenuType;
 use Gingerminds\CmsBundle\Form\Page\PageCategoryType;
+use Gingerminds\CmsBundle\Form\Page\PageType;
+use Gingerminds\CmsBundle\Model\PublicationStatus;
+use Gingerminds\CmsBundle\Model\PublishableInterface;
 use Gingerminds\CmsBundle\Site\Entity\Site;
 use Gingerminds\CoreBundle\DependencyInjection\Compiler\OverriddenEntityPass;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -60,6 +66,14 @@ final class GingermindsCmsBundle extends AbstractBundle
             'path' => 'page-categories',
             'permission' => 'page_categories',
         ],
+        'page' => [
+            'entity' => Page::class,
+            'interface' => PageInterface::class,
+            'controller' => PageController::class,
+            'form' => PageType::class,
+            'path' => 'pages',
+            'permission' => 'pages',
+        ],
     ];
 
     public const string TRANSLATION_DOMAIN = 'GingermindsCms';
@@ -89,6 +103,7 @@ final class GingermindsCmsBundle extends AbstractBundle
         $parameters->set('gingerminds_cms.slug_overwrite.edit', $config['slug_overwrite']['edit']);
         $parameters->set('gingerminds_cms.blocks.disabled', $config['blocks']['disabled']);
         $parameters->set('gingerminds_cms.blocks.order', $config['blocks']['order']);
+        $parameters->set('gingerminds_cms.publication.status_colors', $config['publication']['status_colors']);
 
         foreach (self::RESOURCES as $name => $resource) {
             $entity = $this->resourceValue($config, $name, 'entity');
@@ -148,9 +163,29 @@ final class GingermindsCmsBundle extends AbstractBundle
             ],
         ]);
 
+        if ($builder->hasExtension('twig')) {
+            $builder->prependExtensionConfig('twig', [
+                'form_themes' => ['@GingermindsCms/form/translations_theme.html.twig'],
+            ]);
+        }
+
         $builder->prependExtensionConfig('framework', [
             'asset_mapper' => [
                 'paths' => [$this->getPath() . '/assets' => 'gingerminds-cms'],
+            ],
+            // Completed or redefined by the project (its own statuses).
+            'workflows' => [
+                PublicationStatus::WORKFLOW => [
+                    'type' => 'state_machine',
+                    'marking_store' => ['type' => 'method', 'property' => 'status'],
+                    'supports' => [PublishableInterface::class],
+                    'initial_marking' => PublicationStatus::DRAFT,
+                    'places' => PublicationStatus::PLACES,
+                    'transitions' => array_map(
+                        static fn (array $places): array => ['from' => $places[0], 'to' => $places[1]],
+                        PublicationStatus::TRANSITIONS,
+                    ),
+                ],
             ],
         ]);
     }

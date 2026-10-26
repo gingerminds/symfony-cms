@@ -8,14 +8,17 @@ use Doctrine\ORM\EntityManagerInterface;
 use Gingerminds\CmsBundle\Entity\Menu\Menu;
 use Gingerminds\CmsBundle\Entity\Menu\MenuItem;
 use Gingerminds\CmsBundle\Entity\Menu\MenuItemTranslation;
+use Gingerminds\CmsBundle\Entity\Page\Page;
 use Gingerminds\CmsBundle\Entity\Page\PageCategory;
 use Gingerminds\CmsBundle\Entity\Page\PageCategoryTranslation;
+use Gingerminds\CmsBundle\Entity\Page\PageTranslation;
 use Gingerminds\CmsBundle\Site\Entity\Site;
 use Gingerminds\CoreBundle\Entity\Permission\Permission;
 use Gingerminds\CoreBundle\Entity\Role\Role;
 use Gingerminds\CoreBundle\Entity\Security\ApiToken;
 use Gingerminds\CoreBundle\Entity\User\Contributor;
 use Gingerminds\CoreBundle\Entity\User\User;
+use Gingerminds\MediaManagerBundle\Entity\File\File;
 use Gingerminds\MultisiteBundle\Entity\Language\Language;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -187,5 +190,43 @@ final readonly class Fixtures
         $this->entityManager->flush();
 
         return $category;
+    }
+
+    /**
+     * @param array<string, array{string, ?string}> $translations [title, slug] by language iso (languages created on demand)
+     */
+    public function page(Site $site, string $code, array $translations = [], ?PageCategory $category = null, string $status = 'draft'): Page
+    {
+        $page = new Page();
+        $page->setSite($site);
+        $page->setCode($code);
+        $page->setCategory($category);
+        $page->setStatus($status);
+
+        foreach ($translations as $iso => [$title, $slug]) {
+            $language = $this->entityManager->getRepository(Language::class)->findOneBy(['iso' => $iso]) ?? $this->language($iso);
+            $translation = new PageTranslation();
+            $translation->setLanguage($language);
+            $translation->setTitle($title);
+            $translation->setSlug($slug);
+            $page->addTranslation($translation);
+        }
+
+        $this->entityManager->persist($page);
+        $this->entityManager->flush();
+
+        return $page;
+    }
+
+    /**
+     * A file row of the library (no physical file).
+     */
+    public function file(string $name = 'photo.png', string $mimeType = 'image/png'): File
+    {
+        $file = new File('default', 'library/' . $name, $mimeType, $name, 10);
+        $this->entityManager->persist($file);
+        $this->entityManager->flush();
+
+        return $file;
     }
 }

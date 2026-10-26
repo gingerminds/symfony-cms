@@ -78,6 +78,48 @@ page_category:
     message:
         no_items: No page category
 
+page:
+    name_s: Page
+    name_p: Pages
+    manage: Manage the pages
+    title_new: Add a page
+    title_edit: Edit a page
+    tab:
+        general: General
+        translations: Translations
+    form:
+        visuals: Visuals
+        publication: Publication
+    field:
+        code: Code
+        title: Title
+        slug: Slug
+        hook: Hook
+        category: Category
+        status: Status
+        published_at: Published on
+        main_visual: Main visual
+        thumbnail: Thumbnail
+        is_hidden_from_search: Hidden from search
+    help:
+        slug: "Blank: the home page of its category."
+        translation_visual: Replaces the page one in this language.
+    placeholder:
+        category: None (site root)
+    action:
+        choose_category: In which category?
+    preview:
+        action: Preview
+    message:
+        no_items: No page
+
+publication:
+    status:
+        draft: Draft
+        published: Published
+        archived: Archived
+        review: In review
+
 site:
     field:
         main_menu: Main menu

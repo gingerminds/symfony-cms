@@ -12,3 +12,8 @@ gingerminds_cms:
         prefix_required_with_children: A category with sub-categories needs a prefix.
         prefix_format: "The prefix may only contain lowercase letters without accents, digits and hyphens (e.g.: our-products)."
         prefix_not_unique: This prefix is already used by a category of the same level.
+    page:
+        no_site: No current site. Create a site before adding a page.
+        slug_format: "The slug may only contain lowercase letters without accents, digits and hyphens (e.g.: our-story)."
+        slug_not_unique: This slug is already used by a page of the same category.
+        category_taken: This category accepts a single page, already used.

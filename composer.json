@@ -26,7 +26,8 @@
         "symfony/serializer": "^8.1",
         "symfony/translation": "^8.1",
         "symfony/twig-bundle": "^8.1",
-        "symfony/validator": "^8.1"
+        "symfony/validator": "^8.1",
+        "symfony/workflow": "^8.1"
     },
     "require-dev": {
         "dama/doctrine-test-bundle": "^8.2",

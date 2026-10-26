@@ -7,6 +7,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 use Gingerminds\CmsBundle\Repository\Menu\MenuItemRepository;
 use Gingerminds\CmsBundle\Repository\Menu\MenuRepository;
 use Gingerminds\CmsBundle\Repository\Page\PageCategoryRepository;
+use Gingerminds\CmsBundle\Repository\Page\PageRepository;
 
 /*
  * Repositories. Doctrine requires the FQCN as service id: `gingerminds_cms.repository.*` are aliases.
@@ -31,4 +32,10 @@ return static function (ContainerConfigurator $container): void {
         ->call('setFilterHandlerRegistry', [service('gingerminds_core.filter_handler_registry')])
         ->tag('doctrine.repository_service');
     $services->alias('gingerminds_cms.repository.page_category', PageCategoryRepository::class);
+
+    $services->set(PageRepository::class)
+        ->args([service('doctrine'), param('gingerminds_cms.resource.page.entity')])
+        ->call('setFilterHandlerRegistry', [service('gingerminds_core.filter_handler_registry')])
+        ->tag('doctrine.repository_service');
+    $services->alias('gingerminds_cms.repository.page', PageRepository::class);
 };

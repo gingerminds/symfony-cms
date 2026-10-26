@@ -7,6 +7,8 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 use Gingerminds\CmsBundle\Controller\Menu\MenuController;
 use Gingerminds\CmsBundle\Controller\Menu\MenuItemController;
 use Gingerminds\CmsBundle\Controller\Page\PageCategoryController;
+use Gingerminds\CmsBundle\Controller\Page\PageController;
+use Gingerminds\CmsBundle\Repository\Page\PageCategoryRepository;
 
 /*
  * Admin controllers.
@@ -28,4 +30,14 @@ return static function (ContainerConfigurator $container): void {
         ->args([service('gingerminds_core.controller.context'), service('gingerminds_multisite.context.site')])
         ->tag('controller.service_arguments');
     $services->alias(PageCategoryController::class, 'gingerminds_cms.controller.admin.page_category')->public();
+
+    $services->set('gingerminds_cms.controller.admin.page', PageController::class)
+        ->args([
+            service('gingerminds_core.controller.context'),
+            service('gingerminds_multisite.context.site'),
+            service(PageCategoryRepository::class),
+            service('state_machine.gingerminds_cms_publication'),
+        ])
+        ->tag('controller.service_arguments');
+    $services->alias(PageController::class, 'gingerminds_cms.controller.admin.page')->public();
 };

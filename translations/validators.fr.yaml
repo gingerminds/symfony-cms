@@ -12,3 +12,8 @@ gingerminds_cms:
         prefix_required_with_children: Une catégorie qui a des sous-catégories doit avoir un préfixe.
         prefix_format: "Le préfixe ne peut contenir que des lettres minuscules sans accent, des chiffres et des tirets (ex. : nos-produits)."
         prefix_not_unique: Ce préfixe est déjà utilisé par une catégorie du même niveau.
+    page:
+        no_site: Aucun site courant. Créez un site avant d'ajouter une page.
+        slug_format: "Le slug ne peut contenir que des lettres minuscules sans accent, des chiffres et des tirets (ex. : notre-histoire)."
+        slug_not_unique: Ce slug est déjà utilisé par une page de la même catégorie.
+        category_taken: Cette catégorie n'accepte qu'une seule page, déjà utilisée.

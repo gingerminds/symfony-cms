@@ -9,3 +9,12 @@ services:
     # Keeps PHPUnit output clean.
     logger:
         class: Psr\Log\NullLogger
+
+    # Services fetched by the tests.
+    test.file_reference_registry:
+        alias: gingerminds_media_manager.file.reference_registry
+        public: true
+
+    test.page_workflow:
+        alias: state_machine.gingerminds_cms_publication
+        public: true

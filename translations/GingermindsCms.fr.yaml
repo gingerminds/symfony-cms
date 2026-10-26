@@ -78,6 +78,48 @@ page_category:
     message:
         no_items: Aucune catégorie de pages
 
+page:
+    name_s: Page
+    name_p: Pages
+    manage: Gérer les pages
+    title_new: Ajouter une page
+    title_edit: Modifier une page
+    tab:
+        general: Général
+        translations: Traductions
+    form:
+        visuals: Visuels
+        publication: Publication
+    field:
+        code: Code
+        title: Titre
+        slug: Slug
+        hook: Accroche
+        category: Catégorie
+        status: Statut
+        published_at: Publiée le
+        main_visual: Visuel principal
+        thumbnail: Vignette
+        is_hidden_from_search: Exclure de la recherche
+    help:
+        slug: "Vide : la page d'accueil de sa catégorie."
+        translation_visual: Remplace celui de la page dans cette langue.
+    placeholder:
+        category: Aucune (racine du site)
+    action:
+        choose_category: Dans quelle catégorie ?
+    preview:
+        action: Prévisualiser
+    message:
+        no_items: Aucune page
+
+publication:
+    status:
+        draft: Brouillon
+        published: Publié
+        archived: Archivé
+        review: En relecture
+
 site:
     field:
         main_menu: Menu principal
