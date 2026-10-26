@@ -42,7 +42,8 @@ interface BlockInterface
     public function getFields(): array;
 
     /**
-     * Twig template of the admin preview: variables `block`, `data` (with the field defaults), `uid`.
+     * Twig template of the admin preview: variables `block`, `data` (with the field defaults), `refs`
+     * (the data, its files and medias being their entity, null when missing), `uid`.
      */
     public function getPreviewTemplate(): string;
 

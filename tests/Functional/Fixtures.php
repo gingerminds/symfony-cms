@@ -19,6 +19,7 @@ use Gingerminds\CoreBundle\Entity\Security\ApiToken;
 use Gingerminds\CoreBundle\Entity\User\Contributor;
 use Gingerminds\CoreBundle\Entity\User\User;
 use Gingerminds\MediaManagerBundle\Entity\File\File;
+use Gingerminds\MediaManagerBundle\Entity\Media\Media;
 use Gingerminds\MultisiteBundle\Entity\Language\Language;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -221,6 +222,18 @@ final readonly class Fixtures
     /**
      * A file row of the library (no physical file).
      */
+    public function media(string $code, ?File $file = null): Media
+    {
+        $media = new Media();
+        $media->setCode($code);
+        $media->setName(ucfirst($code));
+        $media->setFile($file);
+        $this->entityManager->persist($media);
+        $this->entityManager->flush();
+
+        return $media;
+    }
+
     public function file(string $name = 'photo.png', string $mimeType = 'image/png'): File
     {
         $file = new File('default', 'library/' . $name, $mimeType, $name, 10);

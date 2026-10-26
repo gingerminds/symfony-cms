@@ -14,6 +14,8 @@ use Symfony\Component\Validator\Constraint;
  *     BlockField::text('title')->required()->size('xl'),
  *     BlockField::wysiwyg('text')->preset('extended'),
  *     BlockField::repeater('links', [BlockField::text('label'), BlockField::text('url')])->itemLabel('...'),
+ *     BlockField::file('image')->required(),             // a file of the library, its id
+ *     BlockField::media('gallery')->multiple(),          // medias, their ids
  *
  * The label defaults to the `block.<block key>.field.<name>` translation key (`<repeater>_<name>`
  * for a repeater sub-field) of the block translation domain. `size` is a core form size
@@ -21,12 +23,16 @@ use Symfony\Component\Validator\Constraint;
  */
 final class BlockField
 {
+    use BlockFieldFactoryTrait;
+
     public const string TEXT = 'text';
     public const string TEXTAREA = 'textarea';
     public const string WYSIWYG = 'wysiwyg';
     public const string SELECT = 'select';
     public const string TOGGLE = 'toggle';
     public const string REPEATER = 'repeater';
+    public const string FILE = 'file';
+    public const string MEDIA = 'media';
 
     public private(set) bool $required = false;
     public private(set) ?string $label = null;
@@ -53,52 +59,19 @@ final class BlockField
     public private(set) ?string $addLabel = null;
     public private(set) ?string $itemLabel = null;
 
+    /** @var list<string> file: accepted mime types, exact or families (`image/*`); none: every type */
+    public private(set) array $accept = ['image/*'];
+
+    /** Media: a list of medias. */
+    public private(set) bool $multiple = false;
+
+    /** @var list<string> media: codes of the allowed categories (their subcategories included) */
+    public private(set) array $categories = [];
+
     private function __construct(
         public readonly string $name,
         public readonly string $type,
     ) {
-    }
-
-    public static function text(string $name): self
-    {
-        return new self($name, self::TEXT);
-    }
-
-    public static function textarea(string $name): self
-    {
-        return new self($name, self::TEXTAREA)->size('xl');
-    }
-
-    public static function wysiwyg(string $name): self
-    {
-        return new self($name, self::WYSIWYG)->size('xl');
-    }
-
-    /**
-     * @param array<string, string> $choices value => label
-     */
-    public static function select(string $name, array $choices): self
-    {
-        return new self($name, self::SELECT)->with('choices', $choices);
-    }
-
-    public static function toggle(string $name): self
-    {
-        return new self($name, self::TOGGLE)->with('default', false);
-    }
-
-    /**
-     * @param list<BlockField> $fields
-     */
-    public static function repeater(string $name, array $fields): self
-    {
-        foreach ($fields as $field) {
-            if (self::REPEATER === $field->type) {
-                throw new \InvalidArgumentException(\sprintf('The repeater "%s" cannot hold the repeater "%s".', $name, $field->name));
-            }
-        }
-
-        return new self($name, self::REPEATER)->size('xl')->with('fields', $fields)->with('default', []);
     }
 
     public function required(bool $required = true): self
@@ -149,6 +122,27 @@ final class BlockField
     public function itemLabel(?string $itemLabel): self
     {
         return $this->with('itemLabel', $itemLabel);
+    }
+
+    /**
+     * @param list<string> $accept
+     */
+    public function accept(array $accept): self
+    {
+        return $this->with('accept', $accept);
+    }
+
+    public function multiple(bool $multiple = true): self
+    {
+        return $this->with('multiple', $multiple)->with('default', $multiple ? [] : null);
+    }
+
+    /**
+     * @param list<string> $categories
+     */
+    public function categories(array $categories): self
+    {
+        return $this->with('categories', $categories);
     }
 
     private function with(string $property, mixed $value): self

@@ -6,6 +6,7 @@ namespace Gingerminds\CmsBundle;
 
 use Gingerminds\CmsBundle\Block\BlockExtensionInterface;
 use Gingerminds\CmsBundle\Block\BlockInterface;
+use Gingerminds\CmsBundle\Block\Reference\BlockReferenceResolverInterface;
 use Gingerminds\CmsBundle\Controller\Menu\MenuController;
 use Gingerminds\CmsBundle\Controller\Menu\MenuItemController;
 use Gingerminds\CmsBundle\Controller\Page\PageCategoryController;
@@ -108,6 +109,7 @@ final class GingermindsCmsBundle extends AbstractBundle
 
         $builder->registerForAutoconfiguration(BlockInterface::class)->addTag(BlockInterface::TAG);
         $builder->registerForAutoconfiguration(BlockExtensionInterface::class)->addTag(BlockExtensionInterface::TAG);
+        $builder->registerForAutoconfiguration(BlockReferenceResolverInterface::class)->addTag(BlockReferenceResolverInterface::TAG);
 
         if (class_exists(MakerBundle::class)) {
             $container->import('../config/services/maker.php');

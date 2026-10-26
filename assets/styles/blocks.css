@@ -85,3 +85,20 @@
 .gm-cms-repeater .sortable-ghost {
     opacity: 0.4;
 }
+
+/* Block previews. */
+.gm-cms-block-preview-image {
+    max-width: 10rem;
+    max-height: 7rem;
+    object-fit: cover;
+}
+
+.gm-cms-block-preview-thumb {
+    width: 2.5rem;
+    height: 2.5rem;
+    object-fit: cover;
+}
+
+.gm-cms-block-preview-video-frame {
+    max-width: 24rem;
+}

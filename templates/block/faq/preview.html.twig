@@ -1,0 +1,13 @@
+{#
+ # Admin preview of the `faq` block: `block`, `data`, `refs`, `uid`.
+ #}
+<div class="gm-cms-block-preview-faq">
+    {% if data.title %}<h3 class="h5 mb-2">{{ data.title }}</h3>{% endif %}
+    {% for item in data.items %}
+        <details class="mb-1">
+            <summary class="fw-semibold">{{ item.question }}</summary>
+            {% if item.answer %}<div class="gm-cms-block-preview-html ps-3 pt-1">{{ item.answer|raw }}</div>{% endif %}
+        </details>
+    {% endfor %}
+    {% if not data.title and not data.items %}{{ include('@GingermindsCms/block/_empty.html.twig') }}{% endif %}
+</div>

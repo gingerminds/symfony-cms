@@ -56,8 +56,8 @@ final class PageContentAdminTest extends ApiTestCase
         );
         self::assertSame('Type de bloc inconnu : gone', $blocks->eq(1)->filter('.alert-warning')->text());
         self::assertNotNull($blocks->eq(1)->filter('[data-action="gm-cms-blocks#edit"]')->attr('hidden'), 'An unknown block cannot be edited.');
-        // The picker: enabled blocks by weight (TitleText 0, LinksBlock 5).
-        self::assertSame(['title_text', 'test_links'], $canvas->filter('[data-block-key]')->each(static fn (Crawler $button): string => (string) $button->attr('data-block-key')));
+        // The picker: enabled blocks by weight (TitleText 0, LinksBlock 5, then the other bundle blocks).
+        self::assertSame(['title_text', 'test_links', 'text_image', 'media', 'video', 'cards', 'slider', 'link_list', 'media_list', 'faq'], $canvas->filter('[data-block-key]')->each(static fn (Crawler $button): string => (string) $button->attr('data-block-key')));
     }
 
     public function testSavingNormalizesTheContent(): void

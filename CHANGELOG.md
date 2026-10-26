@@ -115,6 +115,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   fields dropped, new ones defaulted, toggles as booleans, repeater rows renumbered, WYSIWYG HTML
   sanitized again, unknown blocks kept) and fully revalidated (`ValidBlocks`, errors shown on their
   block); an empty content gives null. Page translations get their `content` field.
+- `file` (a file of the media library, `FilePickerType`, `accept` images by default) and `media`
+  (`MediaSelectType`, `multiple`, `categories`) block fields, stored as ids. The files of the page
+  contents are usages of the library (`JsonFieldFileReferenceSource` on `page_translations.content`):
+  a used file cannot be deleted, a merge of duplicates rewrites the content. There is no direct
+  upload nor automatic deletion of the files of the blocks.
+- `ContentReferenceResolver` and `BlockReferenceResolverInterface` (autoconfigured, one per field
+  type): the page `content` of the API serves the files (`id`, `url`, `thumbnail_url`, `mime_type`,
+  `original_name`, `size`, `is_image`) and the medias (as `GET /api/media`) of its blocks, loaded once
+  per type; a missing one is null. The previews get them as entities (`refs`). A change of a file or
+  a media invalidates the cached page responses.
+- Bundled blocks `text_image`, `media`, `video` (YouTube id or URL), `cards`, `slider`, `link_list`
+  (absolute or relative URLs, `LinkUrl` constraint), `media_list` and `faq`, as `gingerminds/laravel-cms`.
 - `make:gm:cms-block Name` (with `symfony/maker-bundle`): `App\Cms\Block\Name` (key in snake case) and
   its preview `templates/cms/block/<key>/preview.html.twig`, refused when the key is taken.
 

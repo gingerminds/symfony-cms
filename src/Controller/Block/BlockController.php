@@ -7,6 +7,7 @@ namespace Gingerminds\CmsBundle\Controller\Block;
 use Gingerminds\CmsBundle\Block\BlockContentNormalizer;
 use Gingerminds\CmsBundle\Block\BlockInterface;
 use Gingerminds\CmsBundle\Block\BlockRegistry;
+use Gingerminds\CmsBundle\Block\Reference\ContentReferenceResolver;
 use Gingerminds\CmsBundle\Form\Block\BlockDataType;
 use Gingerminds\CoreBundle\Security\Voter\AbstractResourceVoter;
 use Symfony\Component\Form\FormFactoryInterface;
@@ -32,6 +33,7 @@ class BlockController
     public function __construct(
         private readonly BlockRegistry $registry,
         private readonly BlockContentNormalizer $normalizer,
+        private readonly ContentReferenceResolver $references,
         private readonly FormFactoryInterface $formFactory,
         private readonly AuthorizationCheckerInterface $authorizationChecker,
         private readonly TranslatorInterface $translator,
@@ -65,7 +67,12 @@ class BlockController
         return new JsonResponse([
             ...$this->payload($block, $uid),
             'data' => $data,
-            'preview' => $this->twig->render($block->getPreviewTemplate(), ['block' => $block, 'data' => $data, 'uid' => $uid]),
+            'preview' => $this->twig->render($block->getPreviewTemplate(), [
+                'block' => $block,
+                'data' => $data,
+                'refs' => $this->references->entities([['type' => $block::getKey(), 'data' => $data]])[0]['data'] ?? $data,
+                'uid' => $uid,
+            ]),
         ]);
     }
 

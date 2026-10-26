@@ -1,0 +1,19 @@
+{#
+ # Admin preview of the `link_list` block: `block`, `data`, `refs`, `uid`.
+ #}
+<div class="gm-cms-block-preview-link-list">
+    {% if data.title %}<h3 class="h5 mb-2">{{ data.title }}</h3>{% endif %}
+    {% if data.links %}
+        <ul class="list-unstyled mb-0">
+            {% for link in data.links %}
+                <li class="d-flex align-items-center gap-2 mb-1">
+                    {% if link.image %}{{ include('@GingermindsCms/block/_file.html.twig', {file: refs.links[loop.index0].image ?? null, missing: true}, with_context = false) }}{% endif %}
+                    <i class="bi bi-link-45deg" aria-hidden="true"></i>
+                    <span>{{ link.label }}</span>
+                    <span class="small text-muted text-break">{{ link.url }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% if not data.title and not data.links %}{{ include('@GingermindsCms/block/_empty.html.twig') }}{% endif %}
+</div>

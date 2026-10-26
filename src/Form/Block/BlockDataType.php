@@ -10,6 +10,8 @@ use Gingerminds\CmsBundle\Block\BlockInterface;
 use Gingerminds\CmsBundle\Block\BlockRegistry;
 use Gingerminds\CmsBundle\Form\Type\WysiwygType;
 use Gingerminds\CmsBundle\GingermindsCmsBundle;
+use Gingerminds\MediaManagerBundle\Form\File\FilePickerType;
+use Gingerminds\MediaManagerBundle\Form\Media\MediaSelectType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -27,7 +29,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 /**
  * The data of a block (or of a repeater row: `fields` and `repeater` options), one form field per
  * BlockField: text, textarea, WYSIWYG, select, switch, repeater (a collection of rows, Stimulus
- * `gm-cms-repeater`). Validated by BlockConstraints.
+ * `gm-cms-repeater`), file and media pickers of the media manager (ids). Validated by
+ * BlockConstraints.
  *
  * @extends AbstractType<array<string, mixed>>
  */
@@ -143,6 +146,8 @@ class BlockDataType extends AbstractType
                 'block_prefix' => 'gm_cms_block_repeater',
                 'error_bubbling' => false,
             ]],
+            BlockField::FILE => [FilePickerType::class, $options + ['as_id' => true, 'accept' => $field->accept]],
+            BlockField::MEDIA => [MediaSelectType::class, $options + ['as_id' => true, 'multiple' => $field->multiple, 'categories' => $field->categories]],
             default => [TextType::class, $options],
         };
     }

@@ -18,6 +18,7 @@ use Gingerminds\CmsBundle\Repository\Menu\MenuItemRepository;
 use Gingerminds\CmsBundle\Repository\Menu\MenuRepository;
 use Gingerminds\CmsBundle\Repository\Page\PageCategoryRepository;
 use Gingerminds\CmsBundle\Repository\Page\PageRepository;
+use Gingerminds\CmsBundle\Validator\LinkUrlValidator;
 use Gingerminds\CmsBundle\Validator\SinglePageCategoryValidator;
 use Gingerminds\CmsBundle\Validator\UniquePageUrlValidator;
 use Gingerminds\CmsBundle\Validator\UniqueSiblingPrefixValidator;
@@ -76,6 +77,9 @@ return static function (ContainerConfigurator $container): void {
     $services->set('gingerminds_cms.form.type.wysiwyg', WysiwygType::class)
         ->args([param('gingerminds_cms.wysiwyg.presets'), service('gingerminds_cms.wysiwyg.sanitizer')])
         ->tag('form.type');
+
+    $services->set('gingerminds_cms.validator.link_url', LinkUrlValidator::class)
+        ->tag('validator.constraint_validator');
 
     $services->set('gingerminds_cms.validator.unique_slug_in_category', UniqueSlugInCategoryValidator::class)
         ->args([service('doctrine')])

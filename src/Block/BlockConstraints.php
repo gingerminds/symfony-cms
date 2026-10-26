@@ -10,7 +10,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * The validation of the block fields, shared by the block form (one block) and ValidBlocks (the
  * whole content saved with the page): required, type of the value, select choices, the field
- * extra constraints.
+ * extra constraints. A file or a media is checked to exist by its form field (picker).
  */
 final class BlockConstraints
 {
@@ -25,6 +25,10 @@ final class BlockConstraints
             BlockField::TOGGLE => [new Assert\Type('bool')],
             BlockField::SELECT => [new Assert\Type('string'), new Assert\Choice(choices: array_map(strval(...), array_keys($field->choices)))],
             BlockField::REPEATER => [new Assert\Type('array'), ...($field->required ? [new Assert\Count(min: 1)] : [])],
+            BlockField::FILE => [new Assert\Type('string'), new Assert\Uuid(strict: false)],
+            BlockField::MEDIA => $field->multiple
+                ? [new Assert\Type('array'), new Assert\All([new Assert\Type('int')])]
+                : [new Assert\Type('int')],
             default => [new Assert\Type('string')],
         };
 

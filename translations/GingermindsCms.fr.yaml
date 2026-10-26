@@ -179,6 +179,12 @@ blocks:
         copy_structure_confirm: Les blocs de cette langue seront remplacés par ceux de la langue choisie.
         no_other_language: Aucune autre langue.
         row: Ligne
+        missing_file: Fichier introuvable
+        missing_media: Média introuvable
+    unit:
+        byte: '%size% o'
+        kilobyte: '%size% Ko'
+        megabyte: '%size% Mo'
 
 block:
     title_text:
@@ -186,3 +192,71 @@ block:
         field:
             title: Titre
             text: Texte
+    text_image:
+        label: Texte + image
+        field:
+            image_position: Image à droite
+            title: Titre
+            text: Texte
+            image: Image
+        help:
+            image_position: "Désactivé : image à gauche, activé : image à droite."
+    media:
+        label: Média (seul)
+        field:
+            title: Titre
+            file: Fichier
+    video:
+        label: Vidéo
+        field:
+            title: Titre
+            embed_code: Vidéo YouTube
+        help:
+            embed_code: L'identifiant de la vidéo ou son URL YouTube.
+    cards:
+        label: Cartes
+        add: Ajouter une carte
+        item: Carte
+        field:
+            title: Titre
+            text: Texte
+            cards: Cartes
+            cards_title: Titre
+            cards_description: Description
+            cards_image: Image
+    slider:
+        label: Slider
+        add: Ajouter une image
+        item: Image
+        field:
+            title: Titre
+            slides: Images
+            slides_image: Image
+    link_list:
+        label: Liste de liens
+        add: Ajouter un lien
+        item: Lien
+        field:
+            title: Titre
+            links: Liens
+            links_label: Libellé
+            links_url: URL
+            links_image: Image
+    media_list:
+        label: Liste de médias
+        add: Ajouter un média
+        item: Média
+        field:
+            title: Titre
+            items: Médias
+            items_media: Média
+            items_subtitle: Sous-titre
+    faq:
+        label: FAQ
+        add: Ajouter une question
+        item: Question
+        field:
+            title: Titre
+            items: Questions / réponses
+            items_question: Question
+            items_answer: Réponse

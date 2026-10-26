@@ -74,6 +74,20 @@ class BlockContentNormalizer
         return $normalized;
     }
 
+    /**
+     * Media ids as integers (a numeric string from a forged content too), a list when multiple.
+     */
+    private function mediaIds(BlockField $field, mixed $value): mixed
+    {
+        $id = static fn (mixed $id): mixed => \is_string($id) && ctype_digit($id) ? (int) $id : $id;
+
+        return match (true) {
+            $field->multiple && \is_array($value) => array_values(array_map($id, $value)),
+            '' === $value => null,
+            default => $id($value),
+        };
+    }
+
     private function normalizeValue(BlockField $field, mixed $value): mixed
     {
         return match (true) {
@@ -83,6 +97,7 @@ class BlockContentNormalizer
                 array_values($value),
             ),
             BlockField::WYSIWYG === $field->type && \is_string($value) => $this->sanitizer->sanitize($value),
+            BlockField::MEDIA === $field->type => $this->mediaIds($field, $value),
             '' === $value => null,
             default => $value,
         };

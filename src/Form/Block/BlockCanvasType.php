@@ -7,6 +7,7 @@ namespace Gingerminds\CmsBundle\Form\Block;
 use Gingerminds\CmsBundle\Block\BlockContentNormalizer;
 use Gingerminds\CmsBundle\Block\BlockInterface;
 use Gingerminds\CmsBundle\Block\BlockRegistry;
+use Gingerminds\CmsBundle\Block\Reference\ContentReferenceResolver;
 use Gingerminds\CmsBundle\Validator\ValidBlocks;
 use Gingerminds\MultisiteBundle\Model\TranslationInterface;
 use Symfony\Component\Form\AbstractType;
@@ -38,6 +39,7 @@ class BlockCanvasType extends AbstractType
         private readonly BlockRegistry $registry,
         private readonly BlockContentNormalizer $normalizer,
         private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly ContentReferenceResolver $references,
     ) {
     }
 
@@ -74,6 +76,11 @@ class BlockCanvasType extends AbstractType
                 'data' => $block instanceof BlockInterface ? [...$this->registry->getDefaults($block), ...$data] : $data,
                 'errors' => $errors[$index] ?? [],
             ];
+        }
+
+        // The previews get the entities of their references, loaded once for the whole content.
+        foreach ($this->references->entities($items) as $index => $item) {
+            $items[$index]['refs'] = $item['data'];
         }
 
         $view->vars['items'] = $items;

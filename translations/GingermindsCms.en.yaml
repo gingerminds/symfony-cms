@@ -179,6 +179,12 @@ blocks:
         copy_structure_confirm: The blocks of this language will be replaced by the ones of the chosen language.
         no_other_language: No other language.
         row: Row
+        missing_file: File not found
+        missing_media: Media not found
+    unit:
+        byte: '%size% B'
+        kilobyte: '%size% kB'
+        megabyte: '%size% MB'
 
 block:
     title_text:
@@ -186,3 +192,71 @@ block:
         field:
             title: Title
             text: Text
+    text_image:
+        label: Text + image
+        field:
+            image_position: Image on the right
+            title: Title
+            text: Text
+            image: Image
+        help:
+            image_position: "Off: image on the left, on: image on the right."
+    media:
+        label: Media (single)
+        field:
+            title: Title
+            file: File
+    video:
+        label: Video
+        field:
+            title: Title
+            embed_code: YouTube video
+        help:
+            embed_code: The id of the video or its YouTube URL.
+    cards:
+        label: Cards
+        add: Add a card
+        item: Card
+        field:
+            title: Title
+            text: Text
+            cards: Cards
+            cards_title: Title
+            cards_description: Description
+            cards_image: Image
+    slider:
+        label: Slider
+        add: Add an image
+        item: Image
+        field:
+            title: Title
+            slides: Images
+            slides_image: Image
+    link_list:
+        label: Link list
+        add: Add a link
+        item: Link
+        field:
+            title: Title
+            links: Links
+            links_label: Label
+            links_url: URL
+            links_image: Image
+    media_list:
+        label: Media list
+        add: Add a media
+        item: Media
+        field:
+            title: Title
+            items: Medias
+            items_media: Media
+            items_subtitle: Subtitle
+    faq:
+        label: FAQ
+        add: Add a question
+        item: Question
+        field:
+            title: Title
+            items: Questions / answers
+            items_question: Question
+            items_answer: Answer

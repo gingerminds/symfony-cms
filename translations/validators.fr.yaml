@@ -1,5 +1,6 @@
 gingerminds_cms:
     block:
+        link_url: "Saisissez une URL complète (https://…) ou un chemin du site commençant par / (ex. : /contact)."
         invalid: Ce bloc est invalide.
         invalid_content: Le contenu est invalide.
         unknown_type: "Type de bloc inconnu : {{ type }}."
