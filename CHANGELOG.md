@@ -80,6 +80,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   pages (preview, hook and visuals in the sidebar), `page_translation_form_main|sidebar`,
   `page_category_translation_form_*` and `menu_item_translation_form_*` form includes; the fields
   added without include are rendered at the end.
+- Page URLs: `PageUrl` (`page_urls` table as `gingerminds/laravel-cms`), one path per language of a
+  published page (translations with a title), kept up to date by a Doctrine listener on the changes
+  of the pages, of their translations and of the categories (the whole subtree, deletion included).
+  A path owned by another page is not taken: the former one is kept and the conflict reported (warning
+  flash after saving or deleting a category). `UniquePageUrl` refuses such a path on the page form.
+  `gingerminds:cms:page-urls:sync` command (backfill, lists the conflicts).
+- Page API (public, current site and language, `X-Site-Id` / `Accept-Language` headers):
+  `GET /api/pages` (published pages; `id`, `code`, `title`, `slug`, `hook`, `status`, `thumbnail`,
+  `switch_lang`; `publishedAt` and `category` facets in `filters`, `filters[category]` filter),
+  `GET /api/pages/{id}` (any status, front preview; plus `content` and `main_visual`),
+  `GET /api/pages/by-slug/{path}` (published page by its full URL path). `switch_lang`:
+  the stored path of each language for a published page, computed otherwise.
 
 ### Changed
 

@@ -20,6 +20,7 @@ use Gingerminds\CoreBundle\Model\Trait\TimestampableTrait;
 use Gingerminds\MultisiteBundle\Entity\Site\SiteInterface;
 use Gingerminds\MultisiteBundle\Model\TranslatableTrait;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -32,20 +33,26 @@ use Symfony\Component\Validator\Constraints as Assert;
 abstract class BasePage implements PageInterface, SortableInterface, SearchableInterface, FilterableInterface, EagerLoadableInterface, CacheableResourceInterface
 {
     use CacheableResourceTrait;
+    use PageApiFieldsTrait;
     use PageTranslatedFieldsTrait;
     use PublishableTrait;
     use TimestampableTrait;
     use TranslatableTrait;
     use VisualsTrait;
 
+    public const string GROUP_LIST = 'page:list';
+    public const string GROUP_READ = 'page:read';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups([self::GROUP_LIST, self::GROUP_READ])]
     protected ?int $id = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 255)]
+    #[Groups([self::GROUP_LIST, self::GROUP_READ])]
     protected ?string $code = null;
 
     #[ORM\ManyToOne(targetEntity: SiteInterface::class)]
@@ -63,6 +70,7 @@ abstract class BasePage implements PageInterface, SortableInterface, SearchableI
     public function __construct()
     {
         $this->translations = new ArrayCollection();
+        $this->urls = new ArrayCollection();
     }
 
     public static function getTranslationEntityClass(): string
@@ -72,7 +80,7 @@ abstract class BasePage implements PageInterface, SortableInterface, SearchableI
 
     public static function getEagerLoads(): array
     {
-        return [...self::getTranslationEagerLoads(), 'category', 'category.translations'];
+        return [...self::getTranslationEagerLoads(), 'category', 'category.translations', 'urls', 'urls.language'];
     }
 
     public static function getCacheKey(): string

@@ -36,6 +36,7 @@ return static function (ContainerConfigurator $container): void {
     $services->set(PageRepository::class)
         ->args([service('doctrine'), param('gingerminds_cms.resource.page.entity')])
         ->call('setFilterHandlerRegistry', [service('gingerminds_core.filter_handler_registry')])
+        ->call('setDisplayTimezone', [service('gingerminds_core.display_timezone')])
         ->tag('doctrine.repository_service');
     $services->alias('gingerminds_cms.repository.page', PageRepository::class);
 };

@@ -18,6 +18,7 @@ use Gingerminds\CmsBundle\Repository\Menu\MenuRepository;
 use Gingerminds\CmsBundle\Repository\Page\PageCategoryRepository;
 use Gingerminds\CmsBundle\Repository\Page\PageRepository;
 use Gingerminds\CmsBundle\Validator\SinglePageCategoryValidator;
+use Gingerminds\CmsBundle\Validator\UniquePageUrlValidator;
 use Gingerminds\CmsBundle\Validator\UniqueSiblingPrefixValidator;
 use Gingerminds\CmsBundle\Validator\UniqueSlugInCategoryValidator;
 
@@ -68,6 +69,10 @@ return static function (ContainerConfigurator $container): void {
         ->tag('form.type');
 
     $services->set('gingerminds_cms.validator.unique_slug_in_category', UniqueSlugInCategoryValidator::class)
+        ->args([service('doctrine')])
+        ->tag('validator.constraint_validator');
+
+    $services->set('gingerminds_cms.validator.unique_page_url', UniquePageUrlValidator::class)
         ->args([service('doctrine')])
         ->tag('validator.constraint_validator');
 

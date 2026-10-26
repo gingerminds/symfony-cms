@@ -8,6 +8,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gingerminds\CmsBundle\Model\VisualsInterface;
 use Gingerminds\CmsBundle\Model\VisualsTrait;
+use Gingerminds\CmsBundle\Validator\UniquePageUrl;
 use Gingerminds\CmsBundle\Validator\UniqueSlugInCategory;
 use Gingerminds\CoreBundle\Model\CacheCascadeInterface;
 use Gingerminds\CoreBundle\Model\TimestampableInterface;
@@ -28,6 +29,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\UniqueConstraint(name: 'page_translations_page_id_language_id_unique', columns: ['page_id', 'language_id'])]
 #[ORM\HasLifecycleCallbacks]
 #[UniqueSlugInCategory]
+#[UniquePageUrl]
 class PageTranslation implements TranslationInterface, VisualsInterface, TimestampableInterface, CacheCascadeInterface
 {
     use TimestampableTrait;

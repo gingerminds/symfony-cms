@@ -17,3 +17,4 @@ gingerminds_cms:
         slug_format: "Le slug ne peut contenir que des lettres minuscules sans accent, des chiffres et des tirets (ex. : notre-histoire)."
         slug_not_unique: Ce slug est déjà utilisé par une page de la même catégorie.
         category_taken: Cette catégorie n'accepte qu'une seule page, déjà utilisée.
+        url_taken: "L'URL {{ path }} est déjà utilisée par la page « {{ page }} »."

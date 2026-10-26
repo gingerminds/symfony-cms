@@ -6,6 +6,7 @@ namespace Gingerminds\CmsBundle\Repository\Page;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Gingerminds\CmsBundle\Entity\Page\PageCategoryInterface;
+use Gingerminds\CmsBundle\Entity\Page\PageInterface;
 use Gingerminds\CoreBundle\Repository\AbstractRepository;
 use Symfony\Component\Form\FormInterface;
 
@@ -39,6 +40,36 @@ class PageCategoryRepository extends AbstractRepository
             ->addOrderBy('c.code')
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * These categories and all their descendants.
+     *
+     * @param list<int> $ids
+     *
+     * @return list<int>
+     */
+    public function findIdsWithDescendants(array $ids): array
+    {
+        $children = [];
+
+        foreach ($this->createQueryBuilder('c')->select('c.id', 'IDENTITY(c.parent) AS parent')->getQuery()->getArrayResult() as $row) {
+            $children[(int) $row['parent']][] = (int) $row['id'];
+        }
+
+        $result = [];
+        $pending = $ids;
+
+        while ([] !== $pending) {
+            $id = array_pop($pending);
+
+            if (!isset($result[$id])) {
+                $result[$id] = true;
+                array_push($pending, ...($children[$id] ?? []));
+            }
+        }
+
+        return array_keys($result);
     }
 
     /**
@@ -96,14 +127,30 @@ class PageCategoryRepository extends AbstractRepository
     }
 
     /**
-     * The children of a deleted category move to the root (as `parent_id` ON DELETE SET NULL),
-     * whatever the database.
+     * The children of a deleted category move to the root and its pages lose it (as the ON DELETE
+     * SET NULL foreign keys), whatever the database: their URLs are synced.
      */
     protected function beforeRemove(object $entity): void
     {
-        if ($entity instanceof PageCategoryInterface) {
-            foreach ($entity->getChildren() as $child) {
-                $child->setParent(null);
+        if (!$entity instanceof PageCategoryInterface) {
+            return;
+        }
+
+        foreach ($entity->getChildren() as $child) {
+            $child->setParent(null);
+        }
+
+        $pages = $this->getEntityManager()->createQueryBuilder()
+            ->select('p')
+            ->from(PageInterface::class, 'p')
+            ->andWhere('p.category = :category')
+            ->setParameter('category', $entity->getId())
+            ->getQuery()
+            ->getResult();
+
+        foreach ($pages as $page) {
+            if ($page instanceof PageInterface) {
+                $page->setCategory(null);
             }
         }
     }

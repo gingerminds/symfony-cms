@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Entity\Page;
 
+use Doctrine\Common\Collections\Collection;
 use Gingerminds\CmsBundle\Model\PublishableInterface;
 use Gingerminds\CmsBundle\Model\VisualsInterface;
 use Gingerminds\CoreBundle\Model\ResourceInterface;
@@ -12,6 +13,9 @@ use Gingerminds\MultisiteBundle\Entity\Language\LanguageInterface;
 use Gingerminds\MultisiteBundle\Model\SiteContextedInterface;
 use Gingerminds\MultisiteBundle\Model\TranslatableInterface;
 
+/**
+ * Language scoped (TranslatableInterface): the API serializes the page in the current language (`Accept-Language`).
+ */
 interface PageInterface extends ResourceInterface, SiteContextedInterface, TranslatableInterface, PublishableInterface, VisualsInterface, TimestampableInterface, \Stringable
 {
     public function getId(): ?int;
@@ -39,4 +43,16 @@ interface PageInterface extends ResourceInterface, SiteContextedInterface, Trans
      * (blank parts skipped): the page URL.
      */
     public function getFullPath(LanguageInterface|int|null $language = null): string;
+
+    /**
+     * The stored URL paths of the page (PageUrlSyncer).
+     *
+     * @return Collection<int, PageUrl>
+     */
+    public function getUrls(): Collection;
+
+    /**
+     * @return array<string, string> path by language iso
+     */
+    public function getSwitchLang(): array;
 }

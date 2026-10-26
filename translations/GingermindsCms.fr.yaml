@@ -75,6 +75,8 @@ page_category:
     action:
         add_child: Ajouter un enfant
         move: Déplacer
+    flash:
+        url_conflict: "La page « %page% » (%language%) garde son ancienne URL : %path% est déjà utilisée par la page « %owner% ». Modifiez le slug de l'une des deux pages."
     message:
         no_items: Aucune catégorie de pages
 

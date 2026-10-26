@@ -17,3 +17,4 @@ gingerminds_cms:
         slug_format: "The slug may only contain lowercase letters without accents, digits and hyphens (e.g.: our-story)."
         slug_not_unique: This slug is already used by a page of the same category.
         category_taken: This category accepts a single page, already used.
+        url_taken: "The URL {{ path }} is already used by the page \"{{ page }}\"."

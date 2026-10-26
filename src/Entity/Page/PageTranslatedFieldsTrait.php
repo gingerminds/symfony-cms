@@ -5,22 +5,26 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Entity\Page;
 
 use Gingerminds\MultisiteBundle\Entity\Language\LanguageInterface;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 /**
  * The translated fields of a page and its URL path.
  */
 trait PageTranslatedFieldsTrait
 {
+    #[Groups([BasePage::GROUP_LIST, BasePage::GROUP_READ])]
     public function getTitle(): ?string
     {
         return $this->currentPageTranslation()?->getTitle();
     }
 
+    #[Groups([BasePage::GROUP_LIST, BasePage::GROUP_READ])]
     public function getSlug(): ?string
     {
         return $this->currentPageTranslation()?->getSlug();
     }
 
+    #[Groups([BasePage::GROUP_LIST, BasePage::GROUP_READ])]
     public function getHook(): ?string
     {
         return $this->currentPageTranslation()?->getHook();

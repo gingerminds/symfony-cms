@@ -27,7 +27,7 @@ return static function (ContainerConfigurator $container): void {
     $services->alias(MenuItemController::class, 'gingerminds_cms.controller.admin.menu_item')->public();
 
     $services->set('gingerminds_cms.controller.admin.page_category', PageCategoryController::class)
-        ->args([service('gingerminds_core.controller.context'), service('gingerminds_multisite.context.site')])
+        ->args([service('gingerminds_core.controller.context'), service('gingerminds_multisite.context.site'), service('gingerminds_cms.page.url_syncer')])
         ->tag('controller.service_arguments');
     $services->alias(PageCategoryController::class, 'gingerminds_cms.controller.admin.page_category')->public();
 
