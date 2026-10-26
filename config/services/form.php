@@ -13,6 +13,7 @@ use Gingerminds\CmsBundle\Form\Page\PageCategoryType;
 use Gingerminds\CmsBundle\Form\Page\PageTranslationType;
 use Gingerminds\CmsBundle\Form\Page\PageType;
 use Gingerminds\CmsBundle\Form\Type\PublicationStatusType;
+use Gingerminds\CmsBundle\Form\Type\WysiwygType;
 use Gingerminds\CmsBundle\Repository\Menu\MenuItemRepository;
 use Gingerminds\CmsBundle\Repository\Menu\MenuRepository;
 use Gingerminds\CmsBundle\Repository\Page\PageCategoryRepository;
@@ -21,6 +22,7 @@ use Gingerminds\CmsBundle\Validator\SinglePageCategoryValidator;
 use Gingerminds\CmsBundle\Validator\UniquePageUrlValidator;
 use Gingerminds\CmsBundle\Validator\UniqueSiblingPrefixValidator;
 use Gingerminds\CmsBundle\Validator\UniqueSlugInCategoryValidator;
+use Gingerminds\CmsBundle\Wysiwyg\WysiwygSanitizer;
 
 /*
  * Form types, extensions and validators.
@@ -66,6 +68,13 @@ return static function (ContainerConfigurator $container): void {
 
     $services->set('gingerminds_cms.form.type.publication_status', PublicationStatusType::class)
         ->args([service('workflow.registry')])
+        ->tag('form.type');
+
+    $services->set('gingerminds_cms.wysiwyg.sanitizer', WysiwygSanitizer::class);
+    $services->alias(WysiwygSanitizer::class, 'gingerminds_cms.wysiwyg.sanitizer');
+
+    $services->set('gingerminds_cms.form.type.wysiwyg', WysiwygType::class)
+        ->args([param('gingerminds_cms.wysiwyg.presets'), service('gingerminds_cms.wysiwyg.sanitizer')])
         ->tag('form.type');
 
     $services->set('gingerminds_cms.validator.unique_slug_in_category', UniqueSlugInCategoryValidator::class)

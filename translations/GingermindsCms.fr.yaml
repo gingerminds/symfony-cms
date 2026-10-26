@@ -129,3 +129,25 @@ site:
         main_menu_empty: Aucun menu pour ce site. Créez-en un dans CMS › Menus.
     placeholder:
         main_menu: Aucun
+wysiwyg:
+    toolbar:
+        bold: Gras
+        italic: Italique
+        underline: Souligné
+        strike: Barré
+        link: Lien
+        link_prompt: 'URL :'
+        bullet_list: Liste à puces
+        ordered_list: Liste numérotée
+        heading: Titre
+        blockquote: Citation
+        horizontal_rule: Séparateur
+        undo: Annuler
+        redo: Rétablir
+        insert_table: Insérer un tableau
+        toggle_header_row: Ligne d'en-tête
+        add_row_after: Ajouter une ligne
+        delete_row: Supprimer la ligne
+        add_column_after: Ajouter une colonne
+        delete_column: Supprimer la colonne
+        delete_table: Supprimer le tableau

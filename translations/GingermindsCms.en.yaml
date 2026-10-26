@@ -129,3 +129,25 @@ site:
         main_menu_empty: No menu for this site. Create one in CMS › Menus.
     placeholder:
         main_menu: None
+wysiwyg:
+    toolbar:
+        bold: Bold
+        italic: Italic
+        underline: Underline
+        strike: Strikethrough
+        link: Link
+        link_prompt: 'URL:'
+        bullet_list: Bullet list
+        ordered_list: Numbered list
+        heading: Heading
+        blockquote: Quote
+        horizontal_rule: Divider
+        undo: Undo
+        redo: Redo
+        insert_table: Insert table
+        toggle_header_row: Toggle header row
+        add_row_after: Add row
+        delete_row: Delete row
+        add_column_after: Add column
+        delete_column: Delete column
+        delete_table: Delete table

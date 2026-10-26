@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Form\Page;
 
 use Gingerminds\CmsBundle\Entity\Page\PageTranslation;
+use Gingerminds\CmsBundle\Form\Type\WysiwygType;
 use Gingerminds\CmsBundle\GingermindsCmsBundle;
 use Gingerminds\MediaManagerBundle\Form\File\FilePickerType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
@@ -17,7 +17,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
  * One language of a page. The slug is slugified from the title (Stimulus `gm-cms-slug-sync`), its
- * input group starts with the category path (PageType). The hook becomes a WYSIWYG at step 6.
+ * input group starts with the category path (PageType). The hook is a WYSIWYG.
  *
  * @extends AbstractType<PageTranslation>
  */
@@ -37,11 +37,12 @@ class PageTranslationType extends AbstractType
                 'size' => 'xl',
                 'input_prefix' => '/',
             ])
-            ->add('hook', TextareaType::class, [
+            ->add('hook', WysiwygType::class, [
                 'label' => 'page.field.hook',
                 'required' => false,
                 'size' => 'xl',
-                'attr' => ['rows' => 4],
+                'preset' => 'minimal',
+                'rows' => 8,
             ])
             ->add('mainVisual', FilePickerType::class, [
                 'label' => 'page.field.main_visual',

@@ -68,13 +68,14 @@ final class PageAdminTest extends ApiTestCase
         $slug = $crawler->filter('#' . $this->fieldId('slug'));
         self::assertSame(['/produits/'], $slug->closest('.input-group')?->filter('.input-group-text')->each(static fn (Crawler $text): string => $text->text()));
         self::assertSame('#' . $this->fieldId('title'), $slug->attr('data-gm-cms-slug-sync-source-value'));
+        self::assertSame('["bold","italic","underline","link"]', $crawler->filter('#' . $this->fieldId('hook'))->closest('[data-controller="gm-cms-wysiwyg"]')?->attr('data-gm-cms-wysiwyg-extensions-value'));
 
         $this->client->submit($form, [
             'page[code]' => 'tractor',
             'page[status]' => 'published',
             $this->translationField('title') => 'Tracteur X',
             $this->translationField('slug') => 'tracteur-x',
-            $this->translationField('hook') => 'Le meilleur tracteur.',
+            $this->translationField('hook') => '<p onclick="alert(1)">Le meilleur <strong>tracteur</strong>.</p><script>alert(1)</script>',
         ]);
 
         self::assertResponseRedirects(self::BASE);
@@ -87,6 +88,7 @@ final class PageAdminTest extends ApiTestCase
         $translation = $page->getTranslations()->first();
         self::assertInstanceOf(PageTranslation::class, $translation);
         self::assertSame($this->site->getId(), $translation->getSite()?->getId());
+        self::assertSame('<p>Le meilleur <strong>tracteur</strong>.</p>', $translation->getHook(), 'Sanitized.');
     }
 
     public function testTheTransitionsOfThePublicationWorkflow(): void

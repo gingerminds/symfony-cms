@@ -2,9 +2,12 @@
  # `gingerminds_core.admin_includes.head`: the Stimulus controllers of the bundle, registered on the core app.
  # Imported by versioned URL: they are not dependencies of an importmap entrypoint.
  #}
+<link rel="stylesheet" href="{{ asset('gingerminds-cms/styles/wysiwyg.css') }}">
 <script type="module">
     import { app } from 'gingerminds-core-admin';
     import SlugSyncController from '{{ asset('gingerminds-cms/controllers/slug_sync_controller.js') }}';
+    import WysiwygController from '{{ asset('gingerminds-cms/controllers/wysiwyg_controller.js') }}';
 
     app.register('gm-cms-slug-sync', SlugSyncController);
+    app.register('gm-cms-wysiwyg', WysiwygController);
 </script>

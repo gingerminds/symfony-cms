@@ -92,10 +92,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `GET /api/pages/{id}` (any status, front preview; plus `content` and `main_visual`),
   `GET /api/pages/by-slug/{path}` (published page by its full URL path). `switch_lang`:
   the stored path of each language for a published page, computed otherwise.
+- `WysiwygType` (TipTap 3, Stimulus `gm-cms-wysiwyg`, form theme `@GingermindsCms/form/wysiwyg_theme.html.twig`):
+  toolbar of a `gingerminds_cms.wysiwyg.presets` preset (`preset` option, unknown preset rejected),
+  `rows` minimum height, labels translated (`wysiwyg.toolbar.*`). TipTap is loaded with the first
+  editor of a page; the project importmap provides `@tiptap/core`, `@tiptap/starter-kit` and
+  `@tiptap/extension-table`. The submitted HTML is sanitized (`WysiwygSanitizer`, `symfony/html-sanitizer`:
+  the elements of the editor only, http(s) / mailto / tel / relative links), an empty editor gives null.
+  Used by the page hook and the menu item description (`minimal` preset).
 
 ### Changed
 
 - CI: PHPUnit coverage (Xdebug, Clover report) sent to SonarQube, which now runs after the tests;
   line coverage shown on the merge requests. `assets/` analysed by SonarQube.
-- Requires `symfony/workflow` ^8.1, `gingerminds/symfony-core` ^1.9 (nested resources, input groups), `gingerminds/symfony-media-manager` ^1.1 and
+- Requires `symfony/workflow` ^8.1, `symfony/html-sanitizer` ^8.1, `gingerminds/symfony-core` ^1.9 (nested resources, input groups), `gingerminds/symfony-media-manager` ^1.1 and
   `gingerminds/symfony-multisite` ^1.2 (form include slots, `translation_fallback`).

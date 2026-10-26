@@ -165,7 +165,7 @@ final class GingermindsCmsBundle extends AbstractBundle
 
         if ($builder->hasExtension('twig')) {
             $builder->prependExtensionConfig('twig', [
-                'form_themes' => ['@GingermindsCms/form/translations_theme.html.twig'],
+                'form_themes' => ['@GingermindsCms/form/translations_theme.html.twig', '@GingermindsCms/form/wysiwyg_theme.html.twig'],
             ]);
         }
 
