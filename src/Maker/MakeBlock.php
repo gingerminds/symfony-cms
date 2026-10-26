@@ -46,6 +46,7 @@ final class MakeBlock extends AbstractMaker
 
     public function configureDependencies(DependencyBuilder $dependencies): void
     {
+        // No dependency: the generated block only needs this bundle.
     }
 
     public function generate(InputInterface $input, ConsoleStyle $io, Generator $generator): void

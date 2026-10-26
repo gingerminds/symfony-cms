@@ -54,7 +54,7 @@ export default class extends Controller {
     };
 
     #labels() {
-        return this.inputTarget.id ? document.querySelectorAll(`label[for="${CSS.escape(this.inputTarget.id)}"]`) : [];
+        return this.inputTarget.id ? [...document.querySelectorAll(`label[for="${CSS.escape(this.inputTarget.id)}"]`)] : [];
     }
 }
 

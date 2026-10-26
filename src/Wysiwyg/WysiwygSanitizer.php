@@ -53,6 +53,7 @@ class WysiwygSanitizer
         // Without text, a rule or a table, the content is empty.
         $text = html_entity_decode(strip_tags($html, '<hr><table>'), \ENT_QUOTES | \ENT_HTML5);
 
-        return '' === (string) preg_replace('/[\s\x{00A0}]+/u', '', $text) ? null : $html;
+        // With `u`, `\s` covers the Unicode spaces (no-break space included).
+        return '' === (string) preg_replace('/\s+/u', '', $text) ? null : $html;
     }
 }
