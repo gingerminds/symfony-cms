@@ -99,6 +99,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `@tiptap/extension-table`. The submitted HTML is sanitized (`WysiwygSanitizer`, `symfony/html-sanitizer`:
   the elements of the editor only, http(s) / mailto / tel / relative links), an empty editor gives null.
   Used by the page hook and the menu item description (`minimal` preset).
+- Content blocks: `BlockInterface` / `AbstractBlock` (static key, label, Bootstrap icon, picker weight,
+  Twig preview, translation domain) and their fields as immutable `BlockField` (text, textarea,
+  WYSIWYG, select, toggle, repeater of one level; required, label, help, size, default, extra
+  constraints). The blocks are autoconfigured services (`gingerminds_cms.block`) indexed by
+  `BlockRegistry` (`blocks.disabled` / `blocks.order` for the picker): two unrelated blocks with the
+  same key fail at container compilation, a block extending another one replaces it.
+  `BlockExtensionInterface` services (`gingerminds_cms.block_extension`, by priority) change the
+  fields of existing blocks. Bundled block: `title_text` (title, text with the `extended` preset).
+- `BlockCanvasType` (Stimulus `gm-cms-blocks` and `gm-cms-repeater`, `sortablejs`): the blocks of a
+  content (`[{uid, type, data}]`) with their server-rendered preview, add / edit / remove in modals,
+  drag & drop, copy of the structure of another language. The block modal (`POST
+  /admin/pages/blocks/{key}/form|validate`, page create or edit permission) renders `BlockDataType`
+  and returns the preview or the form with its errors. On save the content is normalized (removed
+  fields dropped, new ones defaulted, toggles as booleans, repeater rows renumbered, WYSIWYG HTML
+  sanitized again, unknown blocks kept) and fully revalidated (`ValidBlocks`, errors shown on their
+  block); an empty content gives null. Page translations get their `content` field.
+- `make:gm:cms-block Name` (with `symfony/maker-bundle`): `App\Cms\Block\Name` (key in snake case) and
+  its preview `templates/cms/block/<key>/preview.html.twig`, refused when the key is taken.
 
 ### Changed
 

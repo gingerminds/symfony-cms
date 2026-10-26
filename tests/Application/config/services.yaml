@@ -18,3 +18,11 @@ services:
     test.page_workflow:
         alias: state_machine.gingerminds_cms_publication
         public: true
+
+    # Project blocks (BlockRegistryTest): a block, an override of a bundle block, a block extension.
+    Gingerminds\CmsBundle\Tests\Application\Block\:
+        resource: '../Block/'
+
+    test.block_registry:
+        alias: gingerminds_cms.block.registry
+        public: true

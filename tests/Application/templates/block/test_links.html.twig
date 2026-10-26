@@ -1,0 +1,8 @@
+<div class="test-links-preview">
+    <strong>{{ data.heading }}</strong> ({{ data.style }}{{ data.highlighted ? ', highlighted' }})
+    <ul>
+        {% for link in data.links %}
+            <li>{{ link.label }}: {{ link.url }}</li>
+        {% endfor %}
+    </ul>
+</div>

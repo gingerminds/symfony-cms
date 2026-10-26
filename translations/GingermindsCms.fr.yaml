@@ -97,6 +97,7 @@ page:
         title: Titre
         slug: Slug
         hook: Accroche
+        content: Contenu
         category: Catégorie
         status: Statut
         published_at: Publiée le
@@ -151,3 +152,37 @@ wysiwyg:
         add_column_after: Ajouter une colonne
         delete_column: Supprimer la colonne
         delete_table: Supprimer le tableau
+
+blocks:
+    action:
+        add: Ajouter un bloc
+        edit: Modifier
+        remove: Supprimer le bloc
+        reorder: Déplacer
+        toggle_preview: Afficher / masquer l'aperçu
+        copy_structure: Copier la structure d'une autre langue
+        copy: Copier
+        cancel: Annuler
+        save: Enregistrer
+        close: Fermer
+        add_row: Ajouter une ligne
+        remove_row: Supprimer la ligne
+    message:
+        loading: Chargement…
+        load_error: Une erreur est survenue, veuillez réessayer.
+        empty_canvas: Aucun bloc pour l'instant.
+        empty_preview: Bloc vide
+        no_block: Aucun bloc disponible.
+        unknown_type: "Type de bloc inconnu : %type%"
+        confirm_remove: Supprimer ce bloc ? La suppression sera enregistrée avec la page.
+        copy_structure_prompt: Langue à copier
+        copy_structure_confirm: Les blocs de cette langue seront remplacés par ceux de la langue choisie.
+        no_other_language: Aucune autre langue.
+        row: Ligne
+
+block:
+    title_text:
+        label: Titre + texte
+        field:
+            title: Titre
+            text: Texte

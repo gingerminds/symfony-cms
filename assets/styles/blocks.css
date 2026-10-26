@@ -1,0 +1,87 @@
+/* BlockCanvasType (gm-cms-blocks controller) and the block repeaters (gm-cms-repeater). */
+
+.gm-cms-blocks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.gm-cms-blocks-empty {
+    border: 1px dashed var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+}
+
+.gm-cms-block-header {
+    background-color: var(--bs-tertiary-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
+}
+
+.gm-cms-block-handle,
+.gm-cms-repeater-handle {
+    cursor: grab;
+    color: var(--bs-secondary-color);
+}
+
+.gm-cms-block-chevron,
+.gm-cms-repeater-chevron {
+    display: inline-block;
+    transition: transform 0.15s ease;
+    transform: rotate(90deg);
+}
+
+.gm-cms-block.is-collapsed .gm-cms-block-chevron,
+.gm-cms-repeater-row.is-collapsed .gm-cms-repeater-chevron {
+    transform: none;
+}
+
+/* Collapsed: a faded peek of the preview. */
+.gm-cms-block.is-collapsed .gm-cms-block-preview {
+    max-height: 6rem;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, #000 50%, transparent);
+    mask-image: linear-gradient(to bottom, #000 50%, transparent);
+}
+
+.gm-cms-block-preview-html > :last-child {
+    margin-bottom: 0;
+}
+
+.gm-cms-block-preview-html table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.gm-cms-block-preview-html td,
+.gm-cms-block-preview-html th {
+    border: 1px solid var(--bs-border-color);
+    padding: 0.25rem 0.5rem;
+}
+
+.gm-cms-repeater-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.gm-cms-repeater-row {
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+}
+
+.gm-cms-repeater-row-header {
+    cursor: pointer;
+    background-color: var(--bs-tertiary-bg);
+    border-radius: inherit;
+}
+
+.gm-cms-repeater-row.is-collapsed .gm-cms-repeater-row-body {
+    display: none;
+}
+
+.gm-cms-blocks .sortable-ghost,
+.gm-cms-repeater .sortable-ghost {
+    opacity: 0.4;
+}

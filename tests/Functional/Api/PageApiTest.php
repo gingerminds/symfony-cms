@@ -56,6 +56,19 @@ final class PageApiTest extends ApiTestCase
         self::assertNull($data['content']);
     }
 
+    public function testTheContentIsServedAsStoredWithTheTranslationFallback(): void
+    {
+        $content = [['uid' => 'a', 'type' => 'title_text', 'data' => ['title' => 'Bonjour', 'subtitle' => null, 'text' => '<p>Texte</p>']]];
+        $page = $this->fixtures->page($this->site, 'about', ['fr' => ['À propos', 'a-propos']], status: 'published');
+        $translation = $page->getTranslations()->first();
+        self::assertInstanceOf(PageTranslation::class, $translation);
+        $translation->setContent($content);
+        $this->entityManager()->flush();
+
+        self::assertSame($content, $this->api('GET', '/api/pages/' . $page->getId())['content']);
+        self::assertSame($content, $this->api('GET', '/api/pages/' . $page->getId(), locale: 'en')['content'], 'Untranslated: the default language one.');
+    }
+
     public function testAPublishedPageIsFoundByItsPath(): void
     {
         $products = $this->fixtures->pageCategory($this->site, 'products', ['fr' => ['Produits', 'produits'], 'en' => ['Products', 'products']]);

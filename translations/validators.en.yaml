@@ -1,4 +1,9 @@
 gingerminds_cms:
+    block:
+        invalid: This block is invalid.
+        invalid_content: The content is invalid.
+        unknown_type: "Unknown block type: {{ type }}."
+        field_error: "{{ field }}: {{ message }}"
     menu:
         no_site: No current site. Create a site before adding a menu.
     menu_item:

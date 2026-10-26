@@ -97,6 +97,7 @@ page:
         title: Title
         slug: Slug
         hook: Hook
+        content: Content
         category: Category
         status: Status
         published_at: Published on
@@ -151,3 +152,37 @@ wysiwyg:
         add_column_after: Add column
         delete_column: Delete column
         delete_table: Delete table
+
+blocks:
+    action:
+        add: Add a block
+        edit: Edit
+        remove: Remove the block
+        reorder: Move
+        toggle_preview: Show / hide the preview
+        copy_structure: Copy the structure of another language
+        copy: Copy
+        cancel: Cancel
+        save: Save
+        close: Close
+        add_row: Add a row
+        remove_row: Remove the row
+    message:
+        loading: Loading…
+        load_error: An error occurred, please try again.
+        empty_canvas: No block yet.
+        empty_preview: Empty block
+        no_block: No block available.
+        unknown_type: "Unknown block type: %type%"
+        confirm_remove: Remove this block? The removal is saved with the page.
+        copy_structure_prompt: Language to copy
+        copy_structure_confirm: The blocks of this language will be replaced by the ones of the chosen language.
+        no_other_language: No other language.
+        row: Row
+
+block:
+    title_text:
+        label: Title + text
+        field:
+            title: Title
+            text: Text

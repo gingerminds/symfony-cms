@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Form\Page;
 
 use Gingerminds\CmsBundle\Entity\Page\PageTranslation;
+use Gingerminds\CmsBundle\Form\Block\BlockCanvasType;
 use Gingerminds\CmsBundle\Form\Type\WysiwygType;
 use Gingerminds\CmsBundle\GingermindsCmsBundle;
 use Gingerminds\MediaManagerBundle\Form\File\FilePickerType;
@@ -17,7 +18,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
  * One language of a page. The slug is slugified from the title (Stimulus `gm-cms-slug-sync`), its
- * input group starts with the category path (PageType). The hook is a WYSIWYG.
+ * input group starts with the category path (PageType). The hook is a WYSIWYG, the content is made
+ * of blocks (BlockCanvasType).
  *
  * @extends AbstractType<PageTranslation>
  */
@@ -43,6 +45,9 @@ class PageTranslationType extends AbstractType
                 'size' => 'xl',
                 'preset' => 'minimal',
                 'rows' => 8,
+            ])
+            ->add('content', BlockCanvasType::class, [
+                'label' => 'page.field.content',
             ])
             ->add('mainVisual', FilePickerType::class, [
                 'label' => 'page.field.main_visual',

@@ -42,8 +42,12 @@
         "squizlabs/php_codesniffer": "^3.0",
         "symfony/browser-kit": "^8.1",
         "symfony/css-selector": "^8.1",
+        "symfony/maker-bundle": "^1.60",
         "symfony/phpunit-bridge": "^8.1",
         "symfony/yaml": "^8.1"
+    },
+    "suggest": {
+        "symfony/maker-bundle": "Required for the make:gm:cms-block generator"
     },
     "autoload": {
         "psr-4": {

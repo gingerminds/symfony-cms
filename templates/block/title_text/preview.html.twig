@@ -1,0 +1,15 @@
+{#
+ # Admin preview of the `title_text` block (structural, not the site rendering): `block`, `data`, `uid`.
+ #}
+{% trans_default_domain 'GingermindsCms' %}
+<div class="gm-cms-block-preview-title-text">
+    {% if data.title %}
+        <h3 class="h5 mb-2">{{ data.title }}</h3>
+    {% endif %}
+    {% if data.text %}
+        <div class="gm-cms-block-preview-html">{{ data.text|raw }}</div>
+    {% endif %}
+    {% if not data.title and not data.text %}
+        <p class="text-muted fst-italic mb-0">{{ 'blocks.message.empty_preview'|trans }}</p>
+    {% endif %}
+</div>

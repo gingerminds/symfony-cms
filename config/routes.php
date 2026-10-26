@@ -15,4 +15,13 @@ return static function (RoutingConfigurator $routes): void {
     $routes->add('gingerminds_cms_page_category_reorder', '/%gingerminds_core.admin_prefix%/page-categories/reorder')
         ->controller('%gingerminds_cms.resource.page_category.controller%::reorder')
         ->methods(['POST']);
+
+    // The block modal of the page content (BlockCanvasType).
+    foreach (['form', 'validate'] as $action) {
+        $routes->add('gingerminds_cms_page_block_' . $action, '/%gingerminds_core.admin_prefix%/pages/blocks/{key}/' . $action)
+            ->controller('gingerminds_cms.controller.admin.block::' . $action)
+            ->defaults(['resource' => 'page'])
+            ->requirements(['key' => '[a-z0-9_]+'])
+            ->methods(['POST']);
+    }
 };

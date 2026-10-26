@@ -1,0 +1,81 @@
+{#
+ # The modals of a block canvas (BlockCanvasType, `id`: the canvas field id, `picker`: the enabled
+ # blocks): moved under <body> by the Stimulus `gm-cms-blocks` controller, out of the page form
+ # and of the hidden tabs.
+ #}
+{% trans_default_domain 'GingermindsCms' %}
+<div class="modal fade" id="{{ id }}_picker" tabindex="-1" aria-labelledby="{{ id }}_picker_title" aria-hidden="true" data-gm-cms-blocks-modal="picker">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content overflow-hidden">
+            <div class="modal-header">
+                <h5 class="modal-title" id="{{ id }}_picker_title">{{ 'blocks.action.add'|trans }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ 'blocks.action.close'|trans }}"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for block in picker %}
+                        <button type="button" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3" data-block-key="{{ block.key }}">
+                            <i class="bi {{ block.icon }} fs-4 lh-1 flex-shrink-0" aria-hidden="true"></i>
+                            <span>{{ block.label|trans({}, block.translationDomain) }}</span>
+                        </button>
+                    {% else %}
+                        <div class="list-group-item text-muted">{{ 'blocks.message.no_block'|trans }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="{{ id }}_form" tabindex="-1" aria-labelledby="{{ id }}_form_title" aria-hidden="true" data-bs-backdrop="static" data-gm-cms-blocks-modal="form">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="{{ id }}_form_title" data-role="title"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ 'blocks.action.close'|trans }}"></button>
+            </div>
+            <div class="modal-body" data-role="body"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">{{ 'blocks.action.cancel'|trans }}</button>
+                <button type="button" class="btn btn-primary" data-role="save">{{ 'blocks.action.save'|trans }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="{{ id }}_remove" tabindex="-1" aria-labelledby="{{ id }}_remove_title" aria-hidden="true" data-gm-cms-blocks-modal="remove">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="{{ id }}_remove_title">{{ 'blocks.action.remove'|trans }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ 'blocks.action.close'|trans }}"></button>
+            </div>
+            <div class="modal-body">{{ 'blocks.message.confirm_remove'|trans }}</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">{{ 'blocks.action.cancel'|trans }}</button>
+                <button type="button" class="btn btn-danger" data-role="confirm">{{ 'blocks.action.remove'|trans }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="{{ id }}_copy" tabindex="-1" aria-labelledby="{{ id }}_copy_title" aria-hidden="true" data-gm-cms-blocks-modal="copy">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="{{ id }}_copy_title">{{ 'blocks.action.copy_structure'|trans }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ 'blocks.action.close'|trans }}"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label" for="{{ id }}_copy_source">{{ 'blocks.message.copy_structure_prompt'|trans }}</label>
+                <select class="form-select" id="{{ id }}_copy_source" data-role="source"></select>
+                <div class="form-text" data-role="none" hidden>{{ 'blocks.message.no_other_language'|trans }}</div>
+                <div class="alert alert-warning mt-3 mb-0" data-role="warning" hidden>{{ 'blocks.message.copy_structure_confirm'|trans }}</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">{{ 'blocks.action.cancel'|trans }}</button>
+                <button type="button" class="btn btn-primary" data-role="confirm">{{ 'blocks.action.copy'|trans }}</button>
+            </div>
+        </div>
+    </div>
+</div>

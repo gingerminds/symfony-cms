@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Tests\Functional\Api;
 
+use Gingerminds\CmsBundle\Entity\Page\PageTranslation;
 use Gingerminds\CmsBundle\Tests\Functional\ApiTestCase;
 use Symfony\Component\HttpKernel\KernelInterface;
 
@@ -28,6 +29,20 @@ final class PageApiNoFallbackTest extends ApiTestCase
         self::assertEqualsCanonicalizing(['about', 'tractor'], array_keys($pages));
         self::assertNull($pages['about']['title']);
         self::assertSame(['fr' => 'a-propos'], $pages['about']['switch_lang']);
+    }
+
+    public function testTheContentOfAnotherLanguageIsNotServed(): void
+    {
+        $fr = $this->fixtures->language('fr');
+        $site = $this->fixtures->site('main', [$fr, $this->fixtures->language('en')], $fr);
+        $page = $this->fixtures->page($site, 'about', ['fr' => ['À propos', 'a-propos']], status: 'published');
+        $translation = $page->getTranslations()->first();
+        self::assertInstanceOf(PageTranslation::class, $translation);
+        $translation->setContent([['uid' => 'a', 'type' => 'title_text', 'data' => ['title' => 'Bonjour']]]);
+        $this->entityManager()->flush();
+
+        self::assertSame('Bonjour', $this->api('GET', '/api/pages/' . $page->getId(), locale: 'fr')['content'][0]['data']['title']);
+        self::assertNull($this->api('GET', '/api/pages/' . $page->getId(), locale: 'en')['content']);
     }
 
     /**

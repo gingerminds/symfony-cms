@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle;
 
+use Gingerminds\CmsBundle\Block\BlockExtensionInterface;
+use Gingerminds\CmsBundle\Block\BlockInterface;
 use Gingerminds\CmsBundle\Controller\Menu\MenuController;
 use Gingerminds\CmsBundle\Controller\Menu\MenuItemController;
 use Gingerminds\CmsBundle\Controller\Page\PageCategoryController;
 use Gingerminds\CmsBundle\Controller\Page\PageController;
+use Gingerminds\CmsBundle\DependencyInjection\Compiler\BlockPass;
 use Gingerminds\CmsBundle\Entity\Menu\Menu;
 use Gingerminds\CmsBundle\Entity\Menu\MenuInterface;
 use Gingerminds\CmsBundle\Entity\Menu\MenuItem;
@@ -24,6 +27,7 @@ use Gingerminds\CmsBundle\Model\PublicationStatus;
 use Gingerminds\CmsBundle\Model\PublishableInterface;
 use Gingerminds\CmsBundle\Site\Entity\Site;
 use Gingerminds\CoreBundle\DependencyInjection\Compiler\OverriddenEntityPass;
+use Symfony\Bundle\MakerBundle\MakerBundle;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\Config\Definition\Processor;
@@ -85,6 +89,11 @@ final class GingermindsCmsBundle extends AbstractBundle
         return \dirname(__DIR__);
     }
 
+    public function build(ContainerBuilder $container): void
+    {
+        $container->addCompilerPass(new BlockPass());
+    }
+
     public function configure(DefinitionConfigurator $definition): void
     {
         $definition->import('../config/definition.php');
@@ -96,6 +105,13 @@ final class GingermindsCmsBundle extends AbstractBundle
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
         $container->import('../config/services.php');
+
+        $builder->registerForAutoconfiguration(BlockInterface::class)->addTag(BlockInterface::TAG);
+        $builder->registerForAutoconfiguration(BlockExtensionInterface::class)->addTag(BlockExtensionInterface::TAG);
+
+        if (class_exists(MakerBundle::class)) {
+            $container->import('../config/services/maker.php');
+        }
 
         $parameters = $container->parameters();
         $parameters->set('gingerminds_cms.wysiwyg.presets', $config['wysiwyg']['presets']);
@@ -165,7 +181,11 @@ final class GingermindsCmsBundle extends AbstractBundle
 
         if ($builder->hasExtension('twig')) {
             $builder->prependExtensionConfig('twig', [
-                'form_themes' => ['@GingermindsCms/form/translations_theme.html.twig', '@GingermindsCms/form/wysiwyg_theme.html.twig'],
+                'form_themes' => [
+                    '@GingermindsCms/form/translations_theme.html.twig',
+                    '@GingermindsCms/form/wysiwyg_theme.html.twig',
+                    '@GingermindsCms/form/blocks_theme.html.twig',
+                ],
             ]);
         }
 
