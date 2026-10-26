@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Entity\Menu;
 
 use Doctrine\ORM\Mapping as ORM;
+use Gingerminds\CmsBundle\Model\TranslationFieldsTrait;
 use Gingerminds\CoreBundle\Model\CacheCascadeInterface;
 use Gingerminds\CoreBundle\Model\TimestampableInterface;
 use Gingerminds\CoreBundle\Model\Trait\TimestampableTrait;
-use Gingerminds\MultisiteBundle\Entity\Language\LanguageInterface;
 use Gingerminds\MultisiteBundle\Model\TranslatableInterface;
 use Gingerminds\MultisiteBundle\Model\TranslationInterface;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -23,19 +23,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 class MenuItemTranslation implements TranslationInterface, TimestampableInterface, CacheCascadeInterface
 {
     use TimestampableTrait;
-
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    protected ?int $id = null;
+    use TranslationFieldsTrait;
 
     #[ORM\ManyToOne(targetEntity: MenuItemInterface::class, inversedBy: 'translations')]
     #[ORM\JoinColumn(name: 'menu_item_id', nullable: false, onDelete: 'CASCADE')]
     protected ?MenuItemInterface $translatable = null;
-
-    #[ORM\ManyToOne(targetEntity: LanguageInterface::class)]
-    #[ORM\JoinColumn(name: 'language_id', nullable: false, onDelete: 'CASCADE')]
-    protected ?LanguageInterface $language = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Assert\NotBlank]
@@ -60,11 +52,6 @@ class MenuItemTranslation implements TranslationInterface, TimestampableInterfac
         return ['menu'];
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
     public function getTranslatable(): ?TranslatableInterface
     {
         return $this->translatable;
@@ -77,23 +64,6 @@ class MenuItemTranslation implements TranslationInterface, TimestampableInterfac
         }
 
         $this->translatable = $translatable;
-    }
-
-    public function getLanguage(): ?LanguageInterface
-    {
-        return $this->language;
-    }
-
-    public function setLanguage(LanguageInterface $language): void
-    {
-        $this->language = $language;
-    }
-
-    public function isFor(LanguageInterface|int $language): bool
-    {
-        $id = $language instanceof LanguageInterface ? $language->getId() : $language;
-
-        return $this->language === $language || (null !== $id && $this->language?->getId() === $id);
     }
 
     public function getName(): ?string

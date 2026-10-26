@@ -31,6 +31,7 @@ final class PublicationStatus
 
     private function __construct()
     {
+        // Constants and static helpers only: not instantiable.
     }
 
     /**

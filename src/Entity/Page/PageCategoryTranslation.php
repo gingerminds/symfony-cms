@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Entity\Page;
 
 use Doctrine\ORM\Mapping as ORM;
+use Gingerminds\CmsBundle\Model\TranslationFieldsTrait;
+use Gingerminds\CmsBundle\Model\TranslationSiteTrait;
 use Gingerminds\CmsBundle\Validator\UniqueSiblingPrefix;
 use Gingerminds\CoreBundle\Model\CacheCascadeInterface;
 use Gingerminds\CoreBundle\Model\TimestampableInterface;
 use Gingerminds\CoreBundle\Model\Trait\TimestampableTrait;
-use Gingerminds\MultisiteBundle\Entity\Language\LanguageInterface;
 use Gingerminds\MultisiteBundle\Entity\Site\SiteInterface;
 use Gingerminds\MultisiteBundle\Model\TranslatableInterface;
 use Gingerminds\MultisiteBundle\Model\TranslationInterface;
@@ -29,21 +30,14 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class PageCategoryTranslation implements TranslationInterface, TimestampableInterface, CacheCascadeInterface
 {
     use TimestampableTrait;
+    use TranslationFieldsTrait;
+    use TranslationSiteTrait;
 
     public const string PREFIX_PATTERN = '/^[a-z0-9]+(?:-[a-z0-9]+)*$/';
-
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    protected ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: PageCategoryInterface::class, inversedBy: 'translations')]
     #[ORM\JoinColumn(name: 'page_category_id', nullable: false, onDelete: 'CASCADE')]
     protected ?PageCategoryInterface $translatable = null;
-
-    #[ORM\ManyToOne(targetEntity: LanguageInterface::class)]
-    #[ORM\JoinColumn(name: 'language_id', nullable: false, onDelete: 'CASCADE')]
-    protected ?LanguageInterface $language = null;
 
     #[ORM\ManyToOne(targetEntity: SiteInterface::class)]
     #[ORM\JoinColumn(name: 'site_id', nullable: false, onDelete: 'CASCADE')]
@@ -69,11 +63,6 @@ class PageCategoryTranslation implements TranslationInterface, TimestampableInte
         return ['page_category', 'page'];
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
     public function getTranslatable(): ?TranslatableInterface
     {
         return $this->translatable;
@@ -87,28 +76,6 @@ class PageCategoryTranslation implements TranslationInterface, TimestampableInte
 
         $this->translatable = $translatable;
         $this->site = $translatable?->getSite() ?? $this->site;
-    }
-
-    public function getLanguage(): ?LanguageInterface
-    {
-        return $this->language;
-    }
-
-    public function setLanguage(LanguageInterface $language): void
-    {
-        $this->language = $language;
-    }
-
-    public function isFor(LanguageInterface|int $language): bool
-    {
-        $id = $language instanceof LanguageInterface ? $language->getId() : $language;
-
-        return $this->language === $language || (null !== $id && $this->language?->getId() === $id);
-    }
-
-    public function getSite(): ?SiteInterface
-    {
-        return $this->site;
     }
 
     public function getName(): ?string
@@ -133,15 +100,6 @@ class PageCategoryTranslation implements TranslationInterface, TimestampableInte
     {
         $prefix = null !== $prefix ? trim($prefix) : null;
         $this->prefix = '' === $prefix ? null : $prefix;
-    }
-
-    /**
-     * The category, created after its translations in a form, gives them its site.
-     */
-    #[ORM\PrePersist]
-    public function copySiteOfTheCategory(): void
-    {
-        $this->site = $this->translatable?->getSite() ?? $this->site;
     }
 
     /**
