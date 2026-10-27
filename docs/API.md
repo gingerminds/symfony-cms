@@ -53,7 +53,7 @@ Null values are omitted from the responses.
 | Endpoint | |
 |---|---|
 | `GET /api/pages` | The published pages: `id`, `code`, `title`, `slug`, `hook`, `status`, `thumbnail` (file id), `switch_lang`. |
-| `GET /api/pages/{id}` | A page of any status (front preview), plus `content` and `main_visual` (file id). |
+| `GET /api/pages/{id}` | A page, plus `content` and `main_visual` (file id). Published: public; any other status (front preview): `view pages` permission (bearer token), else 401 anonymous / 403 without it. |
 | `GET /api/pages/by-slug/{path}` | A published page by its full URL path in the current language (`produits/tracteurs/tracteur-x`, without leading slash; the home page of a category: its path). 404 otherwise. |
 
 - `switch_lang`: the path of the page in each language (ISO => path), to switch language on the
@@ -79,7 +79,18 @@ list `[]=`), `filters[publishedAt]` (core date filter). The response carries the
 ```
 
 Each facet is counted against the other active filters. The page responses are cached under the
-`page` key (invalidated by a change of a page, a translation, a category, a file or a media).
+`page` key (invalidated by a change of a page, a translation, a category, a file or a media), except
+`GET /api/pages/{id}`: secured by the page, it is never cached.
+
+The collection, `by-slug` and the [search](#search) only serve published pages, token or not
+(`filters[status]` cannot widen the list). A project entity overriding the page
+(`resources.page.entity`) redeclares its `#[ApiResource]`: keep the item security,
+
+```php
+new Get(security: self::API_ITEM_SECURITY), // BasePage: published, or `is_granted('VIEW', object)`
+```
+
+Without `security`, the bundle provider does not find an unpublished page by id (404).
 
 ## Search
 

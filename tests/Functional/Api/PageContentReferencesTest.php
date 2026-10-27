@@ -63,10 +63,13 @@ final class PageContentReferencesTest extends ApiTestCase
         self::assertSame($this->image->getId(), $this->translation()->getContent()[0]['data']['image'] ?? null);
     }
 
+    /**
+     * By path: the item by id is secured, never cached.
+     */
     public function testAChangeOfAMediaRefreshesTheCachedPages(): void
     {
-        $this->api('GET', '/api/pages/' . $this->page->getId());
-        $this->api('GET', '/api/pages/' . $this->page->getId());
+        $this->api('GET', '/api/pages/by-slug/a-propos');
+        $this->api('GET', '/api/pages/by-slug/a-propos');
         self::assertSame('HIT', $this->client->getResponse()->headers->get('X-Gingerminds-Cache'));
 
         $media = $this->entityManager()->find(Media::class, $this->media->getId());
@@ -74,7 +77,7 @@ final class PageContentReferencesTest extends ApiTestCase
         $media->setCode('tractor-red');
         $this->entityManager()->flush();
 
-        $content = $this->api('GET', '/api/pages/' . $this->page->getId())['content'];
+        $content = $this->api('GET', '/api/pages/by-slug/a-propos')['content'];
         self::assertSame('MISS', $this->client->getResponse()->headers->get('X-Gingerminds-Cache'));
         self::assertSame('tractor-red', $content[1]['data']['items'][0]['media']['code']);
     }

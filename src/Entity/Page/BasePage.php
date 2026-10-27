@@ -45,6 +45,14 @@ abstract class BasePage implements PageInterface, SortableInterface, SearchableI
     public const string GROUP_LIST = 'page:list';
     public const string GROUP_READ = 'page:read';
 
+    /**
+     * The `security` of the item operation by id (front preview): a published page is public, any
+     * other status needs the `view pages` permission (PageVoter): 401 anonymous, 403 without it.
+     * A project entity redeclaring `#[ApiResource]` reuses it:
+     * `new Get(security: self::API_ITEM_SECURITY)`.
+     */
+    public const string API_ITEM_SECURITY = "object.isPublished() or is_granted('VIEW', object)";
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

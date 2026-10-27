@@ -57,7 +57,8 @@ Admin: CMS › Pages (`/admin/pages`, `view|edit|delete pages` permissions):
 
 The preview links are `{front URL}[/{iso}]/preview/page/{id}` for each front URL of the site (the
 ISO prefix except for the default language): the front reads the page with `GET /api/pages/{id}`,
-whatever its status.
+whatever its status, with the bearer token of a user having the `view pages` permission (a published
+page needs none; see [API](API.md#pages)).
 
 ## Publication workflow
 

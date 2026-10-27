@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Tests\Functional\Api;
 
+use ApiPlatform\Metadata\Get;
+use Gingerminds\CmsBundle\ApiPlatform\State\PageProvider;
+use Gingerminds\CmsBundle\Entity\Page\Page;
+use Gingerminds\CmsBundle\Entity\Page\PageInterface;
 use Gingerminds\CmsBundle\Entity\Page\PageTranslation;
 use Gingerminds\CmsBundle\Site\Entity\Site;
 use Gingerminds\CmsBundle\Tests\Functional\ApiTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class PageApiTest extends ApiTestCase
 {
@@ -44,16 +49,89 @@ final class PageApiTest extends ApiTestCase
         self::assertSame(['tractor'], array_column($data['member'], 'code'));
     }
 
-    public function testAnItemOfAnyStatusIsReadByItsId(): void
+    public function testAPublishedItemIsPublic(): void
     {
-        $page = $this->fixtures->page($this->site, 'draft', ['fr' => ['Brouillon', 'brouillon']]);
+        $page = $this->fixtures->page($this->site, 'about', ['fr' => ['À propos', 'a-propos']], status: 'published');
 
         $data = $this->api('GET', '/api/pages/' . $page->getId());
 
         self::assertStatus(200);
-        self::assertSame('draft', $data['status']);
+        self::assertSame('published', $data['status']);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function unpublishedStatuses(): iterable
+    {
+        yield 'draft' => ['draft'];
+        yield 'archived' => ['archived'];
+        yield 'project status' => ['review'];
+    }
+
+    #[DataProvider('unpublishedStatuses')]
+    public function testAnUnpublishedItemNeedsTheViewPermission(string $status): void
+    {
+        $page = $this->fixtures->page($this->site, 'draft', ['fr' => ['Brouillon', 'brouillon']], status: $status);
+        $uri = '/api/pages/' . $page->getId();
+
+        $this->api('GET', $uri);
+        self::assertStatus(401);
+
+        $this->api('GET', $uri, $this->fixtures->token($this->fixtures->user('editor@example.com', ['view menus'])));
+        self::assertStatus(403);
+
+        $data = $this->api('GET', $uri, $this->fixtures->token($this->fixtures->user('viewer@example.com', ['view pages'])));
+        self::assertStatus(200);
+        self::assertSame($status, $data['status']);
         self::assertSame(['fr' => 'brouillon'], $data['switch_lang'], 'Computed for an unpublished page.');
         self::assertNull($data['content']);
+    }
+
+    public function testAnUnpublishedItemIsNeverServedFromTheCache(): void
+    {
+        $page = $this->fixtures->page($this->site, 'draft', ['fr' => ['Brouillon', 'brouillon']]);
+        $token = $this->fixtures->token($this->fixtures->user('viewer@example.com', ['view pages']));
+
+        $this->api('GET', '/api/pages/' . $page->getId(), $token);
+        $this->api('GET', '/api/pages/' . $page->getId(), $token);
+        self::assertStatus(200);
+        self::assertFalse($this->client->getResponse()->headers->has('X-Gingerminds-Cache'));
+
+        $this->api('GET', '/api/pages/' . $page->getId());
+        self::assertStatus(401);
+    }
+
+    public function testTheListsAndThePathLookupStayPublishedOnlyWithThePermission(): void
+    {
+        $this->fixtures->page($this->site, 'about', ['fr' => ['À propos', 'a-propos']], status: 'published');
+        $this->fixtures->page($this->site, 'draft', ['fr' => ['Brouillon', 'brouillon']]);
+        $token = $this->fixtures->token($this->fixtures->user('viewer@example.com', ['view pages']));
+
+        foreach ([null, $token] as $viewer) {
+            $data = $this->api('GET', '/api/pages?filters[status]=draft', $viewer);
+            self::assertStatus(200);
+            self::assertSame(['about'], array_column($data['member'], 'code'));
+
+            $this->api('GET', '/api/pages/by-slug/brouillon', $viewer);
+            self::assertStatus(404);
+        }
+    }
+
+    /**
+     * A project entity redeclaring `new Get()` without `security` (BasePage::API_ITEM_SECURITY)
+     * does not expose its unpublished pages.
+     */
+    public function testAnItemOperationWithoutSecurityDoesNotFindAnUnpublishedPage(): void
+    {
+        $draft = $this->fixtures->page($this->site, 'draft', ['fr' => ['Brouillon', 'brouillon']]);
+        $published = $this->fixtures->page($this->site, 'about', ['fr' => ['À propos', 'a-propos']], status: 'published');
+        $provider = static::getContainer()->get('gingerminds_cms.api.provider.page');
+        self::assertInstanceOf(PageProvider::class, $provider);
+
+        self::assertNull($provider->provide(new Get(class: Page::class), ['id' => $draft->getId()]));
+        self::assertSame($published->getId(), $this->providedId($provider->provide(new Get(class: Page::class), ['id' => $published->getId()])));
+        self::assertSame($draft->getId(), $this->providedId($provider->provide(new Get(class: Page::class, security: Page::API_ITEM_SECURITY), ['id' => $draft->getId()])));
     }
 
     public function testTheContentIsServedAsStoredWithTheTranslationFallback(): void
@@ -128,5 +206,12 @@ final class PageApiTest extends ApiTestCase
         $this->entityManager()->flush();
 
         self::assertSame('Tracteur X', $this->api('GET', '/api/pages/by-slug/tracteur')['title']);
+    }
+
+    private function providedId(mixed $page): ?int
+    {
+        self::assertInstanceOf(PageInterface::class, $page);
+
+        return $page->getId();
     }
 }

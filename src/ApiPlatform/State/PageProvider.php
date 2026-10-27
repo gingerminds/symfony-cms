@@ -21,7 +21,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * The pages of the current site: the collection lists the published ones with their facets,
- * `by-slug` finds a published page by its URL path, `{id}` any page (front preview).
+ * `by-slug` finds a published page by its URL path, `{id}` any page (front preview) when its
+ * operation is secured (BasePage::API_ITEM_SECURITY): an unpublished page is not found through an
+ * item operation without `security`, e.g. a project resource redeclaring `new Get()`.
  *
  * @extends ResourceProvider<PageInterface&FilterableInterface>
  */
@@ -47,7 +49,13 @@ class PageProvider extends ResourceProvider
             return $page ?? throw new NotFoundHttpException('Page not found.');
         }
 
-        return parent::provide($operation, $uriVariables, $context);
+        $data = parent::provide($operation, $uriVariables, $context);
+
+        if ($data instanceof PageInterface && !$data->isPublished() && null === $operation->getSecurity()) {
+            return null;
+        }
+
+        return $data;
     }
 
     protected function configureListQuery(ListQuery $query, Operation $operation, array $uriVariables, array $context): ListQuery

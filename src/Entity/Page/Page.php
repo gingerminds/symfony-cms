@@ -13,14 +13,14 @@ use Gingerminds\CmsBundle\Repository\Page\PageRepository;
 
 /**
  * Public API of the current site, in the current language (Laravel URIs): the published pages
- * (filters and facets), a page by id whatever its status (front preview), a published page by
- * URL path or by code.
+ * (filters and facets), a page by id (front preview: any status with the `view pages` permission,
+ * see API_ITEM_SECURITY), a published page by URL path or by code.
  */
 #[ApiResource(
     shortName: 'Page',
     operations: [
         new GetCollection(normalizationContext: ['groups' => [BasePage::GROUP_LIST], 'skip_null_values' => false]),
-        new Get(),
+        new Get(security: self::API_ITEM_SECURITY),
         new Get(
             uriTemplate: '/pages/by-slug/{slug}',
             uriVariables: ['slug' => new Link(fromClass: self::class, identifiers: ['slug'])],
