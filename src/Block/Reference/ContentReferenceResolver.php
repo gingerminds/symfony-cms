@@ -53,29 +53,10 @@ class ContentReferenceResolver
      */
     private function replace(array $content, bool $normalize): array
     {
-        $ids = [];
-        $this->walk($content, static function (BlockField $field, mixed $value) use (&$ids): mixed {
-            foreach ($field->multiple && \is_array($value) ? $value : [$value] as $id) {
-                if (\is_int($id) || (\is_string($id) && '' !== $id)) {
-                    $ids[$field->type][] = $id;
-                }
-            }
-
-            return $value;
-        });
-
-        $loaded = [];
-
-        foreach ($ids as $type => $typeIds) {
-            $loaded[$type] = $this->resolvers->get($type)->load(array_values(array_unique($typeIds)));
-        }
+        $loaded = $this->load($content);
 
         return $this->walk($content, function (BlockField $field, mixed $value) use ($loaded, $normalize): mixed {
-            $find = function (mixed $id) use ($field, $loaded, $normalize): mixed {
-                $entity = \is_int($id) || \is_string($id) ? $loaded[$field->type][(string) $id] ?? null : null;
-
-                return null !== $entity && $normalize ? $this->resolvers->get($field->type)->normalize($entity) : $entity;
-            };
+            $find = fn (mixed $id): mixed => $this->find($field, $id, $loaded, $normalize);
 
             if ($field->multiple) {
                 return array_values(array_filter(array_map($find, \is_array($value) ? $value : []), static fn (mixed $entity): bool => null !== $entity));
@@ -83,6 +64,52 @@ class ContentReferenceResolver
 
             return $find($value);
         });
+    }
+
+    /**
+     * The entities of every reference of the content, one load per field type.
+     *
+     * @param list<mixed> $content
+     *
+     * @return array<string, array<int|string, object>> field type => entities by id
+     */
+    private function load(array $content): array
+    {
+        $ids = [];
+        $this->walk($content, static function (BlockField $field, mixed $value) use (&$ids): mixed {
+            $values = $field->multiple && \is_array($value) ? $value : [$value];
+            $ids[$field->type] = [...$ids[$field->type] ?? [], ...array_filter($values, self::isId(...))];
+
+            return $value;
+        });
+
+        $loaded = [];
+
+        foreach ($ids as $type => $typeIds) {
+            $loaded[$type] = [] === $typeIds ? [] : $this->resolvers->get($type)->load(array_values(array_unique($typeIds)));
+        }
+
+        return $loaded;
+    }
+
+    /**
+     * The entity of an id (normalized for the API), null when missing.
+     *
+     * @param array<string, array<int|string, object>> $loaded
+     */
+    private function find(BlockField $field, mixed $id, array $loaded, bool $normalize): mixed
+    {
+        $entity = self::isId($id) ? $loaded[$field->type][(string) $id] ?? null : null;
+
+        return null !== $entity && $normalize ? $this->resolvers->get($field->type)->normalize($entity) : $entity;
+    }
+
+    /**
+     * @phpstan-assert-if-true int|non-empty-string $value
+     */
+    private static function isId(mixed $value): bool
+    {
+        return \is_int($value) || (\is_string($value) && '' !== $value);
     }
 
     /**

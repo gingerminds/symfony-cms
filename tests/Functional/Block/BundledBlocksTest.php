@@ -70,7 +70,7 @@ final class BundledBlocksTest extends ApiTestCase
     public function testTheStoredDataOfTheReferences(): void
     {
         $json = $this->validate('text_image', ['title' => 'Titre', 'image' => $this->image->getId()]);
-        self::assertSame(['image_position' => false, 'title' => 'Titre', 'text' => null, 'image' => $this->image->getId()], $json['data']);
+        self::assertSame(['title' => 'Titre', 'image_position' => false, 'text' => null, 'image' => $this->image->getId()], $json['data']);
 
         $json = $this->validate('media_list', ['items' => [['media' => (string) $this->media->getId()]]]);
         self::assertSame(['title' => null, 'items' => [['media' => $this->media->getId(), 'subtitle' => null]]], $json['data'], 'A media id as an integer.');

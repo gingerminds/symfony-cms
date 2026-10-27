@@ -134,5 +134,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - CI: PHPUnit coverage (Xdebug, Clover report) sent to SonarQube, which now runs after the tests;
   line coverage shown on the merge requests. `assets/` analysed by SonarQube.
-- Requires `symfony/workflow` ^8.1, `symfony/html-sanitizer` ^8.1, `gingerminds/symfony-core` ^1.9 (nested resources, input groups), `gingerminds/symfony-media-manager` ^1.1 and
+- Requires `symfony/workflow` ^8.1, `symfony/html-sanitizer` ^8.1, `gingerminds/symfony-core` ^1.9 (nested resources, input groups), `gingerminds/symfony-media-manager` ^1.2 (picker modals over the block modal) and
   `gingerminds/symfony-multisite` ^1.2 (form include slots, `translation_fallback`).

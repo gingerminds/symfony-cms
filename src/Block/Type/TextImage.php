@@ -30,8 +30,8 @@ class TextImage extends AbstractBlock
     public function getFields(): array
     {
         return [
+            BlockField::text('title')->required()->size('xl'),
             BlockField::toggle('image_position')->help('block.text_image.help.image_position'),
-            BlockField::text('title')->required(),
             BlockField::wysiwyg('text'),
             BlockField::file('image')->required()->size('xl'),
         ];
