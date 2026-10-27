@@ -16,6 +16,7 @@ use Gingerminds\CmsBundle\Entity\Menu\Menu;
 use Gingerminds\CmsBundle\Entity\Menu\MenuInterface;
 use Gingerminds\CmsBundle\Entity\Menu\MenuItem;
 use Gingerminds\CmsBundle\Entity\Menu\MenuItemInterface;
+use Gingerminds\CmsBundle\Entity\Page\BasePage;
 use Gingerminds\CmsBundle\Entity\Page\Page;
 use Gingerminds\CmsBundle\Entity\Page\PageCategory;
 use Gingerminds\CmsBundle\Entity\Page\PageCategoryInterface;
@@ -26,6 +27,8 @@ use Gingerminds\CmsBundle\Form\Page\PageCategoryType;
 use Gingerminds\CmsBundle\Form\Page\PageType;
 use Gingerminds\CmsBundle\Model\PublicationStatus;
 use Gingerminds\CmsBundle\Model\PublishableInterface;
+use Gingerminds\CmsBundle\Search\PubliclySearchableInterface;
+use Gingerminds\CmsBundle\Search\SearchEngineInterface;
 use Gingerminds\CmsBundle\Site\Entity\Site;
 use Gingerminds\CoreBundle\DependencyInjection\Compiler\OverriddenEntityPass;
 use Symfony\Bundle\MakerBundle\MakerBundle;
@@ -83,6 +86,8 @@ final class GingermindsCmsBundle extends AbstractBundle
 
     public const string TRANSLATION_DOMAIN = 'GingermindsCms';
 
+    public const string SEARCH_ENGINE_DOCTRINE = 'doctrine';
+
     protected string $extensionAlias = 'gingerminds_cms';
 
     public function getPath(): string
@@ -122,6 +127,10 @@ final class GingermindsCmsBundle extends AbstractBundle
         $parameters->set('gingerminds_cms.blocks.disabled', $config['blocks']['disabled']);
         $parameters->set('gingerminds_cms.blocks.order', $config['blocks']['order']);
         $parameters->set('gingerminds_cms.publication.status_colors', $config['publication']['status_colors']);
+        $parameters->set('gingerminds_cms.search.resources', $this->searchResources($config));
+        $engine = $config['search']['engine'];
+        $builder->setAlias(SearchEngineInterface::class, self::SEARCH_ENGINE_DOCTRINE === $engine ? 'gingerminds_cms.search.engine.doctrine' : $engine);
+        $builder->setAlias('gingerminds_cms.search.engine', SearchEngineInterface::class);
 
         foreach (self::RESOURCES as $name => $resource) {
             $entity = $this->resourceValue($config, $name, 'entity');
@@ -159,6 +168,19 @@ final class GingermindsCmsBundle extends AbstractBundle
             'GingermindsCmsMenu' => $this->mapping('Entity/Menu'),
             'GingermindsCmsPage' => $this->mapping('Entity/Page'),
         ];
+
+        // The tables of the `doctrine` search engine, only when it is the engine.
+        if (self::SEARCH_ENGINE_DOCTRINE === ($config['search']['engine'] ?? self::SEARCH_ENGINE_DOCTRINE)) {
+            $mappings['GingermindsCmsSearch'] = $this->mapping('Search/Doctrine/Entity');
+        }
+
+        $builder->prependExtensionConfig('api_platform', ['mapping' => ['paths' => [$this->getPath() . '/src/Search/Api']]]);
+        $builder->prependExtensionConfig($this->extensionAlias, ['search' => ['resources' => ['page' => [
+            'label' => 'page.name_p',
+            'category' => 'category',
+            'group' => BasePage::GROUP_LIST,
+            'fields' => ['title' => ['weight' => 3], 'hook' => ['weight' => 1]],
+        ]]]]);
 
         if (Site::class === $this->multisiteSiteEntity($builder)) {
             $mappings['GingermindsCmsSite'] = $this->mapping('Site/Entity');
@@ -223,6 +245,31 @@ final class GingermindsCmsBundle extends AbstractBundle
     }
 
     /**
+     * The search types with their entity (null: the entity of the CMS resource of the same name).
+     *
+     * @param array<string, mixed> $config
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function searchResources(array $config): array
+    {
+        $resources = [];
+
+        foreach ($config['search']['resources'] as $type => $resource) {
+            $entity = $resource['entity'] ?? (isset(self::RESOURCES[$type]) ? $this->resourceValue($config, $type, 'entity') : null);
+
+            if (!\is_string($entity) || !is_subclass_of($entity, PubliclySearchableInterface::class)) {
+                throw new LogicException(\sprintf('The search type "%s" needs an "entity" implementing "%s".', $type, PubliclySearchableInterface::class));
+            }
+
+            $resources[$type] = ['entity' => $entity, ...$resource];
+            $resources[$type]['entity'] = $entity;
+        }
+
+        return $resources;
+    }
+
+    /**
      * The bundle configuration needed while prepending: the other keys may hold env placeholders.
      *
      * @return array<string, mixed>
@@ -237,7 +284,7 @@ final class GingermindsCmsBundle extends AbstractBundle
         }
 
         $configs = array_map(
-            static fn (array $config): array => array_intersect_key($config, ['resources' => true]),
+            static fn (array $config): array => array_intersect_key($config, ['resources' => true, 'search' => true]),
             $builder->getExtensionConfig($this->extensionAlias),
         );
 

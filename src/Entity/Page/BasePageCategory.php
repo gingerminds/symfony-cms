@@ -6,6 +6,7 @@ namespace Gingerminds\CmsBundle\Entity\Page;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use Gingerminds\CmsBundle\Search\ExcludableFromSearchInterface;
 use Gingerminds\CoreBundle\Model\CacheableResourceInterface;
 use Gingerminds\CoreBundle\Model\CacheCascadeInterface;
 use Gingerminds\CoreBundle\Model\EagerLoadableInterface;
@@ -21,7 +22,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 #[ORM\MappedSuperclass]
 #[UniqueEntity(fields: ['code', 'site'], errorPath: 'code')]
-abstract class BasePageCategory implements PageCategoryInterface, EagerLoadableInterface, CacheableResourceInterface, CacheCascadeInterface
+abstract class BasePageCategory implements PageCategoryInterface, EagerLoadableInterface, CacheableResourceInterface, CacheCascadeInterface, ExcludableFromSearchInterface
 {
     use PageCategoryTranslatedFieldsTrait;
     use PageCategoryTreeTrait;

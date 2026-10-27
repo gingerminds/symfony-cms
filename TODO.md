@@ -35,14 +35,13 @@ Pour chaque étape : plan détaillé validé → implémentation → tests → `
 | 6 | WYSIWYG : `WysiwygType` + contrôleur Stimulus TipTap, presets configurables, assets via le slot `head` du core | `build` | ✅ |
 | 7a | Système de blocs : `BlockInterface` / `AbstractBlock`, registre (services tagués), formulaire depuis le schéma de champs, validation, aperçus Twig, `BlockController` (form / validate), extensions de blocs, répéteur, copie de structure entre langues, bloc TitleText, maker `make:gm:cms-block` | `build` | ✅ |
 | 7b | Blocs restants : Cards, FAQ, LinkList, Media, MediaList, Slider, TextImage, Video ; résolveurs File / Media, synchro des champs fichier avec le `FileReferenceRegistry` | `build` | ✅ |
-| 8 | Recherche : `search_index` + `search_index_categories`, `ExcludableFromSearch` / `PubliclySearchable`, indexation par listeners Doctrine, réindexation en cascade des catégories (Messenger), commande de réindexation, API recherche + résultats avec facettes | `build` | ⬜ |
+| 8 | Recherche : `search_index` + `search_index_categories`, `ExcludableFromSearch` / `PubliclySearchable`, indexation par listeners Doctrine, réindexation en cascade des catégories (Messenger), commande de réindexation, API recherche + résultats avec facettes | `build` | ✅ |
 | 9 | Documentation : README, `docs/` (Installation, Configuration, Menus, Pages, Blocks, Search, API, FromLaravel) | `build` | ⬜ |
 
 Légende : ⬜ à faire · 🔄 en cours · ✅ commité
 
 ## Plus tard
 
-- Étape 8 : effet de `is_hidden_from_search` des catégories (exclusion en cascade de leurs pages).
 - Étape 9 (`FromLaravel.md`) : écarts volontaires des pages — `status` en chaîne (requête de conversion des noms de classe Spatie), index unique du slug remplacé par l'unicité par catégorie, FK `files` en RESTRICT, aperçu dans la colonne de droite.
 - Étape 9 (`FromLaravel.md`) : écarts volontaires des catégories — colonne `position` (ordre de secours : code), format du préfixe validé côté serveur, préfixe obligatoire si sous-catégories.
 - Étape 9 (`FromLaravel.md`) : écarts volontaires des URL / de l'API des pages — filtre `filters[category]` (au lieu de `category_id`), collection limitée aux pages publiées (`/{id}` tous statuts pour l'aperçu), synchro tolérante (ancien chemin conservé et conflit signalé au lieu d'une erreur), `switch_lang` lu dans `page_urls` pour une page publiée.
@@ -50,5 +49,8 @@ Légende : ⬜ à faire · 🔄 en cours · ✅ commité
 - Étape 9 (`FromLaravel.md`) : WYSIWYG — TipTap 3 au lieu de 2 (HTML identique), HTML nettoyé côté serveur, éditeur vide enregistré à `null`.
 - Étape 9 (`FromLaravel.md`) : écarts volontaires des blocs — services autoconfigurés au lieu du scan de `block_paths`, surcharge par héritage (plus de `gingerminds-cms.blocks`), extensions de blocs, champs `BlockField` au lieu de tableaux (libellés `block.<clé>.field.<nom>`, `<répéteur>_<nom>` pour un sous-champ), clé statique, endpoints en POST (données du bloc édité dans le corps), erreurs du formulaire de bloc rendues par le serveur, HTML WYSIWYG renettoyé à l'enregistrement, contenu vide à `null`, copie de structure en une modale.
 - Étape 9 (`FromLaravel.md`) : écarts volontaires des blocs fichier — champ `file` choisi dans la bibliothèque (plus d'upload direct ni de suppression automatique des fichiers orphelins : un fichier utilisé est protégé, `gingerminds:media:files:orphans` pour le ménage), médias sérialisés comme `GET /api/media` (groupe `media:list`), `link_list` accepte les chemins relatifs, cache des pages invalidé par un changement de fichier ou de média.
+- Étape 9 (`FromLaravel.md`) : écarts volontaires de la recherche — moteur interchangeable (`search.engine`), champs cherchés en configuration avec poids (page : titre et accroche, Laravel : titre seul), catégorie masquée héritée par ses sous-catégories, langue de repli avec `translation_fallback`, `id` des résultats = id du contenu (Laravel : id de la ligne d'index), commande `gingerminds:cms:search:reindex`, propagation par Messenger.
+- Étape 9 (Search) : contrats `PubliclySearchableInterface` / `ExcludableFromSearchInterface` / `SearchOwnedInterface`, déclaration d'un type, écrire un moteur (`SearchEngineInterface`), router `ReindexSearchCategory` en asynchrone, réindexation après installation.
+- Plus tard : moteurs TNTSearch / Elasticsearch (implémentations de `SearchEngineInterface`, poids des champs).
 - Étape 9 (Blocks) : maker `make:gm:cms-block`, contrat, `BlockField` (dont `file` / `media`), extensions, `BlockCanvasType` réutilisable (`form_route` / `validate_route`), aperçus Twig (`refs`), résolveurs de références (`BlockReferenceResolverInterface`), source de références de fichiers à déclarer pour un autre champ de blocs.
 - Étape 9 (`FromLaravel.md`) : écarts volontaires des éléments de menu — parent limité au même menu et sans cycle, plus de champ « position » (glisser-déposer, fin de niveau), `is_no_follow` réellement validé ; `main_menu_id` dans l'API des sites.

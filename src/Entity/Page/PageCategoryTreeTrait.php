@@ -6,6 +6,7 @@ namespace Gingerminds\CmsBundle\Entity\Page;
 
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Gingerminds\CmsBundle\Search\ExcludableFromSearchInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
@@ -25,6 +26,14 @@ trait PageCategoryTreeTrait
     #[ORM\OneToMany(targetEntity: PageCategoryInterface::class, mappedBy: 'parent')]
     #[ORM\OrderBy(['position' => 'ASC', 'code' => 'ASC'])]
     protected Collection $children;
+
+    /**
+     * Hidden from the public search, itself or an ancestor: its pages too.
+     */
+    public function isExcludedFromSearch(): bool
+    {
+        return $this->isHiddenFromSearch() || ($this->parent instanceof ExcludableFromSearchInterface && $this->parent->isExcludedFromSearch());
+    }
 
     public function getParent(): ?PageCategoryInterface
     {

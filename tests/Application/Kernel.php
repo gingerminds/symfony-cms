@@ -42,6 +42,10 @@ final class Kernel extends BaseKernel
         if ('test_no_fallback' === $this->environment) {
             $container->import(__DIR__ . '/config/no_fallback.yaml');
         }
+
+        if ('test_memory_search' === $this->environment) {
+            $container->import(__DIR__ . '/config/memory_search.yaml');
+        }
     }
 
     protected function configureRoutes(RoutingConfigurator $routes): void

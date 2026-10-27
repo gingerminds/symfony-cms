@@ -130,6 +130,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `make:gm:cms-block Name` (with `symfony/maker-bundle`): `App\Cms\Block\Name` (key in snake case) and
   its preview `templates/cms/block/<key>/preview.html.twig`, refused when the key is taken.
 
+- Public search with a pluggable engine (`gingerminds_cms.search.engine`): `doctrine` (default, the
+  `search_index` / `search_index_categories` tables of `gingerminds/laravel-cms`, mapped only for this
+  engine, `LIKE` search, facets in SQL) or the id of a project service implementing
+  `SearchEngineInterface` (TNTSearch, Elasticsearch...). The searchable types are declared in
+  `gingerminds_cms.search.resources` (`page` by the bundle): entity, facet label, category
+  association, serialization group, and the searched `fields` with their weight (page: `title`
+  weight 3, `hook`). A type implements `PubliclySearchableInterface` (one `SearchEntry` per
+  language: title, URL, excerpt) and `ExcludableFromSearchInterface`: a page is found when published
+  and neither it nor a category of its branch is hidden from search.
+- The search follows the contents after each flush (`SearchIndexListener`: the content, its
+  translations, its URLs); a category hidden from search or shown again reindexes the contents of
+  its branch through Messenger (`ReindexSearchCategory`, synchronous unless routed).
+  `gingerminds:cms:search:reindex [--type=]` rebuilds the index. Requires `symfony/messenger` ^8.1.
+- `GET /api/search-indices` (lean hits: `id`, `type`, `title`, `url`, `excerpt`, `published_at`) and
+  `GET /api/search-results` (each hit with its content in `resource`, and the `type` facet: the types
+  and their categories, `page` / `page:12`): `filters[search]`, `filters[type][]`, pagination, the
+  current site, the current language then, with `translation_fallback`, the fallback one (one version
+  per content).
+
 ### Changed
 
 - CI: PHPUnit coverage (Xdebug, Clover report) sent to SonarQube, which now runs after the tests;

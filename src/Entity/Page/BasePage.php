@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Gingerminds\CmsBundle\Model\PublicationStatus;
 use Gingerminds\CmsBundle\Model\PublishableTrait;
 use Gingerminds\CmsBundle\Model\VisualsTrait;
+use Gingerminds\CmsBundle\Search\ExcludableSearchableInterface;
 use Gingerminds\CmsBundle\Validator\SinglePageCategory;
 use Gingerminds\CoreBundle\Model\CacheableResourceInterface;
 use Gingerminds\CoreBundle\Model\EagerLoadableInterface;
@@ -30,10 +31,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\MappedSuperclass]
 #[UniqueEntity(fields: ['code', 'site'], errorPath: 'code')]
 #[SinglePageCategory]
-abstract class BasePage implements PageInterface, SortableInterface, SearchableInterface, FilterableInterface, EagerLoadableInterface, CacheableResourceInterface
+abstract class BasePage implements PageInterface, SortableInterface, SearchableInterface, FilterableInterface, EagerLoadableInterface, CacheableResourceInterface, ExcludableSearchableInterface
 {
     use CacheableResourceTrait;
     use PageApiFieldsTrait;
+    use PageSearchTrait;
     use PageTranslatedFieldsTrait;
     use PublishableTrait;
     use TimestampableTrait;
