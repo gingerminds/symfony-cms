@@ -60,7 +60,7 @@ class DoctrineSearchEngine implements SearchEngineInterface
             $qb->where('s.type = :type')->setParameter('type', $type);
         }
 
-        $this->deleteRows(array_map(intval(...), $qb->fetchFirstColumn()));
+        $this->deleteRows(array_values(array_map(intval(...), $qb->fetchFirstColumn())));
     }
 
     public function search(SearchQuery $query): SearchResult
@@ -78,7 +78,7 @@ class DoctrineSearchEngine implements SearchEngineInterface
             ->fetchAllAssociative();
 
         return new SearchResult(
-            array_map($this->hit(...), $hits),
+            array_values(array_map($this->hit(...), $hits)),
             (int) $this->filtered($query, true)->select('COUNT(s.id)')->fetchOne(),
             $this->typeCounts($query),
             $this->categoryCounts($query),

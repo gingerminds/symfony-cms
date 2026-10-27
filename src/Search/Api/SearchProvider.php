@@ -56,7 +56,7 @@ final readonly class SearchProvider implements ProviderInterface
         $items = array_map($this->item(...), $result->hits);
 
         if (true === ($operation->getExtraProperties()[SearchItem::WITH_RESOURCES] ?? false)) {
-            $this->attachResources($items, $request instanceof Request ? $request->getRequestFormat('jsonld') : 'jsonld');
+            $this->attachResources($items, ($request instanceof Request ? $request->getRequestFormat() : null) ?? 'jsonld');
             $this->filterStore->set(SearchItem::class, $this->filters->compute($query, $result, $this->languageContext->current()?->getIso()));
         }
 
@@ -95,7 +95,9 @@ final readonly class SearchProvider implements ProviderInterface
         $categories = [];
 
         foreach (\is_array($value) ? $value : [$value] as $item) {
-            [$type, $categoryId] = [...explode(':', \is_scalar($item) ? (string) $item : '', 2), null];
+            $parts = explode(':', \is_scalar($item) ? (string) $item : '', 2);
+            $type = $parts[0];
+            $categoryId = $parts[1] ?? null;
 
             if (!$this->resources->get($type) instanceof SearchResource) {
                 continue;
@@ -133,7 +135,11 @@ final readonly class SearchProvider implements ProviderInterface
             $entities = [];
 
             foreach ($this->entityManager->getRepository($resource->entity)->findBy(['id' => $typeIds]) as $entity) {
-                $entities[SearchDocumentFactory::id($entity)] = $entity;
+                $id = SearchDocumentFactory::id($entity);
+
+                if (null !== $id) {
+                    $entities[$id] = $entity;
+                }
             }
 
             foreach ($items as $item) {

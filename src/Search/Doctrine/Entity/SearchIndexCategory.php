@@ -23,7 +23,7 @@ class SearchIndexCategory
         private SearchIndex $searchIndex,
         #[ORM\Id]
         #[ORM\Column(name: 'category_id', type: Types::BIGINT, options: ['unsigned' => true])]
-        private string $categoryId,
+        private int $categoryId,
     ) {
     }
 
@@ -34,6 +34,6 @@ class SearchIndexCategory
 
     public function getCategoryId(): int
     {
-        return (int) $this->categoryId;
+        return $this->categoryId;
     }
 }

@@ -22,10 +22,7 @@ class SearchIndex
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::BIGINT, options: ['unsigned' => true])]
-    private ?string $id = null;
-
-    #[ORM\Column(name: 'record_id', type: Types::BIGINT, options: ['unsigned' => true])]
-    private string $recordId;
+    private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $excerpt;
@@ -40,7 +37,8 @@ class SearchIndex
     private ?\DateTimeImmutable $updatedAt;
 
     public function __construct(#[ORM\Column(length: 255)]
-        private string $type, int $recordId, #[ORM\ManyToOne(targetEntity: SiteInterface::class)]
+        private string $type, #[ORM\Column(name: 'record_id', type: Types::BIGINT, options: ['unsigned' => true])]
+        private int $recordId, #[ORM\ManyToOne(targetEntity: SiteInterface::class)]
         #[ORM\JoinColumn(name: 'site_id', nullable: true, onDelete: 'SET NULL')]
         private ?SiteInterface $site, #[ORM\ManyToOne(targetEntity: LanguageInterface::class)]
         #[ORM\JoinColumn(name: 'language_id', nullable: false, onDelete: 'CASCADE')]
@@ -49,7 +47,6 @@ class SearchIndex
         private string $url, #[ORM\Column(name: 'searchable_text', type: Types::TEXT)]
         private string $searchableText)
     {
-        $this->recordId = (string) $recordId;
         $this->excerpt = null;
         $this->publishedAt = null;
         $this->createdAt = new \DateTimeImmutable();
@@ -58,7 +55,7 @@ class SearchIndex
 
     public function getId(): ?int
     {
-        return null === $this->id ? null : (int) $this->id;
+        return $this->id;
     }
 
     public function getType(): string
@@ -68,7 +65,7 @@ class SearchIndex
 
     public function getRecordId(): int
     {
-        return (int) $this->recordId;
+        return $this->recordId;
     }
 
     public function getSite(): ?SiteInterface
