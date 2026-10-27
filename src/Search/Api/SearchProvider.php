@@ -132,22 +132,47 @@ final readonly class SearchProvider implements ProviderInterface
                 continue;
             }
 
-            $entities = [];
-
-            foreach ($this->entityManager->getRepository($resource->entity)->findBy(['id' => $typeIds]) as $entity) {
-                $id = SearchDocumentFactory::id($entity);
-
-                if (null !== $id) {
-                    $entities[$id] = $entity;
-                }
-            }
+            $entities = $this->entities($resource, $typeIds);
 
             foreach ($items as $item) {
                 if ($item->type === $type && isset($entities[$item->id])) {
-                    $normalized = $normalizer->normalize($entities[$item->id], $format, ['groups' => [$resource->group]]);
-                    $item->resource = \is_array($normalized) ? $normalized : null;
+                    $item->resource = $this->normalize($normalizer, $entities[$item->id], $format, $resource->group);
                 }
             }
         }
+    }
+
+    /**
+     * The contents of a type, in one query.
+     *
+     * @param list<int> $ids
+     *
+     * @return array<int, object> by id
+     */
+    private function entities(SearchResource $resource, array $ids): array
+    {
+        $entities = [];
+
+        foreach ($this->entityManager->getRepository($resource->entity)->findBy(['id' => $ids]) as $entity) {
+            $id = SearchDocumentFactory::id($entity);
+
+            if (null !== $id) {
+                $entities[$id] = $entity;
+            }
+        }
+
+        return $entities;
+    }
+
+    /**
+     * A content as in its own list.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function normalize(NormalizerInterface $normalizer, object $entity, string $format, string $group): ?array
+    {
+        $normalized = $normalizer->normalize($entity, $format, ['groups' => [$group]]);
+
+        return \is_array($normalized) ? $normalized : null;
     }
 }
