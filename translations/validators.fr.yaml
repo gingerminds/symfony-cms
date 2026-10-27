@@ -1,0 +1,26 @@
+gingerminds_cms:
+    block:
+        link_url: "Saisissez une URL complète (https://…) ou un chemin du site commençant par / (ex. : /contact)."
+        invalid: Ce bloc est invalide.
+        invalid_content: Le contenu est invalide.
+        unknown_type: "Type de bloc inconnu : {{ type }}."
+        field_error: "{{ field }} : {{ message }}"
+    menu:
+        no_site: Aucun site courant. Créez un site avant d'ajouter un menu.
+    menu_item:
+        parent_other_menu: Le parent doit appartenir au même menu.
+        parent_cycle: Un élément ne peut pas être rangé sous lui-même ni sous un de ses enfants.
+    page_category:
+        no_site: Aucun site courant. Créez un site avant d'ajouter une catégorie de pages.
+        parent_other_site: Le parent doit appartenir au même site.
+        parent_cycle: Une catégorie ne peut pas être rangée sous elle-même ni sous une de ses sous-catégories.
+        parent_without_prefix: "Le parent n'a pas de préfixe ({{ languages }}) : une catégorie qui a des sous-catégories doit avoir un préfixe."
+        prefix_required_with_children: Une catégorie qui a des sous-catégories doit avoir un préfixe.
+        prefix_format: "Le préfixe ne peut contenir que des lettres minuscules sans accent, des chiffres et des tirets (ex. : nos-produits)."
+        prefix_not_unique: Ce préfixe est déjà utilisé par une catégorie du même niveau.
+    page:
+        no_site: Aucun site courant. Créez un site avant d'ajouter une page.
+        slug_format: "Le slug ne peut contenir que des lettres minuscules sans accent, des chiffres et des tirets (ex. : notre-histoire)."
+        slug_not_unique: Ce slug est déjà utilisé par une page de la même catégorie.
+        category_taken: Cette catégorie n'accepte qu'une seule page, déjà utilisée.
+        url_taken: "L'URL {{ path }} est déjà utilisée par la page « {{ page }} »."

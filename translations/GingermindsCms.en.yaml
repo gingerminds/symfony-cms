@@ -1,0 +1,262 @@
+admin_menu:
+    cms: CMS
+
+menu:
+    name_s: Menu
+    name_p: Menus
+    manage: Manage menus
+    title_new: Add a menu
+    title_edit: Edit a menu
+    field:
+        code: Code
+    message:
+        no_items: No menu
+
+menu_item:
+    name_s: Menu item
+    name_p: Items
+    manage: Manage the menu items
+    title_index: Items of the "%menu%" menu
+    title_new: Add a menu item
+    title_edit: Edit a menu item
+    tab:
+        general: General
+        translations: Translations
+    form:
+        position: Position
+        link: Link
+    field:
+        code: Code
+        is_active: Active
+        parent: Parent
+        is_target_blank: Open in a new tab
+        is_no_referrer: noreferrer
+        is_no_opener: noopener
+        is_no_follow: nofollow
+        name: Name
+        url: URL
+        description: Description
+    placeholder:
+        parent: None (root)
+    status:
+        inactive: Inactive
+    action:
+        add_child: Add a child
+        move: Move
+    message:
+        no_items: No item in this menu
+
+page_category:
+    name_s: Page category
+    name_p: Page categories
+    manage: Manage the page categories
+    title_new: Add a page category
+    title_edit: Edit a page category
+    tab:
+        general: General
+        translations: Translations
+    form:
+        position: Position
+        options: Options
+    field:
+        code: Code
+        parent: Parent
+        is_unique: Single page
+        is_hidden_from_search: Hidden from search
+        name: Name
+        prefix: URL prefix
+    help:
+        is_unique: Only one page can be put in this category.
+        prefix: "Blank: the category adds nothing to the URL of its pages (not allowed with sub-categories)."
+    placeholder:
+        parent: None (root)
+    status:
+        unique: Single page
+    action:
+        add_child: Add a child
+        move: Move
+    flash:
+        url_conflict: "The page \"%page%\" (%language%) keeps its former URL: %path% is already used by the page \"%owner%\". Change the slug of one of the pages."
+    message:
+        no_items: No page category
+
+page:
+    name_s: Page
+    name_p: Pages
+    manage: Manage the pages
+    title_new: Add a page
+    title_edit: Edit a page
+    tab:
+        general: General
+        translations: Translations
+    form:
+        visuals: Visuals
+        publication: Publication
+    field:
+        code: Code
+        title: Title
+        slug: Slug
+        hook: Hook
+        content: Content
+        category: Category
+        status: Status
+        published_at: Published on
+        main_visual: Main visual
+        thumbnail: Thumbnail
+        is_hidden_from_search: Hidden from search
+    help:
+        slug: "Blank: the home page of its category."
+        translation_visual: Replaces the page one in this language.
+    placeholder:
+        category: None (site root)
+    action:
+        choose_category: In which category?
+    preview:
+        action: Preview
+    message:
+        no_items: No page
+
+publication:
+    status:
+        draft: Draft
+        published: Published
+        archived: Archived
+        review: In review
+
+site:
+    field:
+        main_menu: Main menu
+    help:
+        main_menu_empty: No menu for this site. Create one in CMS › Menus.
+    placeholder:
+        main_menu: None
+wysiwyg:
+    toolbar:
+        bold: Bold
+        italic: Italic
+        underline: Underline
+        strike: Strikethrough
+        link: Link
+        link_prompt: 'URL:'
+        bullet_list: Bullet list
+        ordered_list: Numbered list
+        heading: Heading
+        blockquote: Quote
+        horizontal_rule: Divider
+        undo: Undo
+        redo: Redo
+        insert_table: Insert table
+        toggle_header_row: Toggle header row
+        add_row_after: Add row
+        delete_row: Delete row
+        add_column_after: Add column
+        delete_column: Delete column
+        delete_table: Delete table
+
+blocks:
+    action:
+        add: Add a block
+        edit: Edit
+        remove: Remove the block
+        reorder: Move
+        toggle_preview: Show / hide the preview
+        copy_structure: Copy the structure of another language
+        copy: Copy
+        cancel: Cancel
+        save: Save
+        close: Close
+        add_row: Add a row
+        remove_row: Remove the row
+    message:
+        loading: Loading…
+        load_error: An error occurred, please try again.
+        empty_canvas: No block yet.
+        empty_preview: Empty block
+        no_block: No block available.
+        unknown_type: "Unknown block type: %type%"
+        confirm_remove: Remove this block? The removal is saved with the page.
+        copy_structure_prompt: Language to copy
+        copy_structure_confirm: The blocks of this language will be replaced by the ones of the chosen language.
+        no_other_language: No other language.
+        row: Row
+        missing_file: File not found
+        missing_media: Media not found
+    unit:
+        byte: '%size% B'
+        kilobyte: '%size% kB'
+        megabyte: '%size% MB'
+
+block:
+    title_text:
+        label: Title + text
+        field:
+            title: Title
+            text: Text
+    text_image:
+        label: Text + image
+        field:
+            image_position: Image on the right
+            title: Title
+            text: Text
+            image: Image
+        help:
+            image_position: "Off: image on the left, on: image on the right."
+    media:
+        label: Media (single)
+        field:
+            title: Title
+            file: File
+    video:
+        label: Video
+        field:
+            title: Title
+            embed_code: YouTube video
+        help:
+            embed_code: The id of the video or its YouTube URL.
+    cards:
+        label: Cards
+        add: Add a card
+        item: Card
+        field:
+            title: Title
+            text: Text
+            cards: Cards
+            cards_title: Title
+            cards_description: Description
+            cards_image: Image
+    slider:
+        label: Slider
+        add: Add an image
+        item: Image
+        field:
+            title: Title
+            slides: Images
+            slides_image: Image
+    link_list:
+        label: Link list
+        add: Add a link
+        item: Link
+        field:
+            title: Title
+            links: Links
+            links_label: Label
+            links_url: URL
+            links_image: Image
+    media_list:
+        label: Media list
+        add: Add a media
+        item: Media
+        field:
+            title: Title
+            items: Medias
+            items_media: Media
+            items_subtitle: Subtitle
+    faq:
+        label: FAQ
+        add: Add a question
+        item: Question
+        field:
+            title: Title
+            items: Questions / answers
+            items_question: Question
+            items_answer: Answer

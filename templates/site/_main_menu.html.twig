@@ -1,0 +1,14 @@
+{# Site form sidebar (`site_form_sidebar` admin include slot): the main menu field of SiteMainMenuTypeExtension. #}
+{% trans_default_domain 'GingermindsCms' %}
+{% if form.main_menu is defined %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header py-3">
+            <h5 class="card-title mb-0"><i class="bi bi-menu-button-wide me-1 text-primary"></i> {{ 'menu.name_p'|trans }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                {{ form_row(form.main_menu) }}
+            </div>
+        </div>
+    </div>
+{% endif %}

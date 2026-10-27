@@ -1,0 +1,5 @@
+# `bundle_site` environment: the multisite Site, without main menu.
+gingerminds_multisite:
+    resources:
+        site:
+            entity: Gingerminds\MultisiteBundle\Entity\Site\Site

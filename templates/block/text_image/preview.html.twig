@@ -1,0 +1,13 @@
+{#
+ # Admin preview of the `text_image` block: `block`, `data`, `refs`, `uid`.
+ #}
+<div class="gm-cms-block-preview-text-image">
+    {% if data.title %}<h3 class="h5 mb-2">{{ data.title }}</h3>{% endif %}
+    <div class="d-flex gap-3 align-items-start{{ data.image_position ? ' flex-row-reverse' }}">
+        {% if data.image %}
+            <div class="flex-shrink-0">{{ include('@GingermindsCms/block/_file.html.twig', {file: refs.image, missing: true}, with_context = false) }}</div>
+        {% endif %}
+        {% if data.text %}<div class="gm-cms-block-preview-html flex-grow-1">{{ data.text|raw }}</div>{% endif %}
+    </div>
+    {% if not data.title and not data.text and not data.image %}{{ include('@GingermindsCms/block/_empty.html.twig') }}{% endif %}
+</div>

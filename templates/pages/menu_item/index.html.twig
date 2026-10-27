@@ -1,0 +1,25 @@
+{% extends '@GingermindsCore/crud/list_tree.html.twig' %}
+{% trans_default_domain 'GingermindsCms' %}
+
+{% set menu_resource = gm_resource('menu') %}
+{% set page_title = 'menu_item.title_index'|trans({'%menu%': menu.code}) %}
+{% set breadcrumb = [
+    {label: menu_resource.translationKey('name_p')|trans({}, menu_resource.translationDomain), url: path(menu_resource.route('index'))},
+    {label: menu.code},
+    {label: 'menu_item.name_p'|trans},
+] %}
+{% set tree_reorder_url = is_granted('EDIT', resource.name) ? path('gingerminds_cms_menu_item_reorder', route_parameters) : null %}
+{% set tree_csrf_token_id = reorder_csrf_token_id %}
+
+{% block list_filters %}{% endblock %}
+
+{% block tree %}
+    {% if roots is empty %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-diagram-3 fs-1 d-block mb-2 opacity-25"></i>
+            {{ 'menu_item.message.no_items'|trans }}
+        </div>
+    {% else %}
+        {% include '@GingermindsCms/pages/menu_item/_tree.html.twig' with {tree_items: roots, parent_id: null, depth: 0} %}
+    {% endif %}
+{% endblock %}

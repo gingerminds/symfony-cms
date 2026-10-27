@@ -1,0 +1,9 @@
+# A project search engine instead of the doctrine one (SearchEngineChoiceTest).
+services:
+    test.memory_search_engine:
+        class: Gingerminds\CmsBundle\Tests\Application\Search\InMemorySearchEngine
+        public: true
+
+gingerminds_cms:
+    search:
+        engine: test.memory_search_engine

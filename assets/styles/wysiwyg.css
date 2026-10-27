@@ -1,0 +1,87 @@
+/* WysiwygType (gm-cms-wysiwyg controller): toolbar and tables (ProseMirror has no table styles). */
+
+.gm-cms-wysiwyg-toolbar {
+    background-color: var(--bs-tertiary-bg);
+}
+
+/* Hover / pressed shades of the text color: visible on the toolbar in the light and dark themes. */
+.gm-cms-wysiwyg-toolbar .gm-cms-wysiwyg-btn {
+    --bs-btn-color: var(--bs-body-color);
+    --bs-btn-bg: transparent;
+    --bs-btn-border-color: transparent;
+    --bs-btn-hover-color: var(--bs-emphasis-color);
+    --bs-btn-hover-bg: rgba(var(--bs-emphasis-color-rgb), 0.08);
+    --bs-btn-hover-border-color: rgba(var(--bs-emphasis-color-rgb), 0.15);
+    --bs-btn-active-color: var(--bs-emphasis-color);
+    --bs-btn-active-bg: rgba(var(--bs-emphasis-color-rgb), 0.14);
+    --bs-btn-active-border-color: rgba(var(--bs-emphasis-color-rgb), 0.2);
+    --bs-btn-disabled-color: var(--bs-secondary-color);
+    --bs-btn-disabled-bg: transparent;
+    --bs-btn-disabled-border-color: transparent;
+}
+
+.gm-cms-wysiwyg-toolbar .gm-cms-wysiwyg-btn:hover {
+    color: var(--bs-btn-hover-color);
+    background-color: var(--bs-btn-hover-bg);
+    border-color: var(--bs-btn-hover-border-color);
+}
+
+.gm-cms-wysiwyg-toolbar .gm-cms-wysiwyg-btn.active {
+    color: var(--bs-btn-active-color);
+    background-color: var(--bs-btn-active-bg);
+    border-color: var(--bs-btn-active-border-color);
+}
+
+.gm-cms-wysiwyg.is-invalid .gm-cms-wysiwyg-toolbar,
+.gm-cms-wysiwyg.is-invalid .gm-cms-wysiwyg-editor {
+    border-color: var(--bs-form-invalid-border-color) !important;
+}
+
+.gm-cms-wysiwyg-editor .ProseMirror > :last-child {
+    margin-bottom: 0;
+}
+
+.gm-cms-wysiwyg-editor .ProseMirror table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+    margin: 0.5rem 0;
+    overflow: hidden;
+}
+
+.gm-cms-wysiwyg-editor .ProseMirror td,
+.gm-cms-wysiwyg-editor .ProseMirror th {
+    position: relative;
+    padding: 0.375rem 0.5rem;
+    vertical-align: top;
+    border: 1px solid var(--bs-border-color);
+}
+
+.gm-cms-wysiwyg-editor .ProseMirror th {
+    font-weight: 600;
+    text-align: left;
+    background-color: var(--bs-tertiary-bg);
+}
+
+.gm-cms-wysiwyg-editor .ProseMirror td > p,
+.gm-cms-wysiwyg-editor .ProseMirror th > p {
+    margin: 0;
+}
+
+.gm-cms-wysiwyg-editor .ProseMirror .selectedCell {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+}
+
+.gm-cms-wysiwyg-editor .ProseMirror .column-resize-handle {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    bottom: -2px;
+    width: 4px;
+    background-color: var(--bs-primary);
+    pointer-events: none;
+}
+
+.gm-cms-wysiwyg-editor .ProseMirror.resize-cursor {
+    cursor: col-resize;
+}

@@ -1,0 +1,19 @@
+{#
+ # Admin preview of the `video` block: `block`, `data`, `refs`, `uid`. The YouTube id is found in a
+ # full URL too.
+ #}
+{% trans_default_domain 'GingermindsCms' %}
+{% set video_id = block.youtubeId(data.embed_code) %}
+<div class="gm-cms-block-preview-video">
+    {% if data.title %}<h3 class="h5 mb-2">{{ data.title }}</h3>{% endif %}
+    {% if video_id %}
+        <div class="ratio ratio-16x9 gm-cms-block-preview-video-frame">
+            <iframe src="https://www.youtube-nocookie.com/embed/{{ video_id }}" title="{{ data.title ?: 'YouTube' }}" loading="lazy"
+                    allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        </div>
+    {% elseif data.embed_code %}
+        <code class="small">{{ data.embed_code }}</code>
+    {% else %}
+        {{ include('@GingermindsCms/block/_empty.html.twig') }}
+    {% endif %}
+</div>

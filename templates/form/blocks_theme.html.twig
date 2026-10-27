@@ -1,0 +1,147 @@
+{#
+ # BlockCanvasType: the blocks of a content with their preview (collapsed, opened when invalid),
+ # the hidden JSON field and the templates of the Stimulus `gm-cms-blocks` controller.
+ # BlockDataType repeaters: the rows (Stimulus `gm-cms-repeater`) and the prototype of a new row.
+ #}
+
+{%- block gm_cms_blocks_row -%}
+    <div class="col-12">
+        {{- form_label(form) -}}
+        {{- form_widget(form) -}}
+        {%- for message in global_errors -%}
+            <div class="invalid-feedback d-block">{{ message }}</div>
+        {%- endfor -%}
+        {{- form_help(form) -}}
+    </div>
+{%- endblock gm_cms_blocks_row -%}
+
+{%- block gm_cms_blocks_widget -%}
+    {%- set domain = 'GingermindsCms' -%}
+    <div class="gm-cms-blocks" data-controller="gm-cms-blocks"
+         data-gm-cms-blocks-form-url-value="{{ form_url }}"
+         data-gm-cms-blocks-validate-url-value="{{ validate_url }}"
+         data-gm-cms-blocks-field-value="{{ name }}"
+         data-gm-cms-blocks-language-value="{{ language }}"
+         data-gm-cms-blocks-labels-value="{{ {loading: 'blocks.message.loading'|trans({}, domain), load_error: 'blocks.message.load_error'|trans({}, domain)}|json_encode }}">
+        <div class="d-flex justify-content-end mb-2">
+            <button type="button" class="btn btn-sm btn-outline-warning" data-action="gm-cms-blocks#copyStructure">
+                <i class="bi bi-translate me-1" aria-hidden="true"></i>{{ 'blocks.action.copy_structure'|trans({}, domain) }}
+            </button>
+        </div>
+
+        <div class="gm-cms-blocks-list" data-gm-cms-blocks-target="list">
+            {%- for item in items -%}
+                {{- block('gm_cms_blocks_item') -}}
+            {%- endfor -%}
+        </div>
+
+        {%- set attr = attr|merge({'data-gm-cms-blocks-target': 'input'}) -%}
+        {{- block('hidden_widget') -}}
+
+        <template data-gm-cms-blocks-target="itemTemplate">
+            {%- set item = null -%}
+            {{- block('gm_cms_blocks_item') -}}
+        </template>
+        <template data-gm-cms-blocks-target="slotTemplate">
+            <div class="gm-cms-blocks-slot text-center">
+                <button type="button" class="btn btn-sm btn-outline-primary" data-action="gm-cms-blocks#add">
+                    <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ 'blocks.action.add'|trans({}, domain) }}
+                </button>
+            </div>
+        </template>
+        <template data-gm-cms-blocks-target="emptyTemplate">
+            <div class="gm-cms-blocks-slot gm-cms-blocks-empty text-center py-4">
+                <p class="text-muted mb-2">{{ 'blocks.message.empty_canvas'|trans({}, domain) }}</p>
+                <button type="button" class="btn btn-sm btn-outline-primary" data-action="gm-cms-blocks#add">
+                    <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ 'blocks.action.add'|trans({}, domain) }}
+                </button>
+            </div>
+        </template>
+        <template data-gm-cms-blocks-target="modals">
+            {{- include('@GingermindsCms/block/_modals.html.twig', {id: id, picker: picker}, with_context = false) -}}
+        </template>
+    </div>
+{%- endblock gm_cms_blocks_widget -%}
+
+{# One block (`item`: uid, type, block, data, errors), empty in the template of a new block. #}
+{%- block gm_cms_blocks_item -%}
+    {%- set domain = 'GingermindsCms' -%}
+    {%- set item_block = item ? item.block : null -%}
+    <div class="gm-cms-block card{{ item and item.errors ? ' border-danger' : (item ? ' is-collapsed') }}" data-gm-cms-blocks-target="item"
+         data-block="{{ item ? {uid: item.uid, type: item.type, data: item.data}|json_encode : '' }}">
+        <div class="gm-cms-block-header d-flex align-items-center gap-1 px-2 py-1">
+            <span class="gm-cms-block-handle px-1" title="{{ 'blocks.action.reorder'|trans({}, domain) }}"><i class="bi bi-grip-vertical" aria-hidden="true"></i></span>
+            <button type="button" class="btn btn-sm btn-link text-body p-1" data-action="gm-cms-blocks#toggle" aria-label="{{ 'blocks.action.toggle_preview'|trans({}, domain) }}">
+                <i class="bi bi-chevron-right gm-cms-block-chevron" aria-hidden="true"></i>
+            </button>
+            <i class="bi {{ item_block ? item_block.icon : 'bi-square' }} text-primary" data-role="icon" aria-hidden="true"></i>
+            <span class="fw-semibold flex-grow-1 ms-1" data-role="label">
+                {{- item_block ? item_block.label|trans({}, item_block.translationDomain) : (item ? item.type) -}}
+            </span>
+            <button type="button" class="btn btn-sm btn-link text-body p-1" data-action="gm-cms-blocks#edit" title="{{ 'blocks.action.edit'|trans({}, domain) }}"{{ item and not item_block ? ' hidden' }}>
+                <i class="bi bi-pencil-square" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-link text-danger p-1" data-action="gm-cms-blocks#remove" title="{{ 'blocks.action.remove'|trans({}, domain) }}">
+                <i class="bi bi-trash" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="gm-cms-block-preview px-3 py-2" data-role="preview">
+            {%- if item -%}
+                {%- if item_block -%}
+                    {{- include(item_block.previewTemplate, {block: item_block, data: item.data, refs: item.refs, uid: item.uid}, with_context = false) -}}
+                {%- else -%}
+                    <div class="alert alert-warning mb-0">{{ 'blocks.message.unknown_type'|trans({'%type%': item.type}, domain) }}</div>
+                {%- endif -%}
+                {%- if item.errors -%}
+                    <ul class="gm-cms-block-errors alert alert-danger small mt-2 mb-0 ps-4">
+                        {%- for message in item.errors -%}
+                            <li>{{ message }}</li>
+                        {%- endfor -%}
+                    </ul>
+                {%- endif -%}
+            {%- endif -%}
+        </div>
+    </div>
+{%- endblock gm_cms_blocks_item -%}
+
+{%- block gm_cms_block_repeater_widget -%}
+    {%- set prototype_name = form.vars.prototype.vars.name -%}
+    <div class="gm-cms-repeater" data-controller="gm-cms-repeater"
+         data-gm-cms-repeater-index-value="{{ form|length }}"
+         data-gm-cms-repeater-prototype-name-value="{{ prototype_name }}">
+        <div class="gm-cms-repeater-rows" data-gm-cms-repeater-target="rows">
+            {%- for child in form -%}
+                {{- block('gm_cms_block_repeater_item') -}}
+            {%- endfor -%}
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-primary" data-action="gm-cms-repeater#add">
+            <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ add_label|trans({}, add_label_domain) }}
+        </button>
+        <template data-gm-cms-repeater-target="prototype">
+            {%- set child = form.vars.prototype -%}
+            {{- block('gm_cms_block_repeater_item') -}}
+        </template>
+    </div>
+{%- endblock gm_cms_block_repeater_widget -%}
+
+{# One row (`child`): collapsed unless invalid; a new row opens (gm-cms-repeater#add). #}
+{%- block gm_cms_block_repeater_item -%}
+    <div class="gm-cms-repeater-row{{ child.vars.valid ? ' is-collapsed' }}" data-gm-cms-repeater-target="row">
+        <div class="gm-cms-repeater-row-header d-flex align-items-center gap-2 px-2 py-1" data-action="click->gm-cms-repeater#toggle">
+            <span class="gm-cms-repeater-handle px-1" title="{{ 'blocks.action.reorder'|trans({}, 'GingermindsCms') }}"><i class="bi bi-grip-vertical" aria-hidden="true"></i></span>
+            <i class="bi bi-chevron-right gm-cms-repeater-chevron" aria-hidden="true"></i>
+            <span class="flex-grow-1{{ child.vars.valid ? '' : ' text-danger' }}">{{ item_label|trans({}, item_label_domain) }} <span data-role="number"></span></span>
+            <button type="button" class="btn btn-sm btn-link text-danger p-1" data-action="gm-cms-repeater#remove" title="{{ 'blocks.action.remove_row'|trans({}, 'GingermindsCms') }}">
+                <i class="bi bi-trash" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="gm-cms-repeater-row-body p-3">
+            {{- form_errors(child) -}}
+            <div class="row g-3">
+                {%- for field in child -%}
+                    {{- form_row(field) -}}
+                {%- endfor -%}
+            </div>
+        </div>
+    </div>
+{%- endblock gm_cms_block_repeater_item -%}

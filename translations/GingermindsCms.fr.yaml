@@ -1,0 +1,262 @@
+admin_menu:
+    cms: CMS
+
+menu:
+    name_s: Menu
+    name_p: Menus
+    manage: Gérer les menus
+    title_new: Ajouter un menu
+    title_edit: Modifier un menu
+    field:
+        code: Code
+    message:
+        no_items: Aucun menu
+
+menu_item:
+    name_s: Élément de menu
+    name_p: Éléments
+    manage: Gérer les éléments du menu
+    title_index: Éléments du menu « %menu% »
+    title_new: Ajouter un élément de menu
+    title_edit: Modifier un élément de menu
+    tab:
+        general: Général
+        translations: Traductions
+    form:
+        position: Position
+        link: Lien
+    field:
+        code: Code
+        is_active: Actif
+        parent: Parent
+        is_target_blank: Ouvrir dans un nouvel onglet
+        is_no_referrer: noreferrer
+        is_no_opener: noopener
+        is_no_follow: nofollow
+        name: Nom
+        url: URL
+        description: Description
+    placeholder:
+        parent: Aucun (racine)
+    status:
+        inactive: Inactif
+    action:
+        add_child: Ajouter un enfant
+        move: Déplacer
+    message:
+        no_items: Aucun élément dans ce menu
+
+page_category:
+    name_s: Catégorie de pages
+    name_p: Catégories de pages
+    manage: Gérer les catégories de pages
+    title_new: Ajouter une catégorie de pages
+    title_edit: Modifier une catégorie de pages
+    tab:
+        general: Général
+        translations: Traductions
+    form:
+        position: Position
+        options: Options
+    field:
+        code: Code
+        parent: Parent
+        is_unique: Page unique
+        is_hidden_from_search: Exclure de la recherche
+        name: Nom
+        prefix: Préfixe d'URL
+    help:
+        is_unique: Une seule page peut être rangée dans cette catégorie.
+        prefix: "Vide : la catégorie n'ajoute rien à l'URL de ses pages (interdit si elle a des sous-catégories)."
+    placeholder:
+        parent: Aucun (racine)
+    status:
+        unique: Page unique
+    action:
+        add_child: Ajouter un enfant
+        move: Déplacer
+    flash:
+        url_conflict: "La page « %page% » (%language%) garde son ancienne URL : %path% est déjà utilisée par la page « %owner% ». Modifiez le slug de l'une des deux pages."
+    message:
+        no_items: Aucune catégorie de pages
+
+page:
+    name_s: Page
+    name_p: Pages
+    manage: Gérer les pages
+    title_new: Ajouter une page
+    title_edit: Modifier une page
+    tab:
+        general: Général
+        translations: Traductions
+    form:
+        visuals: Visuels
+        publication: Publication
+    field:
+        code: Code
+        title: Titre
+        slug: Slug
+        hook: Accroche
+        content: Contenu
+        category: Catégorie
+        status: Statut
+        published_at: Publiée le
+        main_visual: Visuel principal
+        thumbnail: Vignette
+        is_hidden_from_search: Exclure de la recherche
+    help:
+        slug: "Vide : la page d'accueil de sa catégorie."
+        translation_visual: Remplace celui de la page dans cette langue.
+    placeholder:
+        category: Aucune (racine du site)
+    action:
+        choose_category: Dans quelle catégorie ?
+    preview:
+        action: Prévisualiser
+    message:
+        no_items: Aucune page
+
+publication:
+    status:
+        draft: Brouillon
+        published: Publié
+        archived: Archivé
+        review: En relecture
+
+site:
+    field:
+        main_menu: Menu principal
+    help:
+        main_menu_empty: Aucun menu pour ce site. Créez-en un dans CMS › Menus.
+    placeholder:
+        main_menu: Aucun
+wysiwyg:
+    toolbar:
+        bold: Gras
+        italic: Italique
+        underline: Souligné
+        strike: Barré
+        link: Lien
+        link_prompt: 'URL :'
+        bullet_list: Liste à puces
+        ordered_list: Liste numérotée
+        heading: Titre
+        blockquote: Citation
+        horizontal_rule: Séparateur
+        undo: Annuler
+        redo: Rétablir
+        insert_table: Insérer un tableau
+        toggle_header_row: Ligne d'en-tête
+        add_row_after: Ajouter une ligne
+        delete_row: Supprimer la ligne
+        add_column_after: Ajouter une colonne
+        delete_column: Supprimer la colonne
+        delete_table: Supprimer le tableau
+
+blocks:
+    action:
+        add: Ajouter un bloc
+        edit: Modifier
+        remove: Supprimer le bloc
+        reorder: Déplacer
+        toggle_preview: Afficher / masquer l'aperçu
+        copy_structure: Copier la structure d'une autre langue
+        copy: Copier
+        cancel: Annuler
+        save: Enregistrer
+        close: Fermer
+        add_row: Ajouter une ligne
+        remove_row: Supprimer la ligne
+    message:
+        loading: Chargement…
+        load_error: Une erreur est survenue, veuillez réessayer.
+        empty_canvas: Aucun bloc pour l'instant.
+        empty_preview: Bloc vide
+        no_block: Aucun bloc disponible.
+        unknown_type: "Type de bloc inconnu : %type%"
+        confirm_remove: Supprimer ce bloc ? La suppression sera enregistrée avec la page.
+        copy_structure_prompt: Langue à copier
+        copy_structure_confirm: Les blocs de cette langue seront remplacés par ceux de la langue choisie.
+        no_other_language: Aucune autre langue.
+        row: Ligne
+        missing_file: Fichier introuvable
+        missing_media: Média introuvable
+    unit:
+        byte: '%size% o'
+        kilobyte: '%size% Ko'
+        megabyte: '%size% Mo'
+
+block:
+    title_text:
+        label: Titre + texte
+        field:
+            title: Titre
+            text: Texte
+    text_image:
+        label: Texte + image
+        field:
+            image_position: Image à droite
+            title: Titre
+            text: Texte
+            image: Image
+        help:
+            image_position: "Désactivé : image à gauche, activé : image à droite."
+    media:
+        label: Média (seul)
+        field:
+            title: Titre
+            file: Fichier
+    video:
+        label: Vidéo
+        field:
+            title: Titre
+            embed_code: Vidéo YouTube
+        help:
+            embed_code: L'identifiant de la vidéo ou son URL YouTube.
+    cards:
+        label: Cartes
+        add: Ajouter une carte
+        item: Carte
+        field:
+            title: Titre
+            text: Texte
+            cards: Cartes
+            cards_title: Titre
+            cards_description: Description
+            cards_image: Image
+    slider:
+        label: Slider
+        add: Ajouter une image
+        item: Image
+        field:
+            title: Titre
+            slides: Images
+            slides_image: Image
+    link_list:
+        label: Liste de liens
+        add: Ajouter un lien
+        item: Lien
+        field:
+            title: Titre
+            links: Liens
+            links_label: Libellé
+            links_url: URL
+            links_image: Image
+    media_list:
+        label: Liste de médias
+        add: Ajouter un média
+        item: Média
+        field:
+            title: Titre
+            items: Médias
+            items_media: Média
+            items_subtitle: Sous-titre
+    faq:
+        label: FAQ
+        add: Ajouter une question
+        item: Question
+        field:
+            title: Titre
+            items: Questions / réponses
+            items_question: Question
+            items_answer: Réponse

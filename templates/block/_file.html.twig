@@ -1,0 +1,27 @@
+{#
+ # A file of a block preview (`file`: FileInterface|null, `missing`: an id without file): the
+ # thumbnail of an image, else its icon, name and size.
+ #}
+{% trans_default_domain 'GingermindsCms' %}
+{% if file %}
+    {% if file.image %}
+        <img src="{{ gm_file_url(file, 'thumbnail') }}" alt="{{ file.originalName }}" class="gm-cms-block-preview-image rounded" loading="lazy">
+    {% else %}
+        {% set size = file.size %}
+        <div class="d-flex align-items-center gap-2 small">
+            <i class="bi bi-file-earmark fs-4 text-secondary" aria-hidden="true"></i>
+            <span class="text-break">{{ file.originalName }}</span>
+            <span class="text-muted text-nowrap">
+                {%- if size < 1024 -%}
+                    {{ 'blocks.unit.byte'|trans({'%size%': size}) }}
+                {%- elseif size < 1048576 -%}
+                    {{ 'blocks.unit.kilobyte'|trans({'%size%': (size / 1024)|round(1)}) }}
+                {%- else -%}
+                    {{ 'blocks.unit.megabyte'|trans({'%size%': (size / 1048576)|round(1)}) }}
+                {%- endif -%}
+            </span>
+        </div>
+    {% endif %}
+{% elseif missing|default(false) %}
+    <span class="badge text-bg-warning">{{ 'blocks.message.missing_file'|trans }}</span>
+{% endif %}

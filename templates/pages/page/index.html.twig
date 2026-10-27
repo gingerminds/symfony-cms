@@ -1,0 +1,60 @@
+{% extends '@GingermindsCore/crud/list.html.twig' %}
+{% trans_default_domain 'GingermindsCms' %}
+
+{% set columns = [
+    {label: '#', align: 'center'},
+    {label: 'page.field.code', property: 'code', sortable: true},
+    {label: 'page.field.title'},
+    {label: 'page.field.category'},
+    {label: 'page.field.status', property: 'status', sortable: true},
+    {label: 'common.actions', align: 'end', translation_domain: 'GingermindsCore'},
+] %}
+
+{% block list_icon %}bi-file-earmark-text{% endblock %}
+{% block table_empty_icon %}bi-file-earmark-text{% endblock %}
+
+{# "Add a page": the category is chosen first. #}
+{% block list_actions %}
+    {% if is_granted('CREATE', resource.name) %}
+        <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#gm-cms-choose-page-category">
+            <i class="bi bi-plus-lg me-1"></i> {{ 'action.create'|trans({}, 'GingermindsCore') }}
+        </button>
+    {% endif %}
+{% endblock %}
+
+{% block table_row %}
+    <td class="text-center text-muted small">{{ row_number }}</td>
+    <td>
+        {% if is_granted('EDIT', item) %}
+            <a href="{{ path(resource.route('edit'), {id: item.id}) }}" class="text-body fw-medium">{{ item.code }}</a>
+        {% else %}
+            <span class="fw-medium">{{ item.code }}</span>
+        {% endif %}
+    </td>
+    <td>{{ item.title ?? '-' }}</td>
+    <td>{{ item.category ?? '-' }}</td>
+    <td>{% include '@GingermindsCms/publication/_status.html.twig' with {status: item.status} only %}</td>
+    <td class="text-end">{{ block('row_actions') }}</td>
+{% endblock %}
+
+{% block modals %}
+    {{ parent() }}
+    {% if is_granted('CREATE', resource.name) %}
+        {% embed '@GingermindsCore/components/modal/_modal.html.twig' with {id: 'gm-cms-choose-page-category', title: 'page.action.choose_category'|trans({}, 'GingermindsCms')} %}
+            {% block modal_body %}
+                <div class="list-group list-group-flush mx-n3 my-n3">
+                    <a href="{{ path(resource.route('new')) }}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-house me-2 text-muted"></i>{{ 'page.placeholder.category'|trans({}, 'GingermindsCms') }}
+                    </a>
+                    {% for row in category_tree %}
+                        {% set category = row[0] %}
+                        <a href="{{ path(resource.route('new'), {category_id: category.id}) }}" class="list-group-item list-group-item-action" style="padding-left: {{ 1 + row[1] * 1.5 }}rem">
+                            <i class="bi bi-folder2 me-2 text-muted"></i>{{ category }}
+                            <span class="text-muted small ms-1">/{{ category.fullPath }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endblock %}
+        {% endembed %}
+    {% endif %}
+{% endblock %}
