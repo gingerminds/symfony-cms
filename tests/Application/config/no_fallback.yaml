@@ -1,0 +1,3 @@
+# `test_no_fallback` environment: no fallback language on the API requests.
+gingerminds_multisite:
+    translation_fallback: false

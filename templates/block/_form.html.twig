@@ -1,0 +1,14 @@
+{#
+ # The form of a block in the canvas modal (BlockController): `form` (BlockDataType named `data`),
+ # `block`, `uid`. Submitted by the Stimulus `gm-cms-blocks` controller, never natively.
+ #}
+{% form_theme form '@GingermindsCore/form/theme.html.twig' %}
+{{ form_start(form, {attr: {class: 'gm-cms-block-form', novalidate: 'novalidate', 'data-uid': uid, 'data-type': block.key}}) }}
+    <input type="hidden" name="uid" value="{{ uid }}">
+    {{ form_errors(form) }}
+    <div class="row g-3">
+        {% for child in form %}
+            {{ form_row(child) }}
+        {% endfor %}
+    </div>
+{{ form_end(form) }}

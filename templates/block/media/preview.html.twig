@@ -1,0 +1,8 @@
+{#
+ # Admin preview of the `media` block: `block`, `data`, `refs`, `uid`.
+ #}
+<div class="gm-cms-block-preview-media">
+    {% if data.title %}<h3 class="h5 mb-2">{{ data.title }}</h3>{% endif %}
+    {% if data.file %}{{ include('@GingermindsCms/block/_file.html.twig', {file: refs.file, missing: true}, with_context = false) }}{% endif %}
+    {% if not data.title and not data.file %}{{ include('@GingermindsCms/block/_empty.html.twig') }}{% endif %}
+</div>

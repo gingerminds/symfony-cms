@@ -1,0 +1,21 @@
+{#
+ # Admin preview of the `cards` block: `block`, `data`, `refs`, `uid`.
+ #}
+<div class="gm-cms-block-preview-cards">
+    {% if data.title %}<h3 class="h5 mb-2">{{ data.title }}</h3>{% endif %}
+    {% if data.text %}<div class="gm-cms-block-preview-html mb-2">{{ data.text|raw }}</div>{% endif %}
+    {% if data.cards %}
+        <div class="row g-2">
+            {% for card in data.cards %}
+                <div class="col-6 col-lg-4">
+                    <div class="border rounded p-2 h-100">
+                        {% if card.image %}<div class="mb-2">{{ include('@GingermindsCms/block/_file.html.twig', {file: refs.cards[loop.index0].image ?? null, missing: true}, with_context = false) }}</div>{% endif %}
+                        {% if card.title %}<div class="fw-semibold">{{ card.title }}</div>{% endif %}
+                        {% if card.description %}<div class="small text-muted">{{ card.description }}</div>{% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if not data.title and not data.text and not data.cards %}{{ include('@GingermindsCms/block/_empty.html.twig') }}{% endif %}
+</div>

@@ -1,0 +1,34 @@
+{% trans_default_domain 'GingermindsCms' %}
+{% import '@GingermindsCore/components/macros.html.twig' as gm %}
+<div class="sortable-level{{ depth > 0 ? ' ms-4 ps-3 border-start' }}" data-parent-id="{{ parent_id ?? '' }}">
+    {% for item in tree_items %}
+        <div class="sortable-item" data-item-id="{{ item.id }}">
+            <div class="tree-item-row d-flex align-items-center justify-content-between py-2 px-3">
+                <div class="d-flex align-items-center gap-2">
+                    {% if tree_reorder_url %}
+                        <i class="bi bi-grip-vertical drag-handle text-muted" title="{{ 'menu_item.action.move'|trans }}"></i>
+                    {% endif %}
+                    {% if depth > 0 %}
+                        <i class="bi bi-arrow-return-right tree-connector"></i>
+                    {% endif %}
+                    <span class="fw-medium">{{ item }}</span>
+                    <span class="text-muted small">{{ item.code }}</span>
+                    {% if not item.active %}
+                        <span class="badge bg-danger-subtle text-danger">{{ 'menu_item.status.inactive'|trans }}</span>
+                    {% endif %}
+                </div>
+                <div class="d-flex gap-1">
+                    {% if is_granted('CREATE', resource.name) %}
+                        <a href="{{ path(resource.route('new'), route_parameters|merge({parent_id: item.id})) }}" class="btn btn-sm btn-outline-success fs-12">
+                            <i class="bi bi-plus-lg me-1"></i> {{ 'menu_item.action.add_child'|trans }}
+                        </a>
+                    {% endif %}
+                    {{ gm.row_actions(item, resource, route_parameters, item ~ '') }}
+                </div>
+            </div>
+            {% if children[item.id] is defined %}
+                {% include '@GingermindsCms/pages/menu_item/_tree.html.twig' with {tree_items: children[item.id], parent_id: item.id, depth: depth + 1} %}
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>

@@ -1,0 +1,21 @@
+{# Front preview of a page in one language (`urls`: one per front URL of the site, PreviewUrls). #}
+{% if urls is not empty %}
+    <div class="mb-3">
+        {% if urls|length == 1 %}
+            <a href="{{ urls|first }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary w-100">
+                <i class="bi bi-eye me-1"></i>{{ 'page.preview.action'|trans({}, 'GingermindsCms') }}
+            </a>
+        {% else %}
+            <div class="dropdown">
+                <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle w-100" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-eye me-1"></i>{{ 'page.preview.action'|trans({}, 'GingermindsCms') }}
+                </button>
+                <ul class="dropdown-menu">
+                    {% for url in urls %}
+                        <li><a class="dropdown-item" href="{{ url }}" target="_blank" rel="noopener">{{ url }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+{% endif %}

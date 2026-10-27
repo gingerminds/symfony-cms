@@ -22,6 +22,9 @@ final class ConfigurationTest extends TestCase
         self::assertSame(['bold', 'italic', 'underline', 'link'], $config['wysiwyg']['presets']['minimal']['extensions']);
         self::assertSame(['create' => true, 'edit' => false], $config['slug_overwrite']);
         self::assertSame(['disabled' => [], 'order' => []], $config['blocks']);
+        self::assertSame(['entity' => null, 'controller' => null, 'form' => null], $config['resources']['menu']);
+        self::assertSame(['entity' => null, 'controller' => null, 'form' => null], $config['resources']['menu_item']);
+        self::assertSame(['entity' => null, 'controller' => null, 'form' => null], $config['resources']['page_category']);
     }
 
     public function testCustomPresetsReplaceTheDefaults(): void

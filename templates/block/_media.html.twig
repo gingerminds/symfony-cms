@@ -1,0 +1,16 @@
+{#
+ # A media of a block preview (`media`: MediaInterface|null, `missing`: an id without media).
+ #}
+{% trans_default_domain 'GingermindsCms' %}
+{% if media %}
+    <div class="d-flex align-items-center gap-2">
+        {% if media.preview and media.preview.image %}
+            <img src="{{ gm_file_url(media.preview, 'thumbnail') }}" alt="" class="gm-cms-block-preview-thumb rounded" loading="lazy">
+        {% else %}
+            <i class="bi bi-collection-play fs-4 text-secondary" aria-hidden="true"></i>
+        {% endif %}
+        <span class="text-break">{{ media }}</span>
+    </div>
+{% elseif missing|default(false) %}
+    <span class="badge text-bg-warning">{{ 'blocks.message.missing_media'|trans }}</span>
+{% endif %}

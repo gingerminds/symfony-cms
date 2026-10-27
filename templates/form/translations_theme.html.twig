@@ -1,0 +1,58 @@
+{#
+ # Layout of one language of the CMS translations (multisite TranslationsType panes), with the core form
+ # layout: `<type>_form_main|sidebar` form includes (page_translation, page_category_translation,
+ # menu_item_translation). The fields added by an extension without include are rendered at the end.
+ #}
+
+{%- block page_translation_widget -%}
+    {% embed '@GingermindsCore/crud/_form_layout.html.twig' with {form_includes_name: 'page_translation'} %}
+        {% block main %}
+            <div class="row g-3">
+                {{ form_row(form.title) }}
+                {{ form_row(form.slug) }}
+                {{ form_row(form.content) }}
+            </div>
+        {% endblock %}
+
+        {% block sidebar %}
+            {% include '@GingermindsCms/pages/page/_preview.html.twig' with {urls: form.vars.preview_urls ?? []} only %}
+            <div class="row g-3">
+                {{ form_row(form.hook) }}
+                {{ form_row(form.mainVisual, {size_columns: 12}) }}
+                {{ form_row(form.thumbnail, {size_columns: 12}) }}
+            </div>
+        {% endblock %}
+    {% endembed %}
+    {{ block('gm_cms_translation_rest') }}
+{%- endblock page_translation_widget -%}
+
+{%- block page_category_translation_widget -%}
+    {% embed '@GingermindsCore/crud/_form_layout.html.twig' with {form_includes_name: 'page_category_translation'} %}
+        {% block main %}
+            <div class="row g-3">
+                {{ form_row(form.name) }}
+                {{ form_row(form.prefix) }}
+            </div>
+        {% endblock %}
+    {% endembed %}
+    {{ block('gm_cms_translation_rest') }}
+{%- endblock page_category_translation_widget -%}
+
+{%- block menu_item_translation_widget -%}
+    {% embed '@GingermindsCore/crud/_form_layout.html.twig' with {form_includes_name: 'menu_item_translation'} %}
+        {% block main %}
+            <div class="row g-3">
+                {{ form_row(form.name) }}
+                {{ form_row(form.url) }}
+                {{ form_row(form.description) }}
+            </div>
+        {% endblock %}
+    {% endembed %}
+    {{ block('gm_cms_translation_rest') }}
+{%- endblock menu_item_translation_widget -%}
+
+{%- block gm_cms_translation_rest -%}
+    {%- if form.children|filter(child => not child.rendered) is not empty -%}
+        <div class="row g-3">{{ form_rest(form) }}</div>
+    {%- endif -%}
+{%- endblock gm_cms_translation_rest -%}

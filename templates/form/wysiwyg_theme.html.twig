@@ -1,0 +1,21 @@
+{#
+ # WysiwygType: toolbar and editing area of the Stimulus `gm-cms-wysiwyg` controller, the field
+ # textarea hidden (not required for the browser: the server validates it).
+ #}
+
+{%- block gm_cms_wysiwyg_widget -%}
+    {%- set toolbar_labels = {} -%}
+    {%- for key in ['bold', 'italic', 'underline', 'strike', 'link', 'link_prompt', 'bullet_list', 'ordered_list', 'heading', 'blockquote', 'horizontal_rule', 'undo', 'redo', 'insert_table', 'toggle_header_row', 'add_row_after', 'delete_row', 'add_column_after', 'delete_column', 'delete_table'] -%}
+        {%- set toolbar_labels = toolbar_labels|merge({(key): ('wysiwyg.toolbar.' ~ key)|trans({}, 'GingermindsCms')}) -%}
+    {%- endfor -%}
+    <div class="gm-cms-wysiwyg{{ valid ? '' : ' is-invalid' }}" data-controller="gm-cms-wysiwyg"
+         data-gm-cms-wysiwyg-extensions-value="{{ extensions|json_encode }}"
+         data-gm-cms-wysiwyg-labels-value="{{ toolbar_labels|json_encode }}"
+         data-gm-cms-wysiwyg-rows-value="{{ rows }}">
+        <div class="gm-cms-wysiwyg-toolbar border border-bottom-0 rounded-top p-1 d-flex flex-wrap gap-1" data-gm-cms-wysiwyg-target="toolbar"></div>
+        <div class="gm-cms-wysiwyg-editor border rounded-bottom p-2" data-gm-cms-wysiwyg-target="editor"></div>
+        {%- set required = false -%}
+        {%- set attr = attr|merge({hidden: 'hidden', 'data-gm-cms-wysiwyg-target': 'input'}) -%}
+        {{- block('textarea_widget') -}}
+    </div>
+{%- endblock gm_cms_wysiwyg_widget -%}

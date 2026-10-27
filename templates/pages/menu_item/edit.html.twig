@@ -1,0 +1,14 @@
+{% extends '@GingermindsCore/crud/form.html.twig' %}
+
+{% set menu_resource = gm_resource('menu') %}
+{% set page_title = 'menu_item.title_edit'|trans({}, 'GingermindsCms') %}
+{% set breadcrumb = [
+    {label: menu_resource.translationKey('name_p')|trans({}, menu_resource.translationDomain), url: path(menu_resource.route('index'))},
+    {label: menu.code},
+    {label: 'menu_item.name_p'|trans({}, 'GingermindsCms'), url: path(resource.route('index'), route_parameters)},
+    {label: page_title},
+] %}
+
+{% block form_body %}
+    {% include '@GingermindsCms/pages/menu_item/_form.html.twig' %}
+{% endblock %}

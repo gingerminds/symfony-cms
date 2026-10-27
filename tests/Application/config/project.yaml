@@ -1,0 +1,16 @@
+# Project customization of the CMS (PageWorkflowTest): a status added to the bundle workflow.
+framework:
+    workflows:
+        gingerminds_cms_publication:
+            places: [review]
+            transitions:
+                submit: { from: draft, to: review }
+                approve: { from: review, to: published }
+
+gingerminds_cms:
+    publication:
+        status_colors:
+            draft: primary
+            review: info
+            published: success
+            archived: warning

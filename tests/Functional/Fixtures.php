@@ -5,13 +5,22 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Tests\Functional;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Gingerminds\CmsBundle\Entity\Menu\Menu;
+use Gingerminds\CmsBundle\Entity\Menu\MenuItem;
+use Gingerminds\CmsBundle\Entity\Menu\MenuItemTranslation;
+use Gingerminds\CmsBundle\Entity\Page\Page;
+use Gingerminds\CmsBundle\Entity\Page\PageCategory;
+use Gingerminds\CmsBundle\Entity\Page\PageCategoryTranslation;
+use Gingerminds\CmsBundle\Entity\Page\PageTranslation;
+use Gingerminds\CmsBundle\Site\Entity\Site;
 use Gingerminds\CoreBundle\Entity\Permission\Permission;
 use Gingerminds\CoreBundle\Entity\Role\Role;
 use Gingerminds\CoreBundle\Entity\Security\ApiToken;
 use Gingerminds\CoreBundle\Entity\User\Contributor;
 use Gingerminds\CoreBundle\Entity\User\User;
+use Gingerminds\MediaManagerBundle\Entity\File\File;
+use Gingerminds\MediaManagerBundle\Entity\Media\Media;
 use Gingerminds\MultisiteBundle\Entity\Language\Language;
-use Gingerminds\MultisiteBundle\Entity\Site\Site;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final readonly class Fixtures
@@ -117,5 +126,120 @@ final readonly class Fixtures
         $this->entityManager->flush();
 
         return $site;
+    }
+
+    public function menu(string $code, Site $site): Menu
+    {
+        $menu = new Menu();
+        $menu->setCode($code);
+        $menu->setSite($site);
+        $this->entityManager->persist($menu);
+        $this->entityManager->flush();
+
+        return $menu;
+    }
+
+    /**
+     * @param array<string, string> $names name by language iso (languages created on demand)
+     */
+    public function menuItem(Menu $menu, string $code, array $names = [], ?MenuItem $parent = null, bool $active = true, int $position = 0, ?string $url = null): MenuItem
+    {
+        $item = new MenuItem();
+        $item->setMenu($menu);
+        $item->setCode($code);
+        $item->setParent($parent);
+        $item->setActive($active);
+        $item->setPosition($position);
+
+        foreach ($names as $iso => $name) {
+            $language = $this->entityManager->getRepository(Language::class)->findOneBy(['iso' => $iso]) ?? $this->language($iso);
+            $translation = new MenuItemTranslation();
+            $translation->setLanguage($language);
+            $translation->setName($name);
+            $translation->setUrl($url);
+            $item->addTranslation($translation);
+        }
+
+        $this->entityManager->persist($item);
+        $this->entityManager->flush();
+
+        return $item;
+    }
+
+    /**
+     * @param array<string, array{string, ?string}> $translations [name, prefix] by language iso (languages created on demand)
+     */
+    public function pageCategory(Site $site, string $code, array $translations = [], ?PageCategory $parent = null, int $position = 0, bool $unique = false): PageCategory
+    {
+        $category = new PageCategory();
+        $category->setSite($site);
+        $category->setCode($code);
+        $category->setParent($parent);
+        $category->setPosition($position);
+        $category->setUnique($unique);
+
+        foreach ($translations as $iso => [$name, $prefix]) {
+            $language = $this->entityManager->getRepository(Language::class)->findOneBy(['iso' => $iso]) ?? $this->language($iso);
+            $translation = new PageCategoryTranslation();
+            $translation->setLanguage($language);
+            $translation->setName($name);
+            $translation->setPrefix($prefix);
+            $category->addTranslation($translation);
+        }
+
+        $this->entityManager->persist($category);
+        $this->entityManager->flush();
+
+        return $category;
+    }
+
+    /**
+     * @param array<string, array{string, ?string}> $translations [title, slug] by language iso (languages created on demand)
+     */
+    public function page(Site $site, string $code, array $translations = [], ?PageCategory $category = null, string $status = 'draft'): Page
+    {
+        $page = new Page();
+        $page->setSite($site);
+        $page->setCode($code);
+        $page->setCategory($category);
+        $page->setStatus($status);
+
+        foreach ($translations as $iso => [$title, $slug]) {
+            $language = $this->entityManager->getRepository(Language::class)->findOneBy(['iso' => $iso]) ?? $this->language($iso);
+            $translation = new PageTranslation();
+            $translation->setLanguage($language);
+            $translation->setTitle($title);
+            $translation->setSlug($slug);
+            $page->addTranslation($translation);
+        }
+
+        $this->entityManager->persist($page);
+        $this->entityManager->flush();
+
+        return $page;
+    }
+
+    /**
+     * A file row of the library (no physical file).
+     */
+    public function media(string $code, ?File $file = null): Media
+    {
+        $media = new Media();
+        $media->setCode($code);
+        $media->setName(ucfirst($code));
+        $media->setFile($file);
+        $this->entityManager->persist($media);
+        $this->entityManager->flush();
+
+        return $media;
+    }
+
+    public function file(string $name = 'photo.png', string $mimeType = 'image/png'): File
+    {
+        $file = new File('default', 'library/' . $name, $mimeType, $name, 10);
+        $this->entityManager->persist($file);
+        $this->entityManager->flush();
+
+        return $file;
     }
 }

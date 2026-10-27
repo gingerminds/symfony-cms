@@ -1,0 +1,14 @@
+{#
+ # Admin preview of the `slider` block: `block`, `data`, `refs`, `uid`.
+ #}
+<div class="gm-cms-block-preview-slider">
+    {% if data.title %}<h3 class="h5 mb-2">{{ data.title }}</h3>{% endif %}
+    {% if data.slides %}
+        <div class="d-flex gap-2 overflow-auto">
+            {% for slide in data.slides %}
+                <div class="flex-shrink-0">{{ include('@GingermindsCms/block/_file.html.twig', {file: refs.slides[loop.index0].image ?? null, missing: slide.image is not empty}, with_context = false) }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if not data.title and not data.slides %}{{ include('@GingermindsCms/block/_empty.html.twig') }}{% endif %}
+</div>

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Tests\Functional;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Gingerminds\CmsBundle\Site\Entity\Site;
+use Gingerminds\MultisiteBundle\Entity\Language\Language;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -13,6 +15,7 @@ abstract class ApiTestCase extends WebTestCase
 {
     protected KernelBrowser $client;
     protected Fixtures $fixtures;
+    private ?Language $language = null;
 
     protected function setUp(): void
     {
@@ -59,5 +62,15 @@ abstract class ApiTestCase extends WebTestCase
     protected function assertStatus(int $expected): void
     {
         self::assertSame($expected, $this->client->getResponse()->getStatusCode(), (string) $this->client->getResponse()->getContent());
+    }
+
+    /**
+     * A site with the shared "fr" language as default.
+     */
+    protected function site(string $code, string $url = 'https://example.com'): Site
+    {
+        $language = $this->language ??= $this->fixtures->language('fr');
+
+        return $this->fixtures->site($code, [$language], $language, $url);
     }
 }

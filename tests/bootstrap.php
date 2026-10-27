@@ -12,16 +12,18 @@ require __DIR__ . '/../vendor/autoload.php';
 // Isolated from any manually started test app (see Kernel::getVarDir()).
 $_SERVER['GINGERMINDS_VAR_DIR'] = $_ENV['GINGERMINDS_VAR_DIR'] = __DIR__ . '/../var/phpunit';
 
-// Fresh cache and SQLite schema for every run.
-$kernel = new Kernel('test', true);
-new Filesystem()->remove($kernel->getCacheDir());
-$kernel->boot();
+// Fresh cache and SQLite schema for every run, per test environment.
+foreach (['test', 'test_no_fallback'] as $environment) {
+    $kernel = new Kernel($environment, true);
+    new Filesystem()->remove($kernel->getCacheDir());
+    $kernel->boot();
 
-/** @var EntityManagerInterface $entityManager */
-$entityManager = $kernel->getContainer()->get('doctrine')->getManager();
-$schemaTool = new SchemaTool($entityManager);
-$metadata = $entityManager->getMetadataFactory()->getAllMetadata();
-$schemaTool->dropDatabase();
-$schemaTool->createSchema($metadata);
+    /** @var EntityManagerInterface $entityManager */
+    $entityManager = $kernel->getContainer()->get('doctrine')->getManager();
+    $schemaTool = new SchemaTool($entityManager);
+    $metadata = $entityManager->getMetadataFactory()->getAllMetadata();
+    $schemaTool->dropDatabase();
+    $schemaTool->createSchema($metadata);
 
-$kernel->shutdown();
+    $kernel->shutdown();
+}
