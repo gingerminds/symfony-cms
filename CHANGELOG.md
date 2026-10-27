@@ -148,6 +148,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   and their categories, `page` / `page:12`): `filters[search]`, `filters[type][]`, pagination, the
   current site, the current language then, with `translation_fallback`, the fallback one (one version
   per content).
+- Documentation: README and `docs/` (Installation, Configuration, Commands, Menus, Pages, Blocks,
+  Forms, Search, API, Coming from laravel-cms).
 
 ### Changed
 
