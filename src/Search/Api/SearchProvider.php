@@ -8,11 +8,9 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\Pagination\TraversablePaginator;
 use ApiPlatform\State\ProviderInterface;
-use Doctrine\ORM\EntityManagerInterface;
 use Gingerminds\CmsBundle\Search\SearchDocumentFactory;
 use Gingerminds\CmsBundle\Search\SearchEngineInterface;
 use Gingerminds\CmsBundle\Search\SearchHit;
-use Gingerminds\CmsBundle\Search\SearchIndexableInterface;
 use Gingerminds\CmsBundle\Search\SearchIndexer;
 use Gingerminds\CmsBundle\Search\SearchQuery;
 use Gingerminds\CmsBundle\Search\SearchResource;
@@ -43,7 +41,7 @@ final readonly class SearchProvider implements ProviderInterface
         private SiteContext $siteContext,
         private LanguageContext $languageContext,
         private Pagination $pagination,
-        private EntityManagerInterface $entityManager,
+        private SearchIndexer $indexer,
         private \Closure $normalizer,
     ) {
     }
@@ -129,7 +127,8 @@ final readonly class SearchProvider implements ProviderInterface
 
     /**
      * The contents of the hits still visible (published, not excluded), by type and id, in one
-     * query per type: a hit of an index out of sync (DQL write, async engine) is not served.
+     * query per type with its eager loads: a hit of an index out of sync (DQL write, async engine)
+     * is not served.
      *
      * @param list<SearchHit> $hits
      *
@@ -151,10 +150,10 @@ final readonly class SearchProvider implements ProviderInterface
                 continue;
             }
 
-            foreach ($this->entityManager->getRepository($resource->entity)->findBy(['id' => $typeIds]) as $entity) {
+            foreach ($this->indexer->find($resource, $typeIds) as $entity) {
                 $id = SearchDocumentFactory::id($entity);
 
-                if (null !== $id && $entity instanceof SearchIndexableInterface && SearchIndexer::isVisible($entity)) {
+                if (null !== $id && SearchIndexer::isVisible($entity)) {
                     $entities[$type][$id] = $entity;
                 }
             }

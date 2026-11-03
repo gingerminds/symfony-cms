@@ -93,9 +93,11 @@ Give them to the editors' roles in the admin. The APIs are public.
 
 ## 7. Messenger
 
-The search reindexes the pages of a category hidden from search (or shown again) through a
-Messenger message, handled synchronously by default. To keep the admin save fast on big
-categories, route it to an async transport:
+The search reindexes through Messenger messages, handled synchronously by default: the pages of a
+category hidden from search or shown again (`ReindexSearchCategory`), and the contents changed by a
+flush when there are more than `search.message_threshold` of them (`ReindexSearchContents`, e.g. a
+category prefix renamed: the URLs of its pages). To keep the admin save fast on big sites, route
+them to an async transport (the URLs themselves are always synced in the request):
 
 ```yaml
 # config/packages/messenger.yaml
@@ -103,6 +105,7 @@ framework:
     messenger:
         routing:
             Gingerminds\CmsBundle\Search\Message\ReindexSearchCategory: async
+            Gingerminds\CmsBundle\Search\Message\ReindexSearchContents: async
 ```
 
 ## 8. After the installation

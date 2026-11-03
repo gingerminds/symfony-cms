@@ -117,6 +117,7 @@ final class GingermindsCmsBundle extends AbstractResourceBundle
         $parameters->set('gingerminds_cms.blocks.disabled', $config['blocks']['disabled']);
         $parameters->set('gingerminds_cms.blocks.order', $config['blocks']['order']);
         $parameters->set('gingerminds_cms.publication.status_colors', $config['publication']['status_colors']);
+        $parameters->set('gingerminds_cms.search.message_threshold', $config['search']['message_threshold']);
         $engine = $config['search']['engine'];
         $builder->setAlias(SearchEngineInterface::class, self::SEARCH_ENGINE_DOCTRINE === $engine ? 'gingerminds_cms.search.engine.doctrine' : $engine);
         $builder->setAlias('gingerminds_cms.search.engine', SearchEngineInterface::class);

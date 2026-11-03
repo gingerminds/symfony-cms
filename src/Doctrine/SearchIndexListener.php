@@ -7,6 +7,7 @@ namespace Gingerminds\CmsBundle\Doctrine;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Gingerminds\CmsBundle\Search\ExcludableFromSearchInterface;
 use Gingerminds\CmsBundle\Search\Message\ReindexSearchCategory;
+use Gingerminds\CmsBundle\Search\Message\ReindexSearchContents;
 use Gingerminds\CmsBundle\Search\SearchDocumentFactory;
 use Gingerminds\CmsBundle\Search\SearchIndexableInterface;
 use Gingerminds\CmsBundle\Search\SearchIndexer;
@@ -21,6 +22,8 @@ use Symfony\Contracts\Service\ResetInterface;
  * Keeps the search in sync after a flush: a searchable content changed (itself, a translation, a
  * SearchOwnedInterface entity such as its URLs) is reindexed, a deleted one removed; a category
  * whose `hiddenFromSearch` or `parent` changed reindexes its contents (ReindexSearchCategory).
+ * Above `$messageThreshold` contents in a flush, they are reindexed by messages of that size
+ * (ReindexSearchContents), which the project can route to an async transport.
  */
 final class SearchIndexListener implements ResetInterface
 {
@@ -39,6 +42,7 @@ final class SearchIndexListener implements ResetInterface
         private readonly SearchResourceRegistry $resources,
         private readonly SearchIndexer $indexer,
         private readonly MessageBusInterface $bus,
+        private readonly int $messageThreshold = 100,
     ) {
     }
 
@@ -72,11 +76,16 @@ final class SearchIndexListener implements ResetInterface
             $this->indexer->remove($type, $id);
         }
 
-        foreach ($contents as $content) {
-            $resource = $this->resources->forEntity($content);
+        // Deleted in the same flush (its translations were reported first).
+        $contents = array_filter(
+            $contents,
+            fn (SearchIndexableInterface $content): bool => !isset($removed[$this->resources->forEntity($content)?->type . ':' . SearchDocumentFactory::id($content)]),
+        );
 
-            // Deleted in the same flush (its translations were reported first).
-            if ($resource instanceof SearchResource && !isset($removed[$resource->type . ':' . SearchDocumentFactory::id($content)])) {
+        if (\count($contents) > $this->messageThreshold) {
+            $this->dispatchContents($contents);
+        } else {
+            foreach ($contents as $content) {
                 $this->indexer->index($content);
             }
         }
@@ -91,6 +100,29 @@ final class SearchIndexListener implements ResetInterface
         $this->contents = [];
         $this->removed = [];
         $this->categories = [];
+    }
+
+    /**
+     * @param array<int, SearchIndexableInterface> $contents
+     */
+    private function dispatchContents(array $contents): void
+    {
+        $ids = [];
+
+        foreach ($contents as $content) {
+            $type = $this->resources->forEntity($content)?->type;
+            $id = SearchDocumentFactory::id($content);
+
+            if (null !== $type && null !== $id) {
+                $ids[$type][] = $id;
+            }
+        }
+
+        foreach ($ids as $type => $typeIds) {
+            foreach (array_chunk($typeIds, max(1, $this->messageThreshold)) as $chunk) {
+                $this->bus->dispatch(new ReindexSearchContents($type, $chunk));
+            }
+        }
     }
 
     private function collect(object $entity): void

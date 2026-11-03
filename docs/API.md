@@ -81,7 +81,8 @@ The JSON-LD response carries the facets in `filters`:
 
 Each facet is counted against the other active filters. The page responses are cached under the
 `page` key (invalidated by a change of a page, a translation, a category, a file or a media), except
-`GET /api/pages/{id}`: secured by the page, it is never cached.
+`GET /api/pages/{id}`: secured by the page, it is never cached (the front reads the public pages
+by `by-slug`, the id is for the preview).
 
 The collection, `by-slug` and the [search](#search) only serve published pages, token or not
 (`status` cannot widen the list). A project entity overriding the page (`resources.page.entity`)

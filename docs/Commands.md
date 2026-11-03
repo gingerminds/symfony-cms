@@ -12,7 +12,8 @@
 bin/console gingerminds:cms:page-urls:sync
 ```
 
-Recomputes the `page_urls` of every page (a path per language of a published page), by batches.
+Recomputes the `page_urls` of every page from the database (a path per language of a published
+page), by batches.
 Needed once after an import (the Laravel backfill migration `0027`); afterwards a Doctrine
 listener keeps them up to date. A path already owned by another page is not taken: the page keeps
 its former path and the command lists these conflicts (page, language, path, owner) to fix the

@@ -43,10 +43,11 @@ engine (ranking, typos), implement `SearchEngineInterface` (see below).
 
 - After each flush, `SearchIndexListener` reindexes the contents changed (the content itself, one of
   its translations, or a `SearchOwnedInterface` entity such as its URLs) and removes the deleted
-  ones, whatever made the change (admin, command, import).
+  ones, whatever made the change (admin, command, import). Above `search.message_threshold`
+  contents (100) in a flush, they are reindexed by `ReindexSearchContents` messages of that size.
 - A category whose `hiddenFromSearch` or `parent` changed reindexes the contents of its branch
-  through the `ReindexSearchCategory` Messenger message: synchronous by default, route it to an
-  async transport for big categories ([Installation](Installation.md#7-messenger)).
+  through the `ReindexSearchCategory` Messenger message. Both messages are synchronous by default:
+  route them to an async transport on big sites ([Installation](Installation.md#7-messenger)).
 - `bin/console gingerminds:cms:search:reindex [--type=page]` rebuilds the index: after the
   installation, an import, a change of the searched fields, or a new engine.
 

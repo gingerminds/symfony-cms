@@ -111,6 +111,12 @@ return static function (DefinitionConfigurator $definition): void {
                     ->defaultValue('doctrine')
                     ->cannotBeEmpty()
                 ->end()
+                ->integerNode('message_threshold')
+                    ->info('Contents changed by a flush above which they are reindexed by ReindexSearchContents messages of this size'
+                        . ' (route them to an async transport), instead of during the request.')
+                    ->defaultValue(100)
+                    ->min(1)
+                ->end()
             ->end()
         ->end()
         ->arrayNode('publication')

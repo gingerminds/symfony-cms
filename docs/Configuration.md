@@ -23,6 +23,7 @@ gingerminds_cms:
         order: { faq: 5 }
     search:
         engine: doctrine
+        message_threshold: 100
     publication:
         status_colors:
             draft: primary
@@ -85,6 +86,7 @@ See [Blocks](Blocks.md).
 | Key | Default | |
 |---|---|---|
 | `search.engine` | `doctrine` | `doctrine`, or the id of a service implementing `SearchEngineInterface`. The `search_index` tables are mapped only with `doctrine`. |
+| `search.message_threshold` | `100` | Contents changed by a flush above which they are reindexed by `ReindexSearchContents` messages of this size (to route to an async transport) instead of during the request. |
 
 The indexed types are the entities with a `#[SearchIndex]` (`BasePage`: `page`), not a configuration.
 See [Search](Search.md#adding-a-content-type).

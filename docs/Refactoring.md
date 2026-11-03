@@ -4,16 +4,6 @@ Issu de l'audit du 27/10/2026 (portage Laravel → Symfony). L'adaptation au cor
 
 Légende — effort : S (≤ ½ j), M (1–3 j), L (> 3 j) ; [H] hypothèse à vérifier.
 
-## 4. Bugs et mauvais code
-
-| Constat | Où | Correction | Effort |
-|---|---|---|---|
-| `flush()` relancé dans `postFlush`, qui redéclenche `SearchIndexListener` et `PageReferenceCacheListener` ; sous-arbre chargé sans limite ; 1 + N requêtes par page | `src/Doctrine/PageUrlListener.php:72,87`, `src/Page/PageUrlSyncer.php:37,111` | calcul en `onFlush` (`computeChangeSet`) ou message `SyncPageUrls` par lots | M |
-| `ReindexSearchCategory` sans routage async : exécuté dans la requête ; indexation des contenus synchrone | `src/Doctrine/SearchIndexListener.php:80,85` | `#[AsMessage('async')]` + transport documenté | S |
-| N+1 dans les résultats de recherche (`findBy` sans fetch-join) [H] | `src/Search/Api/SearchProvider.php` (`entities()`) | eager loads de la ressource | S |
-| Toute modification d'un File / Media invalide toutes les réponses de pages | `src/Cache/PageReferenceCacheListener.php:43-59` | un tag par fichier posé à la résolution des références | M |
-| `GET /api/pages/{id}` n'est plus mis en cache (opération avec `security`) | `src/Entity/Page/Page.php` | le front lit les pages publiques par `by-slug` | — |
-
 ## 5. Doublons avec les dépendances
 
 - Traductions : `TranslationFieldsTrait` + relation propriétaire déclarée à la main refont `multisite/src/Model/TranslationTrait.php`.

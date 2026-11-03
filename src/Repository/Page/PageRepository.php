@@ -79,7 +79,7 @@ class PageRepository extends AbstractFacetRepository
     }
 
     /**
-     * The pages of these categories.
+     * The pages of these categories, with their translations and URLs (URL sync).
      *
      * @param list<int|string> $categoryIds
      *
@@ -93,6 +93,9 @@ class PageRepository extends AbstractFacetRepository
 
         /** @var list<PageInterface> */
         return $this->createQueryBuilder('p')
+            ->addSelect('t', 'u')
+            ->leftJoin('p.translations', 't')
+            ->leftJoin('p.urls', 'u')
             ->andWhere('p.category IN (:categories)')
             ->setParameter('categories', $categoryIds)
             ->getQuery()

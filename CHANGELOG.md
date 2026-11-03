@@ -153,6 +153,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Page URLs synced in the flush changing a page, a translation or a category (`onFlush`, same
+  transaction) instead of a second flush in `postFlush`; the paths taken are looked up in one query
+  per site, language and 500 paths, the pages of a category subtree loaded with their translations
+  and URLs. `PageUrlSyncer::sync()` takes several pages and returns the URLs it created or changed.
+  2,000 pages of a renamed category: 2,009 queries instead of 6,000 for the URLs.
+- Search: above `search.message_threshold` (100) contents changed by a flush, they are reindexed by
+  `ReindexSearchContents` messages of that size, which can be routed to an async transport. The hits
+  of `/api/search-*` and these messages load the contents with the eager loads of their core
+  repository (no query per category or translation).
 - **BC break** Content blocks: a block is a form type with `#[AsContentBlock(key, preview, icon,
   order, label, translationDomain)]` (autoconfigured, tag `gingerminds_cms.block`): its fields,
   their validation (`constraints`) and defaults (`empty_data`) are the form ones; the rows are a

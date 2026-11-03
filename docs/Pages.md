@@ -102,8 +102,9 @@ collection API and found by the search.
 ## URLs
 
 `PageUrl` (`page_urls`) holds the path of each language of a published page (the translations with
-a title). A Doctrine listener keeps them up to date after any change of a page, of a translation or
-of a category (its whole subtree, its deletion included), whoever made it.
+a title). A Doctrine listener keeps them up to date in the flush changing a page, a translation or
+a category (its whole subtree, its deletion included), whoever made it: they are written in the same
+transaction, and the search and cache listeners see them.
 
 A path already owned by another published page is not taken: the page keeps its former path and the
 conflict is reported (a warning after saving or deleting a category, `UniquePageUrl` on the page
@@ -116,4 +117,4 @@ see [Commands](Commands.md).
 
 The page API responses are cached under the `page` key. They are invalidated by a change of a page,
 of a translation or of a category, and by a change of a file or of a media (the blocks embed
-them).
+them): all of them, which pages use the file is not tracked (a media library changes seldom).
