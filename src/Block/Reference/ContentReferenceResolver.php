@@ -62,33 +62,71 @@ class ContentReferenceResolver
      */
     private function replace(array $content, bool $normalize): array
     {
+        $loaded = $this->load($this->ids($content));
+
+        return $this->walk(
+            $content,
+            fn (string $type, bool $multiple, mixed $value): mixed => $this->replacement($type, $multiple, $value, $loaded[$type] ?? [], $normalize),
+        );
+    }
+
+    /**
+     * The ids of the reference fields of a content, by resolver type.
+     *
+     * @param list<mixed> $content
+     *
+     * @return array<string, list<int|non-empty-string>>
+     */
+    private function ids(array $content): array
+    {
         $ids = [];
         $this->walk($content, static function (string $type, bool $multiple, mixed $value) use (&$ids): mixed {
             $values = $multiple && \is_array($value) ? $value : [$value];
-            $ids[$type] = [...$ids[$type] ?? [], ...array_filter($values, self::isId(...))];
+            $ids[$type] = [...$ids[$type] ?? [], ...array_values(array_filter($values, self::isId(...)))];
 
             return $value;
         });
 
+        return $ids;
+    }
+
+    /**
+     * The entities of these ids, one query per resolver type.
+     *
+     * @param array<string, list<int|non-empty-string>> $ids
+     *
+     * @return array<string, array<int|string, object>> by resolver type and id
+     */
+    private function load(array $ids): array
+    {
         $loaded = [];
 
         foreach ($ids as $type => $typeIds) {
             $loaded[$type] = [] === $typeIds ? [] : $this->resolvers->get($type)->load(array_values(array_unique($typeIds)));
         }
 
-        return $this->walk($content, function (string $type, bool $multiple, mixed $value) use ($loaded, $normalize): mixed {
-            $find = function (mixed $id) use ($type, $loaded, $normalize): mixed {
-                $entity = self::isId($id) ? $loaded[$type][(string) $id] ?? null : null;
+        return $loaded;
+    }
 
-                return null !== $entity && $normalize ? $this->resolvers->get($type)->normalize($entity) : $entity;
-            };
+    /**
+     * The value of a reference field, its ids replaced by their entity (normalized for the API); a
+     * missing one is null, or removed from a list.
+     *
+     * @param array<int|string, object> $entities the loaded entities of the type, by id
+     */
+    private function replacement(string $type, bool $multiple, mixed $value, array $entities, bool $normalize): mixed
+    {
+        $find = function (mixed $id) use ($type, $entities, $normalize): mixed {
+            $entity = self::isId($id) ? $entities[(string) $id] ?? null : null;
 
-            if ($multiple) {
-                return array_values(array_filter(array_map($find, \is_array($value) ? $value : []), static fn (mixed $entity): bool => null !== $entity));
-            }
+            return null !== $entity && $normalize ? $this->resolvers->get($type)->normalize($entity) : $entity;
+        };
 
+        if (!$multiple) {
             return $find($value);
-        });
+        }
+
+        return array_values(array_filter(array_map($find, \is_array($value) ? $value : []), static fn (mixed $entity): bool => null !== $entity));
     }
 
     /**
