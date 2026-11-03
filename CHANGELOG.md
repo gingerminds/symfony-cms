@@ -153,6 +153,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- WYSIWYG sanitizer: the `gingerminds_cms` sanitizer of `framework.html_sanitizer`, prepended by
+  the bundle (`WysiwygSanitizer::CONFIG`) and completed by the project configuration; `WysiwygType`
+  uses the `sanitize_html` option of the form (no `WysiwygSanitizer` argument any more).
+- `SlugType` for the page slugs and category prefixes: the server slugifies the submitted value
+  (`AsciiSlugger`, requires `symfony/string`) instead of rejecting it, and wires `gm-cms-slug-sync`
+  (`source`, `overwrite`); the `finishView()` of the translation form types are removed.
+- `gm_cms_status_color()`: `#[AsTwigFunction]`, `PublicationExtension` is no longer a Twig extension.
+- Deleting a menu item relies on the `ON DELETE SET NULL` foreign key for its children
+  (`MenuItemRepository::beforeRemove()` removed). The test application enforces the SQLite foreign
+  keys.
 - Public search: each hit is checked against its content when read (published, not hidden from
   search): a hit of an index out of sync (DQL write, async engine) is not served by
   `/api/search-indices` nor `/api/search-results`.

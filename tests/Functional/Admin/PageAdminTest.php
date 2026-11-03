@@ -123,7 +123,7 @@ final class PageAdminTest extends ApiTestCase
     {
         yield 'code taken on the site' => [['page[code]' => 'tractor'], '#page_code'];
         yield 'title required' => [['title' => ''], 'title'];
-        yield 'slug format' => [['slug' => 'Tracteur X'], 'slug'];
+        yield 'slug taken once slugified' => [['page[category]' => 'products', 'slug' => 'Tracteur X'], 'slug'];
         yield 'slug taken in the category' => [['page[category]' => 'products', 'slug' => 'tracteur-x'], 'slug'];
         yield 'blank slug taken in the category' => [['page[category]' => 'products', 'slug' => ''], 'slug'];
         yield 'single page category taken' => [['page[category]' => 'single'], '#page_category'];

@@ -27,8 +27,9 @@ class PageCategoryRepository extends AbstractRepository implements TreeRepositor
     }
 
     /**
-     * The children of a deleted category move to the root and its pages lose it (as the ON DELETE
-     * SET NULL foreign keys), whatever the database: their URLs are synced.
+     * The children of a deleted category move to the root and its pages lose it, in the unit of
+     * work too (the ON DELETE SET NULL foreign keys only change the rows): PageUrlListener syncs
+     * their URLs without the deleted category.
      */
     protected function beforeRemove(object $entity): void
     {

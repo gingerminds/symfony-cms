@@ -64,7 +64,8 @@ final class PageCategoryAdminTest extends ApiTestCase
             'page_category[code]' => 'mowers',
             'page_category[unique]' => '1',
             $this->translationField('name') => 'Tondeuses',
-            $this->translationField('prefix') => 'tondeuses',
+            // Slugified by the server (SlugType).
+            $this->translationField('prefix') => 'Tondeuses à gazon',
         ]);
 
         self::assertResponseRedirects(self::BASE);
@@ -74,7 +75,7 @@ final class PageCategoryAdminTest extends ApiTestCase
         self::assertSame($this->site->getId(), $category->getSite()?->getId());
         self::assertSame(1, $category->getPosition(), 'Last of its level.');
         self::assertTrue($category->isUnique());
-        self::assertSame('produits/tondeuses', $category->getFullPath());
+        self::assertSame('produits/tondeuses-a-gazon', $category->getFullPath());
         $translation = $category->getTranslations()->first();
         self::assertInstanceOf(PageCategoryTranslation::class, $translation);
         self::assertSame($this->site->getId(), $translation->getSite()?->getId(), 'The translation copies the site of the category.');
@@ -106,7 +107,6 @@ final class PageCategoryAdminTest extends ApiTestCase
     {
         yield 'code taken on the site' => [['page_category[code]' => 'products'], '#page_category_code'];
         yield 'name required in the default language' => [['page_category[code]' => 'mowers', 'name' => ''], 'name'];
-        yield 'prefix format' => [['page_category[code]' => 'mowers', 'prefix' => 'Nos produits/'], 'prefix'];
         yield 'prefix taken by a sibling' => [['page_category[code]' => 'mowers', 'prefix' => 'produits'], 'prefix'];
     }
 

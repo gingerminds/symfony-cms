@@ -6,6 +6,11 @@ services:
     test.rate_limiter_storage:
         class: Symfony\Component\RateLimiter\Storage\InMemoryStorage
 
+    # SQLite enforces the foreign keys (ON DELETE CASCADE / SET NULL), as MySQL does.
+    Doctrine\DBAL\Driver\AbstractSQLiteDriver\Middleware\EnableForeignKeys:
+        # Inside the DAMA middleware (100): set once, on the real connection, before its transaction.
+        tags: [{ name: doctrine.middleware, priority: 200 }]
+
     # Keeps PHPUnit output clean.
     logger:
         class: Psr\Log\NullLogger

@@ -17,7 +17,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 /**
  * Rich text (TipTap, Stimulus `gm-cms-wysiwyg`): the toolbar of a `gingerminds_cms.wysiwyg.presets`
  * preset (`preset`, default `default`), a minimum height of `rows` × 24px. The submitted HTML is
- * sanitized (WysiwygSanitizer), an empty editor gives null.
+ * sanitized by the `gingerminds_cms` sanitizer (`sanitize_html`, WysiwygSanitizer), an empty editor
+ * gives null.
  *
  *     $builder->add('description', WysiwygType::class, ['preset' => 'minimal']);
  *
@@ -30,15 +31,15 @@ class WysiwygType extends AbstractType
      */
     public function __construct(
         private readonly array $presets,
-        private readonly WysiwygSanitizer $sanitizer,
     ) {
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event): void {
+        // After the sanitizer of `sanitize_html` (priority 10000).
+        $builder->addEventListener(FormEvents::PRE_SUBMIT, static function (FormEvent $event): void {
             $data = $event->getData();
-            $event->setData(\is_string($data) ? $this->sanitizer->sanitize($data) : null);
+            $event->setData(\is_string($data) ? WysiwygSanitizer::nullIfEmpty($data) : null);
         });
     }
 
@@ -54,6 +55,8 @@ class WysiwygType extends AbstractType
             ->setDefaults([
                 'preset' => 'default',
                 'rows' => 6,
+                'sanitize_html' => true,
+                'sanitizer' => WysiwygSanitizer::NAME,
             ])
             ->setAllowedValues('preset', array_keys($this->presets))
             ->setAllowedTypes('rows', 'int');

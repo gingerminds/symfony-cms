@@ -10,13 +10,9 @@ Légende — effort : S (≤ ½ j), M (1–3 j), L (> 3 j) ; [H] hypothèse à v
 |---|---|---|---|
 | Système de blocs : un DSL (`BlockField`, trait de fabriques) traduit à la main en formulaire, contraintes, normalisation et revalidation du JSON | `src/Block/BlockFieldFactoryTrait.php`, `src/Form/Block/BlockDataType.php:121-152`, `src/Block/BlockConstraints.php`, `src/Block/BlockContentNormalizer.php`, `src/Validator/ValidBlocksValidator.php` | un `FormType` par bloc (`CollectionType` pour les répéteurs), revalidation en soumettant ce form ; extensions = `FormTypeExtension` | L |
 | Recherche : ≈ 1 000 lignes pour un `LIKE '%x%'` sans index ; poids ignorés | `src/Search/Doctrine/DoctrineSearchEngine.php:20,136`, `config/definition.php:134` | MySQL `FULLTEXT` (MATCH … AGAINST avec poids) ou Meilisearch ; sinon retirer `weight` | M |
-| Config du sanitizer construite à la main, nettoyage en `PRE_SUBMIT` | `src/Wysiwyg/WysiwygSanitizer.php:31-47`, `src/Form/Type/WysiwygType.php:39` | `framework.html_sanitizer.sanitizers.gingerminds_cms` (prepend) + option `sanitize_html` du `TextType` | S |
-| Slug généré uniquement en JS | `assets/controllers/slug_sync_controller.js:57` | repli `AsciiSlugger` côté serveur | S |
 | `BlockPass` qui gère « une sous-classe remplace le bloc » | `src/DependencyInjection/Compiler/BlockPass.php:43` | `tagged_locator(default_index_method: 'getKey')` | S |
-| `beforeRemove` émule `ON DELETE SET NULL` déjà déclaré dans le mapping | `PageCategoryRepository::beforeRemove()`, `MenuItemRepository::beforeRemove()` | supprimer | S |
 | Métadonnées des blocs en getters (`getKey()` statique, `getIcon()`, `getOrder()`, `getPreviewTemplate()`, `getTranslationDomain()`) + tag + `BlockPass` | `src/Block/BlockInterface.php`, `src/Block/Type/*`, `src/DependencyInjection/Compiler/BlockPass.php` | `#[AsContentBlock(key:, icon:, order:, template:)]` (comme `#[AsCrudController]`), la même `key` côté projet remplace le bloc ; avec la refacto des blocs | M |
 | Types de la recherche publique déclarés en config (`search.resources`, prepend + validation dans `GingermindsCmsBundle::searchResources()`) | `src/GingermindsCmsBundle.php`, `config/definition.php` | `#[PublicSearchable(type:, label:, category:, group:)]` sur l'entité (hérité par une entité qui surcharge, comme `#[Cacheable]`) ; `PubliclySearchableInterface` garde le comportement ; à trancher avec le point recherche ci-dessus et `weight` (section 7) | M |
-| Fonction Twig déclarée par `getFunctions()` | `src/Twig/PublicationExtension.php` | `#[AsTwigFunction]` (comme multisite et media-manager) | S |
 
 ## 4. Bugs et mauvais code
 
@@ -40,7 +36,7 @@ Légende — effort : S (≤ ½ j), M (1–3 j), L (> 3 j) ; [H] hypothèse à v
 |---|---|---|---|
 | Impossible d'ajouter un champ traduit sans fork : `PageTranslation`, `MenuItemTranslation`, `PageCategoryTranslation` concrètes et absentes de `RESOURCES` | `PageTranslation.php:28`, `BasePage.php:80`, `PageTranslationType.php:83`, `UniqueSlugInCategoryValidator.php:58`, `UniqueSiblingPrefixValidator.php:58`, `config/services/block.php:88` | `Base*` + `resources.*.entity` | M |
 | Surcharge de Page cassée côté traductions : `Page::class` / `PageCategory::class` en dur | `PageTranslation.php:70`, `PageCategoryTranslation.php:58` | interface + `resolve_target_entities` | S |
-| Extensions tiptap fermées (enum de config, `private const`, imports JS figés) | `config/definition.php:26`, `WysiwygSanitizer.php:18`, `assets/controllers/wysiwyg_controller.js:65` | registre d'extensions par config + import dynamique | M |
+| Extensions tiptap fermées (enum de config, imports JS figés ; le sanitizer se complète déjà par `framework.html_sanitizer`) | `config/definition.php:26`, `assets/controllers/wysiwyg_controller.js:65` | registre d'extensions par config + import dynamique | M |
 | `PageUrl` codé en dur | `PageUrlSyncer.php:37`, `PageRepository.php:60` | `Base*` + config | S |
 | `#[ApiResource]` sur l'entité concrète `Page` | `src/Entity/Page/Page.php` | ressource déclarée par config, même mécanisme que le core | M |
 | `BlockRegistry`, `SearchIndexer`, `PageUrlSyncer` sans interface | `src/Block/BlockRegistry.php`, `src/Search/SearchIndexer.php`, `src/Page/PageUrlSyncer.php` | interfaces + `#[AsAlias]` si un besoin de décoration apparaît | S |

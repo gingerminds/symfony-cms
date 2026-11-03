@@ -23,12 +23,35 @@ $builder->add('description', WysiwygType::class, [
 | `preset` | `default` | A toolbar of [`wysiwyg.presets`](Configuration.md#wysiwyg-presets); an unknown preset is an error. |
 | `rows` | `6` | Minimum height of the editing area, in lines. |
 
-The submitted HTML is sanitized on the server (`WysiwygSanitizer`, `symfony/html-sanitizer`): only
-the elements the editor produces are kept (paragraphs, marks, links, lists, headings, quotes, rules,
-tables), the links in `http(s)`, `mailto`, `tel` or relative, with `rel="noopener noreferrer"`
-forced; scripts, event attributes and
-`javascript:` links are dropped, the content of other wrappers (`div`, `span`...) kept. An editor
-without text gives `null`. The sanitizer is a service (`WysiwygSanitizer`) for other inputs.
+The submitted HTML is sanitized on the server by the `gingerminds_cms` sanitizer of
+`framework.html_sanitizer` (the `sanitize_html` option of the field): only the elements the editor
+produces are kept (paragraphs, marks, links, lists, headings, quotes, rules, tables), the links in
+`http(s)`, `mailto`, `tel` or relative, with `rel="noopener noreferrer"` forced; scripts, event
+attributes and `javascript:` links are dropped, the content of other wrappers (`div`, `span`...)
+kept. An editor without text gives `null`. `WysiwygSanitizer` applies the same rules to other inputs.
+
+The bundle prepends that configuration (`WysiwygSanitizer::CONFIG`): a project completes it in its
+own, e.g. to keep an element an editor extension produces:
+
+```yaml
+framework:
+    html_sanitizer:
+        sanitizers:
+            gingerminds_cms:
+                allow_elements:
+                    mark: []
+```
+
+## `SlugType`
+
+A URL segment (page slug, category prefix): the server slugifies the submitted value
+(`Tondeuses à gazon` → `tondeuses-a-gazon`, Symfony `AsciiSlugger`), blank gives `null`. With
+`source` (a sibling field), Stimulus `gm-cms-slug-sync` fills it while the source is typed;
+`overwrite: false` keeps a filled value.
+
+```php
+$builder->add('slug', SlugType::class, ['source' => 'title', 'overwrite' => false]);
+```
 
 TipTap is loaded with the first editor of a page, from the project importmap (see
 [Installation](Installation.md#4-assets)). The toolbar labels are translated

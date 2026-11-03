@@ -22,7 +22,7 @@ skipped (`produits/tracteurs`).
 
 Admin: CMS › Page categories (`/admin/page-categories`, `view|edit|delete page_categories`
 permissions): the tree, drag & drop within a level, "Add a child", General / Translations tabs, the
-prefix after the path of the parent and filled from the name (Stimulus `gm-cms-slug-sync`, see
+prefix after the path of the parent and filled from the name ([`SlugType`](Forms.md#slugtype), see
 [`slug_overwrite`](Configuration.md#slugs)).
 
 ## Pages

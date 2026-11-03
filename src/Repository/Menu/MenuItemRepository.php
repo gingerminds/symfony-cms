@@ -27,19 +27,6 @@ class MenuItemRepository extends AbstractRepository implements TreeRepositoryInt
     }
 
     /**
-     * The children of a deleted item move to the root (as `parent_id` ON DELETE SET NULL),
-     * whatever the database.
-     */
-    protected function beforeRemove(object $entity): void
-    {
-        if ($entity instanceof MenuItemInterface) {
-            foreach ($entity->getChildren() as $child) {
-                $child->setParent(null);
-            }
-        }
-    }
-
-    /**
      * One tree per menu.
      *
      * @return array<string, mixed>

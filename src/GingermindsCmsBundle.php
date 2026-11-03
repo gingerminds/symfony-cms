@@ -30,6 +30,7 @@ use Gingerminds\CmsBundle\Model\PublishableInterface;
 use Gingerminds\CmsBundle\Search\PubliclySearchableInterface;
 use Gingerminds\CmsBundle\Search\SearchEngineInterface;
 use Gingerminds\CmsBundle\Site\Entity\Site;
+use Gingerminds\CmsBundle\Wysiwyg\WysiwygSanitizer;
 use Gingerminds\CoreBundle\Bundle\AbstractResourceBundle;
 use Symfony\Bundle\MakerBundle\MakerBundle;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
@@ -180,6 +181,8 @@ final class GingermindsCmsBundle extends AbstractResourceBundle
         }
 
         $builder->prependExtensionConfig('framework', [
+            // The project configuration completes it (an element, an attribute).
+            'html_sanitizer' => ['sanitizers' => [WysiwygSanitizer::NAME => WysiwygSanitizer::CONFIG]],
             'asset_mapper' => [
                 'paths' => [$this->getPath() . '/assets' => 'gingerminds-cms'],
             ],

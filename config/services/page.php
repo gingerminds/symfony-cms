@@ -27,9 +27,10 @@ return static function (ContainerConfigurator $container): void {
     $services->set('gingerminds_cms.workflow.publication_dates_listener', PublicationDatesListener::class)
         ->tag('kernel.event_listener', ['event' => 'workflow.' . PublicationStatus::WORKFLOW . '.entered']);
 
+    // #[AsTwigFunction] methods (autoconfigured).
     $services->set('gingerminds_cms.twig.publication_extension', PublicationExtension::class)
         ->args([param('gingerminds_cms.publication.status_colors')])
-        ->tag('twig.extension');
+        ->autoconfigure();
 
     $services->set('gingerminds_cms.page.preview_urls', PreviewUrls::class);
     $services->alias(PreviewUrls::class, 'gingerminds_cms.page.preview_urls');

@@ -6,18 +6,17 @@ namespace Gingerminds\CmsBundle\Form\Page;
 
 use Gingerminds\CmsBundle\Entity\Page\PageTranslation;
 use Gingerminds\CmsBundle\Form\Block\BlockCanvasType;
+use Gingerminds\CmsBundle\Form\Type\SlugType;
 use Gingerminds\CmsBundle\Form\Type\WysiwygType;
 use Gingerminds\CmsBundle\GingermindsCmsBundle;
 use Gingerminds\MediaManagerBundle\Form\File\FilePickerType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * One language of a page. The slug is slugified from the title (Stimulus `gm-cms-slug-sync`), its
+ * One language of a page. The slug is slugified from the title (SlugType), its
  * input group starts with the category path (PageType). The hook is a WYSIWYG, the content is made
  * of blocks (BlockCanvasType).
  *
@@ -32,10 +31,11 @@ class PageTranslationType extends AbstractType
                 'label' => 'page.field.title',
                 'size' => 'md',
             ])
-            ->add('slug', TextType::class, [
+            ->add('slug', SlugType::class, [
                 'label' => 'page.field.slug',
                 'help' => 'page.help.slug',
-                'required' => false,
+                'source' => 'title',
+                'overwrite' => $options['slug_overwrite'],
                 'size' => 'xl',
                 'input_prefix' => '/',
             ])
@@ -63,17 +63,6 @@ class PageTranslationType extends AbstractType
                 'required' => false,
                 'size' => 'md',
             ]);
-    }
-
-    public function finishView(FormView $view, FormInterface $form, array $options): void
-    {
-        $slug = $view['slug'];
-        $slug->vars['attr'] = [
-            ...$slug->vars['attr'],
-            'data-controller' => 'gm-cms-slug-sync',
-            'data-gm-cms-slug-sync-source-value' => '#' . $view['title']->vars['id'],
-            'data-gm-cms-slug-sync-overwrite-value' => $options['slug_overwrite'] ? 'true' : 'false',
-        ];
     }
 
     public function configureOptions(OptionsResolver $resolver): void
