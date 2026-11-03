@@ -28,6 +28,10 @@ trait PageApiFieldsTrait
         return $this->urls;
     }
 
+    /**
+     * The API `status`: PublishableTrait is shared by other resources, its `status` carries no
+     * serialization group of the pages.
+     */
     #[Groups([BasePage::GROUP_LIST, BasePage::GROUP_READ])]
     #[SerializedName('status')]
     public function getApiStatus(): string
