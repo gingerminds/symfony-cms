@@ -81,7 +81,8 @@ function loadTiptap() {
 function buildExtensions(tiptap, names) {
     const extensions = [
         tiptap.StarterKit.configure({
-            link: names.includes('link') ? { openOnClick: false } : false,
+            // rel: the one forced by WysiwygSanitizer.
+            link: names.includes('link') ? { openOnClick: false, HTMLAttributes: { rel: 'noopener noreferrer' } } : false,
             underline: names.includes('underline') ? {} : false,
         }),
     ];

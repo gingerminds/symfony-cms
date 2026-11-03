@@ -56,6 +56,25 @@ final class SearchApiTest extends ApiTestCase
         self::assertSame(2, $data['totalItems']);
     }
 
+    public function testAHitOfAContentNoLongerVisibleIsNotServed(): void
+    {
+        // A DQL write: the index is not synced.
+        $this->entityManager()->createQueryBuilder()
+            ->update(Page::class, 'p')
+            ->set('p.status', ':draft')
+            ->where('p.id = :id')
+            ->setParameter('draft', 'draft')
+            ->setParameter('id', $this->tractor->getId())
+            ->getQuery()
+            ->execute();
+        $this->entityManager()->clear();
+
+        foreach (['/api/search-indices', '/api/search-results'] as $endpoint) {
+            $data = $this->api('GET', $endpoint . '?search=tracteur', locale: 'fr');
+            self::assertSame(['Salon du tracteur'], array_column($data['member'], 'title'), $endpoint);
+        }
+    }
+
     public function testTheResultsWithTheirContentAndTheFacets(): void
     {
         $data = $this->api('GET', '/api/search-results?search=tracteur', locale: 'fr');

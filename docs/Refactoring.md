@@ -4,13 +4,6 @@ Issu de l'audit du 27/10/2026 (portage Laravel → Symfony). L'adaptation au cor
 
 Légende — effort : S (≤ ½ j), M (1–3 j), L (> 3 j) ; [H] hypothèse à vérifier.
 
-## 2. Sécurité
-
-| Constat | Où | Correction | Effort |
-|---|---|---|---|
-| `search-results` pourrait renvoyer une page non publiée si l'index se désynchronise (UPDATE DQL, moteur asynchrone) | `src/Search/*` | double vérification à la lecture | S |
-| `a[target]` autorisé dans le wysiwyg sans forcer `rel="noopener"` | `src/Wysiwyg/WysiwygSanitizer.php` | forcer `rel` | S |
-
 ## 3. Réimplémentations de ce que Symfony fait déjà
 
 | Constat | Où | Natif | Effort |
@@ -21,6 +14,9 @@ Légende — effort : S (≤ ½ j), M (1–3 j), L (> 3 j) ; [H] hypothèse à v
 | Slug généré uniquement en JS | `assets/controllers/slug_sync_controller.js:57` | repli `AsciiSlugger` côté serveur | S |
 | `BlockPass` qui gère « une sous-classe remplace le bloc » | `src/DependencyInjection/Compiler/BlockPass.php:43` | `tagged_locator(default_index_method: 'getKey')` | S |
 | `beforeRemove` émule `ON DELETE SET NULL` déjà déclaré dans le mapping | `PageCategoryRepository::beforeRemove()`, `MenuItemRepository::beforeRemove()` | supprimer | S |
+| Métadonnées des blocs en getters (`getKey()` statique, `getIcon()`, `getOrder()`, `getPreviewTemplate()`, `getTranslationDomain()`) + tag + `BlockPass` | `src/Block/BlockInterface.php`, `src/Block/Type/*`, `src/DependencyInjection/Compiler/BlockPass.php` | `#[AsContentBlock(key:, icon:, order:, template:)]` (comme `#[AsCrudController]`), la même `key` côté projet remplace le bloc ; avec la refacto des blocs | M |
+| Types de la recherche publique déclarés en config (`search.resources`, prepend + validation dans `GingermindsCmsBundle::searchResources()`) | `src/GingermindsCmsBundle.php`, `config/definition.php` | `#[PublicSearchable(type:, label:, category:, group:)]` sur l'entité (hérité par une entité qui surcharge, comme `#[Cacheable]`) ; `PubliclySearchableInterface` garde le comportement ; à trancher avec le point recherche ci-dessus et `weight` (section 7) | M |
+| Fonction Twig déclarée par `getFunctions()` | `src/Twig/PublicationExtension.php` | `#[AsTwigFunction]` (comme multisite et media-manager) | S |
 
 ## 4. Bugs et mauvais code
 

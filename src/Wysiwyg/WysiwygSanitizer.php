@@ -11,13 +11,15 @@ use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 /**
  * Keeps the HTML the WYSIWYG editor can produce (the extensions of every preset): anything else
  * (scripts, event attributes, `javascript:` links...) is dropped. Links: http(s), mailto, tel and
- * relative URLs; the content of a wrapper (div, span...) is kept. An editor without text (`<p></p>`) gives null.
+ * relative URLs, `rel` forced (a `target` cannot reach the opener); the content of a wrapper (div, span...) is kept. An editor without text (`<p></p>`) gives null.
  */
 class WysiwygSanitizer
 {
+    public const string LINK_REL = 'noopener noreferrer';
+
     private const array ELEMENTS = [
         'p' => [], 'br' => [], 'strong' => [], 'em' => [], 'u' => [], 's' => [], 'code' => [], 'pre' => [],
-        'a' => ['href', 'target', 'rel'], 'ul' => [], 'ol' => ['start', 'type'], 'li' => [],
+        'a' => ['href', 'target'], 'ul' => [], 'ol' => ['start', 'type'], 'li' => [],
         'h1' => [], 'h2' => [], 'h3' => [], 'h4' => [], 'h5' => [], 'h6' => [], 'blockquote' => [], 'hr' => [],
         'table' => [], 'colgroup' => [], 'col' => [], 'thead' => [], 'tbody' => [], 'tr' => [],
         'th' => ['colspan', 'rowspan', 'colwidth'], 'td' => ['colspan', 'rowspan', 'colwidth'],
@@ -33,6 +35,7 @@ class WysiwygSanitizer
         $config = new HtmlSanitizerConfig()
             ->allowLinkSchemes(['http', 'https', 'mailto', 'tel'])
             ->allowRelativeLinks()
+            ->forceAttribute('a', 'rel', self::LINK_REL)
             ->withMaxInputLength(-1);
 
         foreach (self::ELEMENTS as $element => $attributes) {

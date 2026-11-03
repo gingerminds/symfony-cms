@@ -47,11 +47,12 @@ final class WysiwygTypeTest extends ApiTestCase
     public static function submittedHtml(): iterable
     {
         yield 'kept' => ['<h2>Titre</h2><p><strong>a</strong> <em>b</em> <u>c</u> <s>d</s></p><ul><li><p>e</p></li></ul><blockquote><p>f</p></blockquote><hr />', null];
-        yield 'link' => ['<p><a href="https://example.com" target="_blank" rel="noopener noreferrer nofollow">lien</a> <a href="/contact">contact</a> <a href="tel:0100000000">tel</a></p>', null];
+        yield 'link' => ['<p><a href="https://example.com" target="_blank" rel="noopener noreferrer">lien</a> <a href="/contact" rel="noopener noreferrer">contact</a> <a href="tel:0100000000" rel="noopener noreferrer">tel</a></p>', null];
+        yield 'link rel forced' => ['<p><a href="https://example.com" target="_blank" rel="opener">a</a> <a href="/b">b</a></p>', '<p><a href="https://example.com" target="_blank" rel="noopener noreferrer">a</a> <a href="/b" rel="noopener noreferrer">b</a></p>'];
         yield 'table' => ['<table><tbody><tr><th colspan="1" rowspan="1">a</th></tr><tr><td colspan="1" rowspan="1">b</td></tr></tbody></table>', null];
         yield 'script' => ['<p>a</p><script>alert(1)</script>', '<p>a</p>'];
         yield 'event attribute' => ['<p onclick="alert(1)" style="color:red">a</p>', '<p>a</p>'];
-        yield 'javascript link' => ['<p><a href="javascript:alert(1)">a</a></p>', '<p><a>a</a></p>'];
+        yield 'javascript link' => ['<p><a href="javascript:alert(1)">a</a></p>', '<p><a rel="noopener noreferrer">a</a></p>'];
         yield 'unknown element' => ['<div><p>a</p><img src="x" onerror="alert(1)" /><iframe src="https://example.com"></iframe></div>', '<p>a</p>'];
         yield 'empty paragraph' => ['<p></p>', ''];
         yield 'blank paragraphs' => ['<p> &nbsp;</p><p><br /></p>', ''];

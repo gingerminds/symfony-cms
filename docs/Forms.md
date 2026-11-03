@@ -25,7 +25,8 @@ $builder->add('description', WysiwygType::class, [
 
 The submitted HTML is sanitized on the server (`WysiwygSanitizer`, `symfony/html-sanitizer`): only
 the elements the editor produces are kept (paragraphs, marks, links, lists, headings, quotes, rules,
-tables), the links in `http(s)`, `mailto`, `tel` or relative; scripts, event attributes and
+tables), the links in `http(s)`, `mailto`, `tel` or relative, with `rel="noopener noreferrer"`
+forced; scripts, event attributes and
 `javascript:` links are dropped, the content of other wrappers (`div`, `span`...) kept. An editor
 without text gives `null`. The sanitizer is a service (`WysiwygSanitizer`) for other inputs.
 

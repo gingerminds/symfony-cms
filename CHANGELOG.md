@@ -153,6 +153,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Public search: each hit is checked against its content when read (published, not hidden from
+  search): a hit of an index out of sync (DQL write, async engine) is not served by
+  `/api/search-indices` nor `/api/search-results`.
+- WYSIWYG: `rel="noopener noreferrer"` forced on the links by `WysiwygSanitizer` and set by the
+  editor (was any `rel`, TipTap's `nofollow` included).
 - CI: PHPUnit coverage (Xdebug, Clover report) sent to SonarQube, which now runs after the tests;
   line coverage shown on the merge requests. `assets/` analysed by SonarQube.
 - **BC break** — requires `gingerminds/symfony-core` ^1.10, `gingerminds/symfony-media-manager` ^1.3

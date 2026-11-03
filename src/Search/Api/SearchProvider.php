@@ -9,9 +9,11 @@ use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\Pagination\TraversablePaginator;
 use ApiPlatform\State\ProviderInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Gingerminds\CmsBundle\Search\PubliclySearchableInterface;
 use Gingerminds\CmsBundle\Search\SearchDocumentFactory;
 use Gingerminds\CmsBundle\Search\SearchEngineInterface;
 use Gingerminds\CmsBundle\Search\SearchHit;
+use Gingerminds\CmsBundle\Search\SearchIndexer;
 use Gingerminds\CmsBundle\Search\SearchQuery;
 use Gingerminds\CmsBundle\Search\SearchResource;
 use Gingerminds\CmsBundle\Search\SearchResourceRegistry;
@@ -22,8 +24,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
- * The search endpoints (SearchItem), read from the configured engine. `/search-results` adds the
- * content of each hit (one query per type of the page, normalized with its `group`) and the facets.
+ * The search endpoints (SearchItem), read from the configured engine, each hit checked against its
+ * content (one query per type of the page). `/search-results` adds that content (normalized with
+ * the `group` of its type) and the facets.
  *
  * @implements ProviderInterface<SearchItem>
  */
@@ -50,10 +53,17 @@ final readonly class SearchProvider implements ProviderInterface
         $request = $context['request'] ?? null;
         $query = $this->query($operation, $context);
         $result = $this->engine->search($query);
-        $items = array_map($this->item(...), $result->hits);
+        $entities = $this->visibleEntities($result->hits);
+        $items = [];
+
+        foreach ($result->hits as $hit) {
+            if (isset($entities[$hit->type][$hit->recordId])) {
+                $items[] = $this->item($hit);
+            }
+        }
 
         if (true === ($operation->getExtraProperties()[SearchItem::WITH_RESOURCES] ?? false)) {
-            $this->attachResources($items, ($request instanceof Request ? $request->getRequestFormat() : null) ?? 'jsonld');
+            $this->attachResources($items, $entities, ($request instanceof Request ? $request->getRequestFormat() : null) ?? 'jsonld');
             $this->filterStore->set(SearchItem::class, $this->filters->compute($query, $result, $this->languageContext->current()?->getIso()));
         }
 
@@ -95,7 +105,10 @@ final readonly class SearchProvider implements ProviderInterface
         $types = [];
         $categories = [];
 
-        foreach (\is_array($value) ? $value : (\is_string($value) ? [$value] : []) as $item) {
+        // A missing parameter (ParameterNotFound) is not scalar: skipped below.
+        $values = \is_array($value) ? $value : [$value];
+
+        foreach ($values as $item) {
             $parts = explode(':', \is_scalar($item) ? (string) $item : '', 2);
             $type = $parts[0];
             $categoryId = $parts[1] ?? null;
@@ -115,54 +128,56 @@ final readonly class SearchProvider implements ProviderInterface
     }
 
     /**
-     * @param list<SearchItem> $items
+     * The contents of the hits still visible (published, not excluded), by type and id, in one
+     * query per type: a hit of an index out of sync (DQL write, async engine) is not served.
+     *
+     * @param list<SearchHit> $hits
+     *
+     * @return array<string, array<int, object>>
      */
-    private function attachResources(array $items, string $format): void
+    private function visibleEntities(array $hits): array
     {
-        $normalizer = ($this->normalizer)();
         $ids = [];
+        $entities = [];
 
-        foreach ($items as $item) {
-            $ids[$item->type][] = $item->id;
+        foreach ($hits as $hit) {
+            $ids[$hit->type][] = $hit->recordId;
         }
 
         foreach ($ids as $type => $typeIds) {
             $resource = $this->resources->get($type);
 
-            if (null === $resource?->group) {
+            if (!$resource instanceof SearchResource) {
                 continue;
             }
 
-            $entities = $this->entities($resource, $typeIds);
+            foreach ($this->entityManager->getRepository($resource->entity)->findBy(['id' => $typeIds]) as $entity) {
+                $id = SearchDocumentFactory::id($entity);
 
-            foreach ($items as $item) {
-                if ($item->type === $type && isset($entities[$item->id])) {
-                    $item->resource = $this->normalize($normalizer, $entities[$item->id], $format, $resource->group);
+                if (null !== $id && $entity instanceof PubliclySearchableInterface && SearchIndexer::isVisible($entity)) {
+                    $entities[$type][$id] = $entity;
                 }
-            }
-        }
-    }
-
-    /**
-     * The contents of a type, in one query.
-     *
-     * @param list<int> $ids
-     *
-     * @return array<int, object> by id
-     */
-    private function entities(SearchResource $resource, array $ids): array
-    {
-        $entities = [];
-
-        foreach ($this->entityManager->getRepository($resource->entity)->findBy(['id' => $ids]) as $entity) {
-            $id = SearchDocumentFactory::id($entity);
-
-            if (null !== $id) {
-                $entities[$id] = $entity;
             }
         }
 
         return $entities;
+    }
+
+    /**
+     * @param list<SearchItem>                  $items
+     * @param array<string, array<int, object>> $entities
+     */
+    private function attachResources(array $items, array $entities, string $format): void
+    {
+        $normalizer = ($this->normalizer)();
+
+        foreach ($items as $item) {
+            $group = $this->resources->get($item->type)?->group;
+
+            if (null !== $group && isset($entities[$item->type][$item->id])) {
+                $item->resource = $this->normalize($normalizer, $entities[$item->type][$item->id], $format, $group);
+            }
+        }
     }
 
     /**
