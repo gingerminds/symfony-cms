@@ -28,7 +28,7 @@ pages.
 | `ContentReferenceResolver`, `ReferenceFieldResolver`, `reference_resolvers` | `ContentReferenceResolver`, `BlockReferenceResolverInterface` (autoconfigured) | |
 | `make:cms-block` | `make:gm:cms-block` | `App\Cms\Block\Name`, `templates/cms/block/<key>/`. |
 | `SearchIndex` model, `SearchIndexer`, observers | `SearchEngineInterface`, `SearchIndexer`, `SearchIndexListener` | Pluggable engine, see [Search](Search.md). |
-| `PubliclySearchableInterface::getPublicSearchTranslations()` | `PubliclySearchableInterface::getSearchEntries()` (`SearchEntry`) | The searched text comes from the configured `fields`. |
+| `SearchIndexableInterface::getPublicSearchTranslations()` | `SearchIndexableInterface::getSearchEntries()` (`SearchEntry`) | The searched text: the title and the `texts` of the `SearchEntry`. |
 | `ExcludableFromSearchInterface` + trait | `ExcludableFromSearchInterface` | |
 | `ReindexCategoryItemsJob` (queue) | `ReindexSearchCategory` message (Messenger) | |
 | `search:reindex` | `gingerminds:cms:search:reindex` | |
@@ -47,7 +47,7 @@ pages.
 | `blocks` (override by key) | — (a block extending the bundle one replaces it) |
 | `disabled_blocks`, `block_order` | `blocks.disabled`, `blocks.order` |
 | `reference_resolvers` | — (`BlockReferenceResolverInterface` services) |
-| `search_resources.<type>` (`model`, `label`, `category_relation`, `category_model`, `group`) | `search.resources.<type>` (`entity`, `label`, `category`, `group`, `fields`) |
+| `search_resources.<type>` (`model`, `label`, `category_relation`, `category_model`, `group`) | `#[SearchIndex(type, label, category, group)]` on the entity |
 | — | `search.engine`, `publication.status_colors` |
 
 ## Behaviour changes
@@ -111,8 +111,8 @@ pages.
 ### Search
 
 - Pluggable engine (`search.engine`); `doctrine` keeps the Laravel tables.
-- The searched fields and their weight are configured; the pages search the title and the hook
-  (Laravel: the title only).
+- The searched text comes from the entity (`getSearchEntries()`); the pages search the title and
+  the hook (Laravel: the title only).
 - A category hidden from search hides the pages of its subcategories too.
 - With `translation_fallback`, a content without a version in the current language is found in the
   fallback language.

@@ -9,10 +9,10 @@ use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\Pagination\TraversablePaginator;
 use ApiPlatform\State\ProviderInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Gingerminds\CmsBundle\Search\PubliclySearchableInterface;
 use Gingerminds\CmsBundle\Search\SearchDocumentFactory;
 use Gingerminds\CmsBundle\Search\SearchEngineInterface;
 use Gingerminds\CmsBundle\Search\SearchHit;
+use Gingerminds\CmsBundle\Search\SearchIndexableInterface;
 use Gingerminds\CmsBundle\Search\SearchIndexer;
 use Gingerminds\CmsBundle\Search\SearchQuery;
 use Gingerminds\CmsBundle\Search\SearchResource;
@@ -154,7 +154,7 @@ final readonly class SearchProvider implements ProviderInterface
             foreach ($this->entityManager->getRepository($resource->entity)->findBy(['id' => $typeIds]) as $entity) {
                 $id = SearchDocumentFactory::id($entity);
 
-                if (null !== $id && $entity instanceof PubliclySearchableInterface && SearchIndexer::isVisible($entity)) {
+                if (null !== $id && $entity instanceof SearchIndexableInterface && SearchIndexer::isVisible($entity)) {
                     $entities[$type][$id] = $entity;
                 }
             }

@@ -23,7 +23,7 @@ return static function (ContainerConfigurator $container): void {
     $services = $container->services();
 
     $services->set('gingerminds_cms.search.resources', SearchResourceRegistry::class)
-        ->args([param('gingerminds_cms.search.resources')]);
+        ->args([service('doctrine'), service('cache.system')]);
     $services->alias(SearchResourceRegistry::class, 'gingerminds_cms.search.resources');
 
     $services->set('gingerminds_cms.search.engine.doctrine', DoctrineSearchEngine::class)

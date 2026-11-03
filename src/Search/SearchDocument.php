@@ -10,9 +10,8 @@ namespace Gingerminds\CmsBundle\Search;
 final readonly class SearchDocument
 {
     /**
-     * @param array<string, string> $fields      searchable text by field (plain text)
-     * @param array<string, int>    $weights     weight by field, for the engines supporting it
-     * @param list<int>             $categoryIds
+     * @param string    $text        the searched text (plain text: the title and the entry texts)
+     * @param list<int> $categoryIds
      */
     public function __construct(
         public string $type,
@@ -22,18 +21,9 @@ final readonly class SearchDocument
         public string $title,
         public string $url,
         public ?string $excerpt,
-        public array $fields,
-        public array $weights = [],
+        public string $text,
         public ?\DateTimeImmutable $publishedAt = null,
         public array $categoryIds = [],
     ) {
-    }
-
-    /**
-     * The searchable text of every field.
-     */
-    public function text(): string
-    {
-        return implode(' ', array_filter($this->fields, static fn (string $text): bool => '' !== $text));
     }
 }

@@ -4,32 +4,27 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Search;
 
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Contracts\Cache\CacheInterface;
+
 /**
- * The searchable content types, in configuration order.
+ * The types of the search index: the Doctrine entities implementing SearchIndexableInterface with
+ * a #[SearchIndex], by type (cached in `cache.system`, cleared by `cache:clear`).
  */
 class SearchResourceRegistry
 {
-    /** @var array<string, SearchResource> */
-    private array $resources = [];
+    private const string CACHE_KEY = 'gingerminds_cms.search.resources';
 
-    /**
-     * @param array<string, array{entity: class-string<PubliclySearchableInterface>, label: ?string, translation_domain: string, category: ?string, group: ?string, fields: array<string, array{weight: int}>}> $resources
-     */
-    public function __construct(array $resources)
-    {
-        foreach ($resources as $type => $resource) {
-            $fields = array_filter(array_map(static fn (array $field): int => $field['weight'], $resource['fields']), static fn (int $weight): bool => $weight > 0);
+    /** @var array<string, SearchResource>|null */
+    private ?array $resources = null;
 
-            $this->resources[$type] = new SearchResource(
-                $type,
-                $resource['entity'],
-                $fields,
-                $resource['label'],
-                $resource['translation_domain'],
-                $resource['category'],
-                $resource['group'],
-            );
-        }
+    /** @var array<class-string, SearchIndex|null> */
+    private array $attributes = [];
+
+    public function __construct(
+        private readonly ManagerRegistry $doctrine,
+        private readonly CacheInterface $cache,
+    ) {
     }
 
     /**
@@ -37,25 +32,67 @@ class SearchResourceRegistry
      */
     public function all(): array
     {
-        return $this->resources;
+        return $this->resources ??= array_map(
+            static fn (array $resource): SearchResource => SearchResource::fromAttribute($resource['entity'], new SearchIndex(...$resource['index'])),
+            $this->cache->get(self::CACHE_KEY, $this->discover(...)),
+        );
     }
 
     public function get(string $type): ?SearchResource
     {
-        return $this->resources[$type] ?? null;
+        return $this->all()[$type] ?? null;
     }
 
     /**
-     * The type of an entity (its class or a parent one), null when not searchable.
+     * The type of an entity (its #[SearchIndex], parents included), null when not indexed.
      */
     public function forEntity(object $entity): ?SearchResource
     {
-        foreach ($this->resources as $resource) {
-            if ($entity instanceof $resource->entity) {
-                return $resource;
+        if (!$entity instanceof SearchIndexableInterface) {
+            return null;
+        }
+
+        $index = $this->attribute($entity::class);
+
+        return $index instanceof SearchIndex ? $this->get($index->type) : null;
+    }
+
+    /**
+     * @return array<string, array{entity: class-string<SearchIndexableInterface>, index: array<string, mixed>}>
+     */
+    private function discover(): array
+    {
+        $resources = [];
+
+        foreach ($this->doctrine->getManagers() as $manager) {
+            foreach ($manager->getMetadataFactory()->getAllMetadata() as $metadata) {
+                $class = $metadata->getName();
+                $index = is_a($class, SearchIndexableInterface::class, true) && !new \ReflectionClass($class)->isAbstract() ? $this->attribute($class) : null;
+
+                if ($index instanceof SearchIndex) {
+                    $resources[$index->type] = ['entity' => $class, 'index' => get_object_vars($index)];
+                }
             }
         }
 
-        return null;
+        return $resources;
+    }
+
+    /**
+     * @param class-string $class
+     */
+    private function attribute(string $class): ?SearchIndex
+    {
+        if (\array_key_exists($class, $this->attributes)) {
+            return $this->attributes[$class];
+        }
+
+        for ($reflection = new \ReflectionClass($class); false !== $reflection; $reflection = $reflection->getParentClass()) {
+            foreach ($reflection->getAttributes(SearchIndex::class) as $attribute) {
+                return $this->attributes[$class] = $attribute->newInstance();
+            }
+        }
+
+        return $this->attributes[$class] = null;
     }
 }

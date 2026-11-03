@@ -23,16 +23,6 @@ gingerminds_cms:
         order: { faq: 5 }
     search:
         engine: doctrine
-        resources:
-            news:
-                entity: App\Entity\News
-                label: news.name_p
-                translation_domain: messages
-                category: category
-                group: news:list
-                fields:
-                    title: { weight: 3 }
-                    hook: ~
     publication:
         status_colors:
             draft: primary
@@ -95,15 +85,9 @@ See [Blocks](Blocks.md).
 | Key | Default | |
 |---|---|---|
 | `search.engine` | `doctrine` | `doctrine`, or the id of a service implementing `SearchEngineInterface`. The `search_index` tables are mapped only with `doctrine`. |
-| `search.resources.<type>.entity` | the CMS resource of this name | Entity implementing `PubliclySearchableInterface`. |
-| `…label` / `…translation_domain` | the type / `GingermindsCms` | Label of the type in the facet. |
-| `…category` | `null` | Association to the categories: category facets, reindex when a category is hidden. |
-| `…group` | `null` | Serialization group of the content in `/api/search-results` (`null`: no `resource`). |
-| `…fields.<path>.weight` | `1` | Searched fields (property path on the translation, else on the entity) and their weight; `0` removes a field. |
 
-The bundle declares `page` (`label: page.name_p`, `category: category`, `group: page:list`,
-`fields: {title: {weight: 3}, hook: {weight: 1}}`); your configuration is merged with it, e.g. to
-add a field to the pages or to remove the hook (`hook: { weight: 0 }`). See [Search](Search.md).
+The indexed types are the entities with a `#[SearchIndex]` (`BasePage`: `page`), not a configuration.
+See [Search](Search.md#adding-a-content-type).
 
 ## Publication
 

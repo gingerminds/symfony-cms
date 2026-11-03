@@ -136,7 +136,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `SearchEngineInterface` (TNTSearch, Elasticsearch...). The searchable types are declared in
   `gingerminds_cms.search.resources` (`page` by the bundle): entity, facet label, category
   association, serialization group, and the searched `fields` with their weight (page: `title`
-  weight 3, `hook`). A type implements `PubliclySearchableInterface` (one `SearchEntry` per
+  weight 3, `hook`). A type implements `SearchIndexableInterface` (one `SearchEntry` per
   language: title, URL, excerpt) and `ExcludableFromSearchInterface`: a page is found when published
   and neither it nor a category of its branch is hidden from search.
 - The search follows the contents after each flush (`SearchIndexListener`: the content, its
@@ -153,6 +153,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **BC break** Search index: a type is declared by `#[SearchIndex(type, label, translationDomain,
+  category, group)]` on its entity (inherited by an entity overriding it) instead of the
+  `search.resources` configuration, removed with its `fields` and `weight`; the searched text is the
+  title and the `texts` of the `SearchEntry` (`getSearchEntries()`), no longer property paths;
+  `SearchDocument::$text` replaces `fields` / `weights` / `text()`. `PubliclySearchableInterface` is
+  renamed `SearchIndexableInterface`, `ExcludableSearchableInterface` is removed (implement
+  `ExcludableFromSearchInterface` too), the `doctrine` engine entity `SearchIndex` is renamed
+  `SearchIndexRow` (same table).
 - WYSIWYG sanitizer: the `gingerminds_cms` sanitizer of `framework.html_sanitizer`, prepended by
   the bundle (`WysiwygSanitizer::CONFIG`) and completed by the project configuration; `WysiwygType`
   uses the `sanitize_html` option of the form (no `WysiwygSanitizer` argument any more).

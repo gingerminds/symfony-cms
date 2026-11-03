@@ -9,8 +9,9 @@ use Gingerminds\CmsBundle\Search\ExcludableFromSearchInterface;
 use Gingerminds\CmsBundle\Search\SearchEntry;
 
 /**
- * A page in the public search: published, not hidden (itself or a category of its branch), one
- * entry per translation with a title, at its URL (`page_urls`, else its computed path).
+ * A page in the search index: published, not hidden (itself or a category of its branch), one
+ * entry per translation with a title, at its URL (`page_urls`, else its computed path), its hook
+ * searched besides the title (override getSearchEntries() to search other fields).
  */
 trait PageSearchTrait
 {
@@ -43,7 +44,7 @@ trait PageSearchTrait
                 }
             }
 
-            yield new SearchEntry($language, (string) $translation->getTitle(), $url ?? $this->getFullPath($language), $translation->getHook(), $translation);
+            yield new SearchEntry($language, (string) $translation->getTitle(), $url ?? $this->getFullPath($language), $translation->getHook(), [$translation->getHook()]);
         }
     }
 }

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Search;
 
 /**
- * A content of the public search (`gingerminds_cms.search.resources`): one entry per language,
- * its searchable text read from the configured `fields` of the entry subject.
+ * A content of the public search index (its type: #[SearchIndex]): one entry per language, with
+ * the title, URL, excerpt and searched texts. ExcludableFromSearchInterface when it can be hidden.
  */
-interface PubliclySearchableInterface
+interface SearchIndexableInterface
 {
     /**
      * Whether the content may be found (published...), whatever its language.

@@ -7,8 +7,8 @@ namespace Gingerminds\CmsBundle\Doctrine;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Gingerminds\CmsBundle\Search\ExcludableFromSearchInterface;
 use Gingerminds\CmsBundle\Search\Message\ReindexSearchCategory;
-use Gingerminds\CmsBundle\Search\PubliclySearchableInterface;
 use Gingerminds\CmsBundle\Search\SearchDocumentFactory;
+use Gingerminds\CmsBundle\Search\SearchIndexableInterface;
 use Gingerminds\CmsBundle\Search\SearchIndexer;
 use Gingerminds\CmsBundle\Search\SearchOwnedInterface;
 use Gingerminds\CmsBundle\Search\SearchResource;
@@ -26,7 +26,7 @@ final class SearchIndexListener implements ResetInterface
 {
     private const array CATEGORY_FIELDS = ['hiddenFromSearch', 'parent'];
 
-    /** @var array<int, PubliclySearchableInterface> */
+    /** @var array<int, SearchIndexableInterface> */
     private array $contents = [];
 
     /** @var array<string, array{string, int}> type and id of the deleted contents */
@@ -53,7 +53,7 @@ final class SearchIndexListener implements ResetInterface
         foreach ($uow->getScheduledEntityUpdates() as $entity) {
             $changed = array_intersect(self::CATEGORY_FIELDS, array_keys($uow->getEntityChangeSet($entity)));
 
-            if ($entity instanceof ExcludableFromSearchInterface && !$entity instanceof PubliclySearchableInterface && [] !== $changed) {
+            if ($entity instanceof ExcludableFromSearchInterface && !$entity instanceof SearchIndexableInterface && [] !== $changed) {
                 $this->collectCategory($entity, $args->getObjectManager()->getClassMetadata($entity::class)->getName());
             }
         }
@@ -96,20 +96,20 @@ final class SearchIndexListener implements ResetInterface
     private function collect(object $entity): void
     {
         $content = match (true) {
-            $entity instanceof PubliclySearchableInterface => $entity,
+            $entity instanceof SearchIndexableInterface => $entity,
             $entity instanceof TranslationInterface => $entity->getTranslatable(),
             $entity instanceof SearchOwnedInterface => $entity->getSearchOwner(),
             default => null,
         };
 
-        if ($content instanceof PubliclySearchableInterface && $this->resources->forEntity($content) instanceof SearchResource) {
+        if ($content instanceof SearchIndexableInterface && $this->resources->forEntity($content) instanceof SearchResource) {
             $this->contents[spl_object_id($content)] = $content;
         }
     }
 
     private function collectDeletion(object $entity): void
     {
-        if (!$entity instanceof PubliclySearchableInterface) {
+        if (!$entity instanceof SearchIndexableInterface) {
             // A deleted translation or URL: its content is reindexed (unless deleted too).
             $this->collect($entity);
 

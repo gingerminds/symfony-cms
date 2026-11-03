@@ -9,7 +9,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gingerminds\CmsBundle\Model\PublishableTrait;
 use Gingerminds\CmsBundle\Model\VisualsTrait;
-use Gingerminds\CmsBundle\Search\ExcludableSearchableInterface;
+use Gingerminds\CmsBundle\Search\ExcludableFromSearchInterface;
+use Gingerminds\CmsBundle\Search\SearchIndex;
+use Gingerminds\CmsBundle\Search\SearchIndexableInterface;
 use Gingerminds\CmsBundle\Validator\SinglePageCategory;
 use Gingerminds\CoreBundle\Model\Cacheable;
 use Gingerminds\CoreBundle\Model\EagerLoad;
@@ -32,7 +34,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[UniqueEntity(fields: ['code', 'site'], errorPath: 'code')]
 #[SinglePageCategory]
 #[Cacheable(key: 'page')]
-abstract class BasePage implements PageInterface, ExcludableSearchableInterface
+#[SearchIndex(type: 'page', label: 'page.name_p', translationDomain: 'GingermindsCms', category: 'category', group: self::GROUP_LIST)]
+abstract class BasePage implements PageInterface, SearchIndexableInterface, ExcludableFromSearchInterface
 {
     use PageApiFieldsTrait;
     use PageSearchTrait;

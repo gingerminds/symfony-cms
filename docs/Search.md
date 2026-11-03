@@ -12,31 +12,32 @@ mechanism (core `#[Searchable]`).
 
 ## What is indexed
 
-A content is indexed once per language, as a document: its title, URL and excerpt (the hit), the
-text of its searched fields, its site, its publication date and its categories (the facets).
+A content is indexed once per language, as a document: its title, URL and excerpt (the hit), its
+searched text (the title and the texts of its `SearchEntry`, without HTML), its site, its
+publication date and its categories (the facets).
 
 For the pages:
 
 - only the `published` pages, unless the page or a category of its branch (itself or an ancestor)
   is hidden from search (`is_hidden_from_search`);
 - one document per translation with a title, at its URL (`page_urls`);
-- searched fields: `title` (weight 3) and `hook` (weight 1), without their HTML.
+- searched text: the title and the hook.
 
-Change the searched fields in the configuration; they are property paths read on the translation,
-else on the entity:
+To search other fields, override `getSearchEntries()` in your page entity:
 
-```yaml
-gingerminds_cms:
-    search:
-        resources:
-            page:
-                fields:
-                    hook: { weight: 0 }        # no longer searched
-                    subtitle: { weight: 2 }    # a field added to the page translations
+```php
+public function getSearchEntries(): iterable
+{
+    foreach (parent::getSearchEntries() as $entry) {
+        $translation = $this->getTranslation($entry->language, fallback: false);
+
+        yield new SearchEntry($entry->language, $entry->title, $entry->url, $entry->excerpt, [...$entry->texts, $translation?->getSubtitle()]);
+    }
+}
 ```
 
-The weights are used by the engines able to rank (Elasticsearch, TNTSearch); the `doctrine` engine
-searches every field alike.
+The `doctrine` engine searches that text with `LIKE`: no index, no relevance. For a full-text
+engine (ranking, typos), implement `SearchEngineInterface` (see below).
 
 ## Keeping the index in sync
 
@@ -58,14 +59,22 @@ Without fallback, only the current language is searched.
 
 ## Adding a content type
 
-1. Implement `PubliclySearchableInterface` (and `ExcludableFromSearchInterface` if it can be
-   hidden) on the entity:
+1. Implement `SearchIndexableInterface` (and `ExcludableFromSearchInterface` if it can be
+   hidden) on the entity and declare its type with `#[SearchIndex]`:
 
 ```php
-use Gingerminds\CmsBundle\Search\ExcludableSearchableInterface;
+use Gingerminds\CmsBundle\Search\ExcludableFromSearchInterface;
 use Gingerminds\CmsBundle\Search\SearchEntry;
+use Gingerminds\CmsBundle\Search\SearchIndex;
+use Gingerminds\CmsBundle\Search\SearchIndexableInterface;
 
-class News implements ExcludableSearchableInterface // both interfaces
+#[SearchIndex(
+    type: 'news',
+    label: 'news.name_p',          // facet label (translation key, translationDomain: messages)
+    category: 'category',          // association: category facets, hidden categories
+    group: 'news:list',            // serialization of `resource` in /search-results
+)]
+class News implements SearchIndexableInterface, ExcludableFromSearchInterface
 {
     public function isPubliclyVisible(): bool
     {
@@ -81,8 +90,8 @@ class News implements ExcludableSearchableInterface // both interfaces
     {
         foreach ($this->translations as $translation) {
             if ('' !== (string) $translation->getTitle()) {
-                // Language, title, URL, excerpt, the object the configured fields are read on.
-                yield new SearchEntry($translation->getLanguage(), $translation->getTitle(), 'news/' . $translation->getSlug(), $translation->getHook(), $translation);
+                // Language, title, URL, excerpt, the searched texts besides the title.
+                yield new SearchEntry($translation->getLanguage(), $translation->getTitle(), 'news/' . $translation->getSlug(), $translation->getHook(), [$translation->getHook(), $translation->getBody()]);
             }
         }
     }
@@ -90,26 +99,10 @@ class News implements ExcludableSearchableInterface // both interfaces
 ```
 
    The site comes from `SiteContextedInterface`, the publication date from `PublishableInterface`,
-   when the entity implements them.
+   when the entity implements them. An entity overriding a bundle one keeps the `#[SearchIndex]`
+   of its parent.
 
-2. Declare the type:
-
-```yaml
-gingerminds_cms:
-    search:
-        resources:
-            news:
-                entity: App\Entity\News
-                label: news.name_p             # facet label (translation key)
-                translation_domain: messages
-                category: category             # association: category facets, hidden categories
-                group: news:list               # serialization of `resource` in /search-results
-                fields:
-                    title: { weight: 3 }
-                    hook: ~
-```
-
-3. Index the existing contents: `bin/console gingerminds:cms:search:reindex --type=news`.
+2. Index the existing contents: `bin/console gingerminds:cms:search:reindex --type=news`.
 
 A category entity implements `ExcludableFromSearchInterface` (its flag and its ancestors) and exposes
 `getChildren()` for its branch to be reindexed when it is hidden. An entity whose change must
@@ -143,8 +136,7 @@ gingerminds_cms:
 ```
 
 - A `SearchDocument` holds `type`, `recordId`, `siteId`, `languageId`, `title`, `url`, `excerpt`,
-  `fields` (plain text by field) and `weights`, `publishedAt`, `categoryIds`; `text()` joins the
-  fields.
+  `text` (the searched plain text), `publishedAt`, `categoryIds`.
 - A `SearchQuery` holds `siteId`, `languageIds` (by priority: return one hit per content, in the
   first language it has), `text`, `types` and `categories` (type => ids, OR'd with the types),
   `page` and `itemsPerPage`.

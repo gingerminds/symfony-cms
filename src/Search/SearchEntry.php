@@ -7,17 +7,20 @@ namespace Gingerminds\CmsBundle\Search;
 use Gingerminds\MultisiteBundle\Entity\Language\LanguageInterface;
 
 /**
- * A searchable content in one language: the result shown (title, URL, excerpt) and the object the
- * configured fields are read on (its translation; the content itself when null).
+ * A content of the search index in one language: the hit (title, URL, excerpt) and the searched
+ * texts besides the title (HTML allowed: indexed as plain text).
  */
 final readonly class SearchEntry
 {
+    /**
+     * @param list<?string> $texts
+     */
     public function __construct(
         public LanguageInterface $language,
         public string $title,
         public string $url,
         public ?string $excerpt = null,
-        public ?object $subject = null,
+        public array $texts = [],
     ) {
     }
 }

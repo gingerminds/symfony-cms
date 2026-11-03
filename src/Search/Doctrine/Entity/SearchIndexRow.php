@@ -17,7 +17,7 @@ use Gingerminds\MultisiteBundle\Entity\Site\SiteInterface;
 #[ORM\Table(name: 'search_index')]
 #[ORM\UniqueConstraint(columns: ['type', 'record_id', 'language_id'])]
 #[ORM\Index(columns: ['site_id', 'language_id', 'type'])]
-class SearchIndex
+class SearchIndexRow
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

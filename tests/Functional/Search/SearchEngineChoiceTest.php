@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Tests\Functional\Search;
 
-use Gingerminds\CmsBundle\Search\Doctrine\Entity\SearchIndex;
+use Gingerminds\CmsBundle\Search\Doctrine\Entity\SearchIndexRow;
 use Gingerminds\CmsBundle\Search\SearchEngineInterface;
 use Gingerminds\CmsBundle\Tests\Application\Search\InMemorySearchEngine;
 use Gingerminds\CmsBundle\Tests\Functional\ApiTestCase;
@@ -21,7 +21,7 @@ final class SearchEngineChoiceTest extends ApiTestCase
         $engine = self::getContainer()->get('test.memory_search_engine');
         self::assertInstanceOf(InMemorySearchEngine::class, $engine);
         self::assertSame($engine, self::getContainer()->get(SearchEngineInterface::class));
-        self::assertNotContains(SearchIndex::class, $this->entityManager()->getConfiguration()->getMetadataDriverImpl()?->getAllClassNames() ?? [], 'The search_index table is not mapped.');
+        self::assertNotContains(SearchIndexRow::class, $this->entityManager()->getConfiguration()->getMetadataDriverImpl()?->getAllClassNames() ?? [], 'The search_index table is not mapped.');
 
         $fr = $this->fixtures->language('fr');
         $site = $this->fixtures->site('main', [$fr], $fr);
@@ -29,8 +29,7 @@ final class SearchEngineChoiceTest extends ApiTestCase
 
         $documents = $engine->documents['page:' . $page->getId()] ?? [];
         self::assertCount(1, $documents);
-        self::assertSame(['title' => 'Tracteur rouge', 'hook' => ''], $documents[0]->fields);
-        self::assertSame(['title' => 3, 'hook' => 1], $documents[0]->weights);
+        self::assertSame('Tracteur rouge', $documents[0]->text, 'The title and the hook (empty).');
 
         self::assertSame(['Tracteur rouge'], array_column($this->api('GET', '/api/search-indices?search=rouge', locale: 'fr')['member'], 'title'));
 

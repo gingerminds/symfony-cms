@@ -25,7 +25,7 @@ class SearchIndexer
     /**
      * @return bool whether the content is in the index (else removed from it)
      */
-    public function index(PubliclySearchableInterface $entity): bool
+    public function index(SearchIndexableInterface $entity): bool
     {
         $resource = $this->resources->forEntity($entity);
         $recordId = SearchDocumentFactory::id($entity);
@@ -100,7 +100,7 @@ class SearchIndexer
         return $resources;
     }
 
-    public static function isVisible(PubliclySearchableInterface $entity): bool
+    public static function isVisible(SearchIndexableInterface $entity): bool
     {
         return $entity->isPubliclyVisible() && (!$entity instanceof ExcludableFromSearchInterface || !$entity->isExcludedFromSearch());
     }
@@ -126,7 +126,7 @@ class SearchIndexer
                 $qb->distinct()->innerJoin('e.' . $resource->category, 'c')->andWhere('c.id IN (:categories)')->setParameter('categories', $categoryIds);
             }
 
-            /** @var list<PubliclySearchableInterface> $entities */
+            /** @var list<SearchIndexableInterface> $entities */
             $entities = $qb->getQuery()->getResult();
 
             foreach ($entities as $entity) {

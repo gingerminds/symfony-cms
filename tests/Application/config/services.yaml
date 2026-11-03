@@ -28,6 +28,10 @@ services:
     Gingerminds\CmsBundle\Tests\Application\Block\:
         resource: '../Block/'
 
+    test.search_resources:
+        alias: gingerminds_cms.search.resources
+        public: true
+
     test.block_registry:
         alias: gingerminds_cms.block.registry
         public: true
