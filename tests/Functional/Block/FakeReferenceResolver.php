@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Gingerminds\CmsBundle\Tests\Unit\Block;
+namespace Gingerminds\CmsBundle\Tests\Functional\Block;
 
 use Gingerminds\CmsBundle\Block\Reference\BlockReferenceResolverInterface;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 /**
  * Entities as strings, the loaded ids recorded (ContentReferenceResolverTest).
@@ -22,9 +23,9 @@ final class FakeReferenceResolver implements BlockReferenceResolverInterface
     ) {
     }
 
-    public static function getFieldType(): string
+    public static function getFormType(): string
     {
-        return 'fake';
+        return TextType::class;
     }
 
     public function load(array $ids): array

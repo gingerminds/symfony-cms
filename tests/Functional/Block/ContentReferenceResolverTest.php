@@ -2,18 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Gingerminds\CmsBundle\Tests\Unit\Block;
+namespace Gingerminds\CmsBundle\Tests\Functional\Block;
 
-use Gingerminds\CmsBundle\Block\BlockInterface;
 use Gingerminds\CmsBundle\Block\BlockRegistry;
 use Gingerminds\CmsBundle\Block\Reference\BlockReferenceResolverInterface;
 use Gingerminds\CmsBundle\Block\Reference\ContentReferenceResolver;
-use Gingerminds\CmsBundle\Block\Type\MediaList;
-use Gingerminds\CmsBundle\Block\Type\TextImage;
-use PHPUnit\Framework\TestCase;
+use Gingerminds\MediaManagerBundle\Form\File\FilePickerType;
+use Gingerminds\MediaManagerBundle\Form\Media\MediaSelectType;
+use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
-final class ContentReferenceResolverTest extends TestCase
+/**
+ * The reference fields found in the block forms (FilePickerType, MediaSelectType, in the rows too).
+ */
+final class ContentReferenceResolverTest extends KernelTestCase
 {
     private FakeReferenceResolver $files;
     private FakeReferenceResolver $medias;
@@ -21,20 +24,17 @@ final class ContentReferenceResolverTest extends TestCase
 
     protected function setUp(): void
     {
+        $registry = self::getContainer()->get('test.block_registry');
+        self::assertInstanceOf(BlockRegistry::class, $registry);
         $this->files = new FakeReferenceResolver(['f1' => 'File 1', 'f2' => 'File 2']);
         $this->medias = new FakeReferenceResolver(['7' => 'Media 7']);
         $this->resolver = new ContentReferenceResolver(
-            new BlockRegistry(
-                new ServiceLocator([
-                    'text_image' => static fn (): BlockInterface => new TextImage(),
-                    'media_list' => static fn (): BlockInterface => new MediaList(),
-                ]),
-                new ServiceLocator([]),
-            ),
+            $registry,
             new ServiceLocator([
-                'file' => fn (): BlockReferenceResolverInterface => $this->files,
-                'media' => fn (): BlockReferenceResolverInterface => $this->medias,
+                FilePickerType::class => fn (): BlockReferenceResolverInterface => $this->files,
+                MediaSelectType::class => fn (): BlockReferenceResolverInterface => $this->medias,
             ]),
+            new ArrayAdapter(),
         );
     }
 

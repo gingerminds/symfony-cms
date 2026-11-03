@@ -4,23 +4,27 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Tests\Application\Block;
 
-use Gingerminds\CmsBundle\Block\BlockExtensionInterface;
-use Gingerminds\CmsBundle\Block\BlockField;
-use Gingerminds\CmsBundle\Block\BlockInterface;
-use Gingerminds\CmsBundle\Block\Type\TitleText;
+use Gingerminds\CmsBundle\Block\Type\TitleTextType;
+use Symfony\Component\Form\AbstractTypeExtension;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormBuilderInterface;
 
 /**
- * Project extension of a bundle block: a subtitle after the title.
+ * Project extension of a bundle block (a form type extension): a subtitle after the title.
  */
-final class SubtitleExtension implements BlockExtensionInterface
+final class SubtitleExtension extends AbstractTypeExtension
 {
-    public static function getExtendedBlocks(): iterable
+    public static function getExtendedTypes(): iterable
     {
-        return [TitleText::getKey()];
+        return [TitleTextType::class];
     }
 
-    public function buildFields(array $fields, BlockInterface $block): array
+    public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        return [$fields[0], BlockField::text('subtitle')->label('Sous-titre'), ...\array_slice($fields, 1)];
+        $text = $builder->get('text');
+        $builder
+            ->remove('text')
+            ->add('subtitle', TextType::class, ['label' => 'Sous-titre', 'required' => false])
+            ->add($text);
     }
 }

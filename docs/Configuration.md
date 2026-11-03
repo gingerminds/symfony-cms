@@ -76,7 +76,7 @@ or hand-typed slug is kept.
 | Key | |
 |---|---|
 | `blocks.disabled` | Keys of the blocks hidden from the picker. The pages using them keep working. |
-| `blocks.order` | Block key => picker weight (ascending), overriding the `getOrder()` of the block. |
+| `blocks.order` | Block key => picker weight (ascending), overriding the `order` of its `#[AsContentBlock]`. |
 
 See [Blocks](Blocks.md).
 

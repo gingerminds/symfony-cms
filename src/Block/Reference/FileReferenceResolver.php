@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Block\Reference;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Gingerminds\CmsBundle\Block\BlockField;
 use Gingerminds\MediaManagerBundle\Entity\File\FileInterface;
 use Gingerminds\MediaManagerBundle\File\FileLibraryPresenter;
+use Gingerminds\MediaManagerBundle\Form\File\FilePickerType;
 use Gingerminds\MediaManagerBundle\Twig\MediaManagerExtension;
 use Symfony\Component\Uid\Uuid;
 
 /**
- * `file` fields: `{id, url, thumbnail_url, mime_type, original_name, size, is_image}` (as Laravel),
+ * FilePickerType fields: `{id, url, thumbnail_url, mime_type, original_name, size, is_image}` (as Laravel),
  * `thumbnail_url` being the `thumbnail` preset of an image (null otherwise, or without the preset).
  */
 final readonly class FileReferenceResolver implements BlockReferenceResolverInterface
@@ -27,9 +27,9 @@ final readonly class FileReferenceResolver implements BlockReferenceResolverInte
     ) {
     }
 
-    public static function getFieldType(): string
+    public static function getFormType(): string
     {
-        return BlockField::FILE;
+        return FilePickerType::class;
     }
 
     public function load(array $ids): array

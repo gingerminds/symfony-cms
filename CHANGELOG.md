@@ -153,6 +153,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **BC break** Content blocks: a block is a form type with `#[AsContentBlock(key, preview, icon,
+  order, label, translationDomain)]` (autoconfigured, tag `gingerminds_cms.block`): its fields,
+  their validation (`constraints`) and defaults (`empty_data`) are the form ones; the rows are a
+  `BlockCollectionType`. The stored content, the keys, the field names and the modal are unchanged.
+  On save, each block is submitted to its form: its data is stored, its errors are those of the
+  form (`ValidBlocks`). The bundled blocks are `TitleTextType`, `TextImageType`, `MediaType`,
+  `VideoType`, `CardsType`, `SliderType`, `LinkListType`, `MediaListType` and `FaqType`; a block is
+  extended by a form type extension, replaced through its service (`gingerminds_cms.block.<key>`).
+  `BlockReferenceResolverInterface::getFormType()` replaces `getFieldType()`: the reference fields
+  of a block are found in its form (cached in `cache.system`). `make:gm:cms-block` generates a form
+  type. Removed: `BlockInterface`, `AbstractBlock`, `BlockField`, `BlockFieldFactoryTrait`,
+  `BlockDataType`, `BlockConstraints`, `BlockExtensionInterface`, `BlockPass`,
+  `DuplicateBlockKeyException`, `BlockRegistry::getFields()` / `getDefaults()` / `getFieldLabel()`;
+  the video preview uses `gm_cms_youtube_id()`.
 - **BC break** Search index: a type is declared by `#[SearchIndex(type, label, translationDomain,
   category, group)]` on its entity (inherited by an entity overriding it) instead of the
   `search.resources` configuration, removed with its `fields` and `weight`; the searched text is the

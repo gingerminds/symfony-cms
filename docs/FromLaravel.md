@@ -20,11 +20,11 @@ pages.
 | Spatie model states (`State\Page\Status\*`, transitions) | `symfony/workflow` state machine `gingerminds_cms_publication` | Extensible by configuration, see [Pages](Pages.md#publication-workflow). |
 | `<x-...::form.inputs.wysiwyg>` (TipTap 2) | [`WysiwygType`](Forms.md#wysiwygtype) (TipTap 3) | Same presets, same HTML. |
 | `<x-...::form.inputs.canvas>`, `content-blocks.js` | [`BlockCanvasType`](Forms.md#blockcanvastype), Stimulus `gm-cms-blocks` | |
-| `BlockInterface` (`key()`, `label()`, `icon()`, `order()`, `fields()`, `previewView()`) | `BlockInterface` (`static getKey()`, `getLabel()`, `getIcon()`, `getOrder()`, `getFields()`, `getPreviewTemplate()`, `getTranslationDomain()`) | See [Blocks](Blocks.md). |
-| `fields()` arrays, `AbstractBlock::textField()`... | `BlockField::text()`... (immutable objects) | |
+| `BlockInterface` (`key()`, `label()`, `icon()`, `order()`, `fields()`, `previewView()`) | A form type with `#[AsContentBlock(key, preview, icon, order, label, translationDomain)]` | See [Blocks](Blocks.md). |
+| `fields()` arrays, `AbstractBlock::textField()`... | the fields of the form type (`TextType`, `WysiwygType`, `FilePickerType`, `BlockCollectionType`...) | |
 | `BlockRegistry` (static, folder scan) | `BlockRegistry` service, autoconfigured `gingerminds_cms.block` services | |
 | `PageBlockController` (`GET form`, `POST validate`) | `BlockController` (`POST form`, `POST validate`) | |
-| `BlockFieldValidator`, `ContentFieldSupport`, `HandlesContentBlocksTrait` | `BlockConstraints`, `BlockContentNormalizer`, `ValidBlocks` | |
+| `BlockFieldValidator`, `ContentFieldSupport`, `HandlesContentBlocksTrait` | the block form submitted (`BlockContentNormalizer`, `ValidBlocks`) | |
 | `ContentReferenceResolver`, `ReferenceFieldResolver`, `reference_resolvers` | `ContentReferenceResolver`, `BlockReferenceResolverInterface` (autoconfigured) | |
 | `make:cms-block` | `make:gm:cms-block` | `App\Cms\Block\Name`, `templates/cms/block/<key>/`. |
 | `SearchIndex` model, `SearchIndexer`, observers | `SearchEngineInterface`, `SearchIndexer`, `SearchIndexListener` | Pluggable engine, see [Search](Search.md). |
@@ -92,11 +92,10 @@ pages.
 
 ### Content blocks
 
-- Blocks are autoconfigured services (no `block_paths` scan), a bundled block is overridden by
-  extending it (no `blocks` mapping), block extensions are new.
-- Fields are `BlockField` objects; labels `block.<key>.field.<name>` and
-  `block.<key>.field.<repeater>_<name>` for a sub-field.
-- The key is static (`getKey()`).
+- Blocks are autoconfigured form types (no `block_paths` scan); a bundled block is extended by a
+  form type extension, replaced through its service (no `blocks` mapping).
+- Labels `block.<key>.field.<name>` and `block.<key>.field.<repeater>_<name>` for a sub-field
+  (`label_format`); defaults are the `empty_data` of the fields.
 - The modal endpoints are `POST` (the data of the edited block in the body, not the query string);
   the block form errors are rendered by the server.
 - The WYSIWYG HTML of the blocks is sanitized again on save; an empty content is stored as `null`.
@@ -148,4 +147,4 @@ bin/console gingerminds:permissions:sync
 
 The block contents are compatible (`[{uid, type, data}]`, same keys and field names): the `file`
 fields hold `files` ids, the `media` fields `medias` ids. A project block is rewritten as a
-`BlockInterface` class with the same key.
+form type with `#[AsContentBlock]` of the same key.

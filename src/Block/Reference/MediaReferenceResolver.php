@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Block\Reference;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Gingerminds\CmsBundle\Block\BlockField;
 use Gingerminds\MediaManagerBundle\Entity\Media\BaseMedia;
 use Gingerminds\MediaManagerBundle\Entity\Media\MediaInterface;
+use Gingerminds\MediaManagerBundle\Form\Media\MediaSelectType;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
- * `media` fields: a media as in `GET /api/media` (`media:list` group, the project media included),
+ * MediaSelectType fields: a media as in `GET /api/media` (`media:list` group, the project media included),
  * loaded with its files and category.
  */
 final readonly class MediaReferenceResolver implements BlockReferenceResolverInterface
@@ -22,9 +22,9 @@ final readonly class MediaReferenceResolver implements BlockReferenceResolverInt
     ) {
     }
 
-    public static function getFieldType(): string
+    public static function getFormType(): string
     {
-        return BlockField::MEDIA;
+        return MediaSelectType::class;
     }
 
     public function load(array $ids): array

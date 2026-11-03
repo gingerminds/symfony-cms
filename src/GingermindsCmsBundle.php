@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle;
 
-use Gingerminds\CmsBundle\Block\BlockExtensionInterface;
-use Gingerminds\CmsBundle\Block\BlockInterface;
+use Gingerminds\CmsBundle\Block\AsContentBlock;
+use Gingerminds\CmsBundle\Block\BlockRegistry;
 use Gingerminds\CmsBundle\Block\Reference\BlockReferenceResolverInterface;
 use Gingerminds\CmsBundle\Controller\Menu\MenuController;
 use Gingerminds\CmsBundle\Controller\Menu\MenuItemController;
 use Gingerminds\CmsBundle\Controller\Page\PageCategoryController;
 use Gingerminds\CmsBundle\Controller\Page\PageController;
-use Gingerminds\CmsBundle\DependencyInjection\Compiler\BlockPass;
 use Gingerminds\CmsBundle\Entity\Menu\Menu;
 use Gingerminds\CmsBundle\Entity\Menu\MenuInterface;
 use Gingerminds\CmsBundle\Entity\Menu\MenuItem;
@@ -32,6 +31,7 @@ use Gingerminds\CmsBundle\Wysiwyg\WysiwygSanitizer;
 use Gingerminds\CoreBundle\Bundle\AbstractResourceBundle;
 use Symfony\Bundle\MakerBundle\MakerBundle;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
+use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
@@ -89,11 +89,6 @@ final class GingermindsCmsBundle extends AbstractResourceBundle
         return \dirname(__DIR__);
     }
 
-    public function build(ContainerBuilder $container): void
-    {
-        $container->addCompilerPass(new BlockPass());
-    }
-
     public function configure(DefinitionConfigurator $definition): void
     {
         $definition->import('../config/definition.php');
@@ -106,8 +101,9 @@ final class GingermindsCmsBundle extends AbstractResourceBundle
     {
         $container->import('../config/services.php');
 
-        $builder->registerForAutoconfiguration(BlockInterface::class)->addTag(BlockInterface::TAG);
-        $builder->registerForAutoconfiguration(BlockExtensionInterface::class)->addTag(BlockExtensionInterface::TAG);
+        $builder->registerAttributeForAutoconfiguration(AsContentBlock::class, static function (ChildDefinition $definition): void {
+            $definition->addTag(BlockRegistry::TAG);
+        });
         $builder->registerForAutoconfiguration(BlockReferenceResolverInterface::class)->addTag(BlockReferenceResolverInterface::TAG);
 
         if (class_exists(MakerBundle::class)) {

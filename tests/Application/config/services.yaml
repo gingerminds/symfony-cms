@@ -24,13 +24,18 @@ services:
         alias: state_machine.gingerminds_cms_publication
         public: true
 
-    # Project blocks (BlockRegistryTest): a block, an override of a bundle block, a block extension.
+    # Project blocks: a block, a block extension (form type extension), the override of a bundle
+    # block (its service replaced).
     Gingerminds\CmsBundle\Tests\Application\Block\:
         resource: '../Block/'
 
     test.search_resources:
         alias: gingerminds_cms.search.resources
         public: true
+
+    gingerminds_cms.block.title_text:
+        class: Gingerminds\CmsBundle\Tests\Application\Block\TitleTextOverride
+        autoconfigure: true
 
     test.block_registry:
         alias: gingerminds_cms.block.registry

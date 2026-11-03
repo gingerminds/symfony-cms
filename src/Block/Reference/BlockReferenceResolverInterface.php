@@ -4,19 +4,25 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Block\Reference;
 
+use Symfony\Component\Form\FormTypeInterface;
+
 /**
- * The entities referenced by the fields of a type (`file`, `media`, or a project type), resolved in
- * the content served by the API and given to the previews (ContentReferenceResolver). Tagged
- * `gingerminds_cms.block_reference_resolver` (autoconfigured), indexed by getFieldType().
+ * The entities referenced by the fields of a form type (FilePickerType, MediaSelectType, or a project
+ * type), resolved in the content served by the API and given to the previews
+ * (ContentReferenceResolver). Tagged `gingerminds_cms.block_reference_resolver` (autoconfigured),
+ * indexed by getFormType().
  */
 interface BlockReferenceResolverInterface
 {
     public const string TAG = 'gingerminds_cms.block_reference_resolver';
 
     /**
-     * The BlockField type whose values are ids of this resolver.
+     * The form type whose values (an id, a list with `multiple`) are ids of this resolver; the
+     * fields of a type extending it too.
+     *
+     * @return class-string<FormTypeInterface<mixed>>
      */
-    public static function getFieldType(): string;
+    public static function getFormType(): string;
 
     /**
      * Every id of the type in a content, in one query.

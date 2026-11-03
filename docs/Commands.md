@@ -38,10 +38,10 @@ bin/console make:gm:cms-block Quote
 
 Needs `symfony/maker-bundle`. Creates:
 
-- `src/Cms/Block/Quote.php` (`App\Cms\Block\Quote`), key `quote` (the class name in snake case), an
-  example `title` field, labels in the `messages` domain;
+- `src/Cms/Block/QuoteType.php` (`App\Cms\Block\QuoteType`, a form type with `#[AsContentBlock]`),
+  key `quote` (the name in snake case), an example `title` field, labels in the `messages` domain;
 - `templates/cms/block/quote/preview.html.twig`, its admin preview.
 
-The block is in the picker at once (autoconfigured service). The command refuses an existing class
+The block is in the picker at once (autoconfigured form type). The command refuses an existing class
 and a key already used by another block. Then declare its fields, its preview and its translations
 (`block.quote.label`, `block.quote.field.title`...). See [Blocks](Blocks.md#writing-a-block).
