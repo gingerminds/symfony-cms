@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Form\Block;
 
 use Gingerminds\CmsBundle\Block\BlockContentNormalizer;
-use Gingerminds\CmsBundle\Block\BlockInterface;
 use Gingerminds\CmsBundle\Block\BlockRegistry;
+use Gingerminds\CmsBundle\Block\ContentBlock;
 use Gingerminds\CmsBundle\Block\Reference\ContentReferenceResolver;
 use Gingerminds\CmsBundle\Validator\ValidBlocks;
 use Gingerminds\MultisiteBundle\Model\TranslationInterface;
@@ -73,7 +73,7 @@ class BlockCanvasType extends AbstractType
                 'uid' => \is_string($item['uid'] ?? null) && '' !== $item['uid'] ? $item['uid'] : bin2hex(random_bytes(16)),
                 'type' => $type,
                 'block' => $block,
-                'data' => $block instanceof BlockInterface ? [...$this->registry->getDefaults($block), ...$data] : $data,
+                'data' => $block instanceof ContentBlock ? [...$this->registry->defaults($block), ...$data] : $data,
                 'errors' => $errors[$index] ?? [],
             ];
         }

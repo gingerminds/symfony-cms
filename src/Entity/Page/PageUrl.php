@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Entity\Page;
 
 use Doctrine\ORM\Mapping as ORM;
-use Gingerminds\CmsBundle\Search\PubliclySearchableInterface;
+use Gingerminds\CmsBundle\Search\SearchIndexableInterface;
 use Gingerminds\CmsBundle\Search\SearchOwnedInterface;
 use Gingerminds\CoreBundle\Model\TimestampableInterface;
 use Gingerminds\CoreBundle\Model\Trait\TimestampableTrait;
@@ -54,9 +54,9 @@ class PageUrl implements TimestampableInterface, SearchOwnedInterface
         return $this->page;
     }
 
-    public function getSearchOwner(): ?PubliclySearchableInterface
+    public function getSearchOwner(): ?SearchIndexableInterface
     {
-        return $this->page instanceof PubliclySearchableInterface ? $this->page : null;
+        return $this->page instanceof SearchIndexableInterface ? $this->page : null;
     }
 
     public function getLanguage(): LanguageInterface

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use Gingerminds\CmsBundle\DependencyInjection\Compiler\BlockPass;
 use Gingerminds\CmsBundle\Maker\MakeBlock;
 
 /*
@@ -13,6 +12,6 @@ use Gingerminds\CmsBundle\Maker\MakeBlock;
 return static function (ContainerConfigurator $container): void {
     $container->services()
         ->set('gingerminds_cms.maker.block', MakeBlock::class)
-        ->args([service(BlockPass::REGISTRY)])
+        ->args([service('gingerminds_cms.block.registry')])
         ->tag('maker.command');
 };

@@ -9,8 +9,8 @@ use Gingerminds\MultisiteBundle\Model\SiteContextedInterface;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 /**
- * The documents of a searchable content: one per entry (language), its configured fields read on
- * the entry subject (else on the content) as plain text, its categories (`category` association).
+ * The documents of an indexed content: one per entry (language), its title and texts as plain
+ * text, its categories (the `category` association of its #[SearchIndex]).
  */
 class SearchDocumentFactory
 {
@@ -22,7 +22,7 @@ class SearchDocumentFactory
     /**
      * @return list<SearchDocument>
      */
-    public function documents(SearchResource $resource, PubliclySearchableInterface $entity): array
+    public function documents(SearchResource $resource, SearchIndexableInterface $entity): array
     {
         $recordId = self::id($entity);
 
@@ -42,12 +42,6 @@ class SearchDocumentFactory
                 continue;
             }
 
-            $fields = [];
-
-            foreach (array_keys($resource->fields) as $path) {
-                $fields[$path] = self::plainText($this->read($entry->subject ?? $entity, $entity, $path));
-            }
-
             $documents[] = new SearchDocument(
                 $resource->type,
                 $recordId,
@@ -56,8 +50,7 @@ class SearchDocumentFactory
                 $entry->title,
                 $entry->url,
                 $entry->excerpt,
-                $fields,
-                $resource->fields,
+                implode(' ', array_filter(array_map(self::plainText(...), [$entry->title, ...$entry->texts]), static fn (string $text): bool => '' !== $text)),
                 $publishedAt,
                 $categoryIds,
             );
@@ -85,17 +78,6 @@ class SearchDocumentFactory
         $text = html_entity_decode(strip_tags(str_replace('<', ' <', $text)), \ENT_QUOTES | \ENT_HTML5);
 
         return trim((string) preg_replace('/\s+/u', ' ', $text));
-    }
-
-    private function read(object $subject, object $entity, string $path): mixed
-    {
-        foreach ([$subject, $entity] as $object) {
-            if ($this->propertyAccessor->isReadable($object, $path)) {
-                return $this->propertyAccessor->getValue($object, $path);
-            }
-        }
-
-        return null;
     }
 
     /**

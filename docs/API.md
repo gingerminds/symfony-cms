@@ -2,7 +2,8 @@
 
 Public endpoints of the bundle, under the API prefix of the core (`/api`), in JSON-LD (or JSON with
 `Accept: application/json`). The lists take the core list parameters: `page`, `itemsPerPage`,
-`sortBy`, `sort`, `filters[...]`, `filters[search]`.
+`order[<property>]=asc|desc`, `search=`, and a parameter per filter (`category=4`, `category[]=4`,
+`publishedAt[after]=2025-01-01`); an invalid value is a `422`.
 
 ## Context
 
@@ -53,7 +54,7 @@ Null values are omitted from the responses.
 | Endpoint | |
 |---|---|
 | `GET /api/pages` | The published pages: `id`, `code`, `title`, `slug`, `hook`, `status`, `thumbnail` (file id), `switch_lang`. |
-| `GET /api/pages/{id}` | A page of any status (front preview), plus `content` and `main_visual` (file id). |
+| `GET /api/pages/{id}` | A page, plus `content` and `main_visual` (file id). Published: public; any other status (front preview): `view pages` permission (bearer token), else 401 anonymous / 403 without it. |
 | `GET /api/pages/by-slug/{path}` | A published page by its full URL path in the current language (`produits/tracteurs/tracteur-x`, without leading slash; the home page of a category: its path). 404 otherwise. |
 
 - `switch_lang`: the path of the page in each language (ISO => path), to switch language on the
@@ -63,9 +64,9 @@ Null values are omitted from the responses.
 - `thumbnail`, `main_visual`: the visual of the translation, else the page one. Build the URLs
   with `/api/files/{id}` and `/api/files/{id}/{preset}` (media manager).
 
-Filters of the collection: `filters[search]` (code, title), `filters[category]` (a category id or a
-list `[]=`), `filters[publishedAt]` (core date filter). The response carries the facets in
-`filters`:
+Parameters of the collection: `search` (code, title), `category` (a category id, a list `[]=`, or
+`null`), `publishedAt[after]` / `publishedAt[before]` (`Y-m-d`), `order[code|status|publishedAt]`.
+The JSON-LD response carries the facets in `filters`:
 
 ```json
 {
@@ -73,13 +74,25 @@ list `[]=`), `filters[publishedAt]` (core date filter). The response carries the
     "totalItems": 12,
     "filters": {
         "publishedAt": {"type": "date", "options": {"min": "2025-01-14", "max": "2026-03-01", "years": [2025, 2026]}},
-        "category": {"type": "select-entity", "options": [{"value": 4, "label": "Products", "total": 7}]}
+        "category": {"type": "relation", "options": [{"value": 4, "label": "Products", "total": 7}]}
     }
 }
 ```
 
 Each facet is counted against the other active filters. The page responses are cached under the
-`page` key (invalidated by a change of a page, a translation, a category, a file or a media).
+`page` key (invalidated by a change of a page, a translation, a category, a file or a media), except
+`GET /api/pages/{id}`: secured by the page, it is never cached (the front reads the public pages
+by `by-slug`, the id is for the preview).
+
+The collection, `by-slug` and the [search](#search) only serve published pages, token or not
+(`status` cannot widen the list). A project entity overriding the page (`resources.page.entity`)
+inherits the bundle `#[ApiResource]`; if it declares its own, keep the item security,
+
+```php
+new Get(security: self::API_ITEM_SECURITY), // BasePage: published, or `is_granted('VIEW', object)`
+```
+
+Without `security`, the bundle provider does not find an unpublished page by id (404).
 
 ## Search
 
@@ -90,13 +103,13 @@ Each facet is counted against the other active filters. The page responses are c
 
 Parameters:
 
-- `filters[search]`: the searched text;
-- `filters[type][]`: a type (`page`) or a category of a type (`page:12`, the values of the facet
+- `search`: the searched text;
+- `type[]`: a type (`page`) or a category of a type (`page:12`, the values of the facet
   options); several values are OR'd; unknown types are ignored;
 - `page`, `itemsPerPage` (10 by default, 100 at most).
 
 ```
-GET /api/search-results?filters[search]=tractor&filters[type][]=page:4
+GET /api/search-results?search=tractor&type[]=page:4
 ```
 
 ```json

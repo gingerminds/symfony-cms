@@ -94,7 +94,7 @@ final class PageContentAdminTest extends ApiTestCase
         $errors = $blocks->each(static fn (Crawler $block): array => $block->filter('.gm-cms-block-errors li')->each(static fn (Crawler $item): string => $item->text()));
         self::assertSame([
             ['Titre : Cette valeur ne doit pas être vide.'],
-            ["Style : Cette valeur doit être l'un des choix proposés.", 'Liens 1 › URL : Cette valeur ne doit pas être vide.'],
+            ['Style : Le choix sélectionné est invalide.', 'Liens 1 › URL : Cette valeur ne doit pas être vide.'],
             ['Type de bloc inconnu : gone.'],
             ['Ce bloc est invalide.'],
         ], $errors);

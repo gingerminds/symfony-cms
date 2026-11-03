@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Controller\Menu;
 
-use Gingerminds\CmsBundle\Controller\AbstractTreeCrudController;
 use Gingerminds\CmsBundle\Entity\Menu\MenuInterface;
 use Gingerminds\CmsBundle\Entity\Menu\MenuItemInterface;
-use Gingerminds\CmsBundle\Repository\Menu\MenuItemRepository;
+use Gingerminds\CoreBundle\Controller\AbstractTreeCrudController;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -17,19 +16,16 @@ class MenuItemController extends AbstractTreeCrudController
 {
     private ?MenuInterface $menu = null;
 
-    protected function getResourceName(): string
+    public function entityBelongsToRoute(object $entity, array $routeParameters): bool
     {
-        return 'menu_item';
+        return $entity instanceof MenuItemInterface
+            && $entity->getMenu() === $this->getMenu()
+            && parent::entityBelongsToRoute($entity, $routeParameters);
     }
 
-    protected function findTreeNodes(): array
+    protected function getTreeScope(): array
     {
-        return $this->getItemRepository()->findByMenu($this->getMenu());
-    }
-
-    protected function reorderLevel(?int $parentId, array $ids): void
-    {
-        $this->getItemRepository()->reorder($this->getMenu(), $parentId, $ids);
+        return ['menu' => $this->getMenu()];
     }
 
     protected function createEntity(): object
@@ -38,17 +34,14 @@ class MenuItemController extends AbstractTreeCrudController
 
         if ($item instanceof MenuItemInterface) {
             $item->setMenu($this->getMenu());
-            $parent = null !== $this->parentId ? $this->findMenuItem($this->parentId) : null;
-            $item->setParent($parent);
+
+            // The ?parent_id= of another menu.
+            if ($item->getParent()?->getMenu() !== $this->getMenu()) {
+                $item->setParent(null);
+            }
         }
 
         return $item;
-    }
-
-    protected function findEntity(string $id): object
-    {
-        return $this->findMenuItem($id)
-            ?? throw new NotFoundHttpException(\sprintf('Menu item "%s" not found in this menu.', $id));
     }
 
     protected function getFormOptions(object $entity, bool $isNew): array
@@ -71,30 +64,12 @@ class MenuItemController extends AbstractTreeCrudController
         }
 
         $id = $this->getRouteParameters()['menuId'] ?? null;
-        $menu = is_numeric($id) ? $this->context->doctrine->getRepository($this->context->resources->getEntityClass('menu'))->find((int) $id) : null;
+        $menu = is_numeric($id) ? $this->getDoctrine()->getRepository($this->getResourceRegistry()->getEntityClass('menu'))->find((int) $id) : null;
 
         if (!$menu instanceof MenuInterface) {
             throw new NotFoundHttpException(\sprintf('Menu "%s" not found.', \is_scalar($id) ? (string) $id : ''));
         }
 
         return $this->menu = $menu;
-    }
-
-    protected function getItemRepository(): MenuItemRepository
-    {
-        $repository = $this->getRepository();
-
-        if (!$repository instanceof MenuItemRepository) {
-            throw new \LogicException(\sprintf('The repository of the menu items must extend "%s".', MenuItemRepository::class));
-        }
-
-        return $repository;
-    }
-
-    private function findMenuItem(string $id): ?MenuItemInterface
-    {
-        $item = is_numeric($id) ? $this->getItemRepository()->find((int) $id) : null;
-
-        return $item instanceof MenuItemInterface && $item->getMenu() === $this->getMenu() ? $item : null;
     }
 }

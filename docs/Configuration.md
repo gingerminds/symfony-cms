@@ -11,6 +11,8 @@ gingerminds_cms:
             entity: App\Entity\Page        # extends BasePage
             controller: ~                  # extends PageController
             form: ~                        # extends PageType
+        page_translation:
+            entity: App\Entity\PageTranslation  # extends BasePageTranslation
     wysiwyg:
         presets:
             default: { extensions: [bold, italic, underline, strike, link, bulletList, orderedList, history] }
@@ -23,16 +25,7 @@ gingerminds_cms:
         order: { faq: 5 }
     search:
         engine: doctrine
-        resources:
-            news:
-                entity: App\Entity\News
-                label: news.name_p
-                translation_domain: messages
-                category: category
-                group: news:list
-                fields:
-                    title: { weight: 3 }
-                    hook: ~
+        message_threshold: 100
     publication:
         status_colors:
             draft: primary
@@ -45,22 +38,48 @@ gingerminds_cms:
 
 `resources.menu`, `resources.menu_item`, `resources.page_category` and `resources.page` are
 registered as [core resources](https://github.com/gingerminds/symfony-core/blob/master/docs/ResourceModel.md)
-(admin CRUD, voter, permissions, API cache). Each takes:
+(admin CRUD, core `ResourceVoter` permissions, API cache), below the project
+`gingerminds_core.resources`. Each takes:
 
 | Key | Default | |
 |---|---|---|
 | `entity` | `Gingerminds\CmsBundle\Entity\…` | Your entity, extending the mapped superclass (`BaseMenu`, `BaseMenuItem`, `BasePageCategory`, `BasePage`). The relations of the bundle point at it (`resolve_target_entities`). |
 | `controller` | the bundle one | Your admin controller, extending the bundle one. |
 | `form` | the bundle one | Your admin form type. |
+| `api` | `true` | `false` stops exposing the entity through the API. An entity overriding a bundle one inherits its `#[ApiResource]`. |
 
 To add a few fields, prefer a form type extension and the form include slots (see below) to a new
 form.
 
+`resources.menu_item_translation`, `resources.page_category_translation` and
+`resources.page_translation` take an `entity` only (no admin of their own): your translation,
+extending `BaseMenuItemTranslation`, `BasePageCategoryTranslation` or `BasePageTranslation`, to add
+a translated field. Restate the class-level attributes of the bundle entity (`#[ORM\Entity]`,
+`#[ORM\Table]`, its `#[ORM\UniqueConstraint]`, `#[ORM\HasLifecycleCallbacks]`); the relations
+point at it through its interface (`PageTranslationInterface`...) and the translation form types use
+it as `data_class`. Add the field to the form with a type extension of `PageTranslationType`
+(`MenuItemTranslationType`, `PageCategoryTranslationType`):
+
+```php
+#[ORM\Entity]
+#[ORM\Table(name: 'page_translations')]
+#[ORM\UniqueConstraint(name: 'page_translations_page_id_language_id_unique', columns: ['page_id', 'language_id'])]
+#[ORM\HasLifecycleCallbacks]
+class PageTranslation extends BasePageTranslation
+{
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $subtitle = null;
+
+    // getSubtitle(), setSubtitle()
+}
+```
+
 ## WYSIWYG presets
 
-`wysiwyg.presets` names the toolbars of [`WysiwygType`](Forms.md#wysiwygtype). The extensions, in
+`wysiwyg.presets` names the toolbars of [`WysiwygType`](Forms.md#wysiwygtype). The entries, in
 display order: `bold`, `italic`, `underline`, `strike`, `link`, `bulletList`, `orderedList`,
-`blockquote`, `heading`, `horizontalRule`, `table`, `history` (undo / redo). Defaults:
+`blockquote`, `heading`, `horizontalRule`, `table`, `history` (undo / redo), or the name of an
+entry added by the project ([TipTap extensions](Forms.md#tiptap-extensions)). Defaults:
 
 | Preset | Extensions |
 |---|---|
@@ -84,7 +103,7 @@ or hand-typed slug is kept.
 | Key | |
 |---|---|
 | `blocks.disabled` | Keys of the blocks hidden from the picker. The pages using them keep working. |
-| `blocks.order` | Block key => picker weight (ascending), overriding the `getOrder()` of the block. |
+| `blocks.order` | Block key => picker weight (ascending), overriding the `order` of its `#[AsContentBlock]`. |
 
 See [Blocks](Blocks.md).
 
@@ -93,15 +112,10 @@ See [Blocks](Blocks.md).
 | Key | Default | |
 |---|---|---|
 | `search.engine` | `doctrine` | `doctrine`, or the id of a service implementing `SearchEngineInterface`. The `search_index` tables are mapped only with `doctrine`. |
-| `search.resources.<type>.entity` | the CMS resource of this name | Entity implementing `PubliclySearchableInterface`. |
-| `…label` / `…translation_domain` | the type / `GingermindsCms` | Label of the type in the facet. |
-| `…category` | `null` | Association to the categories: category facets, reindex when a category is hidden. |
-| `…group` | `null` | Serialization group of the content in `/api/search-results` (`null`: no `resource`). |
-| `…fields.<path>.weight` | `1` | Searched fields (property path on the translation, else on the entity) and their weight; `0` removes a field. |
+| `search.message_threshold` | `100` | Contents changed by a flush above which they are reindexed by `ReindexSearchContents` messages of this size (to route to an async transport) instead of during the request. |
 
-The bundle declares `page` (`label: page.name_p`, `category: category`, `group: page:list`,
-`fields: {title: {weight: 3}, hook: {weight: 1}}`); your configuration is merged with it, e.g. to
-add a field to the pages or to remove the hook (`hook: { weight: 0 }`). See [Search](Search.md).
+The indexed types are the entities with a `#[SearchIndex]` (`BasePage`: `page`), not a configuration.
+See [Search](Search.md#adding-a-content-type).
 
 ## Publication
 

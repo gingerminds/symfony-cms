@@ -27,9 +27,10 @@ return static function (ContainerConfigurator $container): void {
     $services->set('gingerminds_cms.workflow.publication_dates_listener', PublicationDatesListener::class)
         ->tag('kernel.event_listener', ['event' => 'workflow.' . PublicationStatus::WORKFLOW . '.entered']);
 
+    // #[AsTwigFunction] methods (autoconfigured).
     $services->set('gingerminds_cms.twig.publication_extension', PublicationExtension::class)
         ->args([param('gingerminds_cms.publication.status_colors')])
-        ->tag('twig.extension');
+        ->autoconfigure();
 
     $services->set('gingerminds_cms.page.preview_urls', PreviewUrls::class);
     $services->alias(PreviewUrls::class, 'gingerminds_cms.page.preview_urls');
@@ -45,13 +46,10 @@ return static function (ContainerConfigurator $container): void {
 
     $services->set('gingerminds_cms.doctrine.page_url_listener', PageUrlListener::class)
         ->args([service('gingerminds_cms.page.url_syncer'), service(PageRepository::class), service(PageCategoryRepository::class)])
-        ->tag('doctrine.event_listener', ['event' => Events::onFlush])
-        ->tag('doctrine.event_listener', ['event' => Events::postFlush])
-        ->tag('kernel.reset', ['method' => 'reset']);
+        ->tag('doctrine.event_listener', ['event' => Events::onFlush, 'priority' => PageUrlListener::PRIORITY]);
 
     $services->set('gingerminds_cms.page.filter_compute', PageFilterComputeService::class)
-        ->args([service(PageRepository::class), param('gingerminds_cms.resource.page.entity')])
-        ->call('setEntityManager', [service('doctrine.orm.entity_manager')]);
+        ->args([service(PageRepository::class), service(PageCategoryRepository::class)]);
 
     $services->set('gingerminds_cms.command.sync_page_urls', SyncPageUrlsCommand::class)
         ->args([service(PageRepository::class), service('gingerminds_cms.page.url_syncer'), service('doctrine.orm.entity_manager')])

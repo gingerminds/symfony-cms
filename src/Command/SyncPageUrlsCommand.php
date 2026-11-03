@@ -14,8 +14,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
- * Recomputes the `page_urls` of every page (replaces the Laravel 0027 backfill migration), then
- * lists the paths kept because of a conflict.
+ * Recomputes the `page_urls` of every page from the database (replaces the Laravel 0027 backfill
+ * migration), then lists the paths kept because of a conflict.
  */
 #[AsCommand(name: 'gingerminds:cms:page-urls:sync', description: 'Recompute the URL paths of the pages')]
 final class SyncPageUrlsCommand extends Command
@@ -36,15 +36,14 @@ final class SyncPageUrlsCommand extends Command
         $this->syncer->reset();
         $count = 0;
 
-        foreach ($this->pages->findBy([], ['id' => 'ASC']) as $page) {
-            $this->syncer->sync($page);
-
-            if (0 === ++$count % self::BATCH_SIZE) {
-                $this->entityManager->flush();
-            }
-        }
-
-        $this->entityManager->flush();
+        // Read from the database (the URLs may have been written behind the entity manager), by batches.
+        do {
+            $this->entityManager->clear();
+            $batch = $this->pages->findBy([], ['id' => 'ASC'], self::BATCH_SIZE, $count);
+            $this->syncer->sync(...$batch);
+            $this->entityManager->flush();
+            $count += \count($batch);
+        } while (self::BATCH_SIZE === \count($batch));
         $io->success(\sprintf('%d page(s) synced.', $count));
 
         $conflicts = $this->syncer->getConflicts();

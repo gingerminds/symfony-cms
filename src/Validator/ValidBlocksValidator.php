@@ -4,16 +4,21 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Validator;
 
-use Gingerminds\CmsBundle\Block\BlockConstraints;
-use Gingerminds\CmsBundle\Block\BlockField;
-use Gingerminds\CmsBundle\Block\BlockInterface;
 use Gingerminds\CmsBundle\Block\BlockRegistry;
+use Gingerminds\CmsBundle\Block\ContentBlock;
+use Gingerminds\CmsBundle\Form\Block\BlockCollectionType;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Exception\UnexpectedValueException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+/**
+ * Each block submitted to its form (BlockRegistry::submit()): an error of a field is a violation of
+ * the block, its message naming the field (`Cards 2 › Image`).
+ */
 final class ValidBlocksValidator extends ConstraintValidator
 {
     public function __construct(
@@ -47,7 +52,7 @@ final class ValidBlocksValidator extends ConstraintValidator
 
             $block = $this->registry->find($item['type']);
 
-            if (!$block instanceof BlockInterface) {
+            if (!$block instanceof ContentBlock) {
                 $this->context->buildViolation($constraint->unknownTypeMessage)
                     ->setParameter('{{ type }}', $item['type'])
                     ->atPath($path)
@@ -56,54 +61,83 @@ final class ValidBlocksValidator extends ConstraintValidator
                 continue;
             }
 
-            $this->validateData($block, $item['data'], $path, $constraint);
-        }
-    }
-
-    /**
-     * @param array<mixed> $data
-     */
-    private function validateData(BlockInterface $block, array $data, string $path, ValidBlocks $constraint): void
-    {
-        $fields = $this->registry->getFields($block);
-
-        foreach ($this->context->getValidator()->validate($data, BlockConstraints::forData($fields)) as $violation) {
-            $this->context->buildViolation($constraint->fieldMessage)
-                ->setParameter('{{ field }}', $this->fieldLabel($block, $fields, $violation->getPropertyPath()))
-                ->setParameter('{{ message }}', (string) $violation->getMessage())
-                ->setInvalidValue($violation->getInvalidValue())
-                ->atPath($path)
-                ->addViolation();
-        }
-    }
-
-    /**
-     * The label of the field at a violation path: `[title]`, or `[links][0][url]` (a repeater row).
-     *
-     * @param list<BlockField> $fields
-     */
-    private function fieldLabel(BlockInterface $block, array $fields, string $propertyPath): string
-    {
-        preg_match_all('/\[([^\]]*)\]/', $propertyPath, $matches);
-        [$name, $row, $subName] = [...$matches[1], null, null, null];
-        $domain = $block->getTranslationDomain();
-
-        foreach ($fields as $field) {
-            if ($field->name !== $name) {
-                continue;
-            }
-
-            $label = $this->translator->trans($this->registry->getFieldLabel($block, $field), [], $domain);
-
-            foreach ($field->fields as $subField) {
-                if ($subField->name === $subName && is_numeric($row)) {
-                    return \sprintf('%s %d › %s', $label, (int) $row + 1, $this->translator->trans($this->registry->getFieldLabel($block, $subField, $field), [], $domain));
+            foreach ($this->registry->submit($block, $item['data'])->getErrors(true) as $error) {
+                if (!$error instanceof FormError) {
+                    continue;
                 }
-            }
 
+                $this->context->buildViolation($constraint->fieldMessage)
+                    ->setParameter('{{ field }}', $this->fieldLabel($block, $error->getOrigin()))
+                    ->setParameter('{{ message }}', $error->getMessage())
+                    ->atPath($path)
+                    ->addViolation();
+            }
+        }
+    }
+
+    /**
+     * The label of a field, its rows and parent fields first: `Cards 2 › Image`.
+     *
+     * @param FormInterface<mixed>|null $form
+     */
+    private function fieldLabel(ContentBlock $block, ?FormInterface $form): string
+    {
+        $forms = [];
+
+        for (; $form?->getParent() instanceof FormInterface; $form = $form->getParent()) {
+            $forms[] = $form;
+        }
+
+        $labels = [];
+
+        foreach (array_reverse($forms) as $field) {
+            if ($field->getParent()?->getConfig()->getType()->getInnerType() instanceof BlockCollectionType) {
+                $labels[\count($labels) - 1] .= ' ' . ((int) $field->getName() + 1);
+            } else {
+                $labels[] = $this->translator->trans($this->labelKey($field), [], $this->domain($field) ?? $block->translationDomain);
+            }
+        }
+
+        return implode(' › ', $labels);
+    }
+
+    /**
+     * Its `label`, else its `label_format` or the closest one of its parents.
+     *
+     * @param FormInterface<mixed> $form
+     */
+    private function labelKey(FormInterface $form): string
+    {
+        $label = $form->getConfig()->getOption('label');
+
+        if (\is_string($label) && '' !== $label) {
             return $label;
         }
 
-        return (string) $name;
+        for ($ancestor = $form; $ancestor instanceof FormInterface; $ancestor = $ancestor->getParent()) {
+            $format = $ancestor->getConfig()->getOption('label_format');
+
+            if (\is_string($format) && '' !== $format) {
+                return str_replace('%name%', $form->getName(), $format);
+            }
+        }
+
+        return $form->getName();
+    }
+
+    /**
+     * @param FormInterface<mixed> $form
+     */
+    private function domain(FormInterface $form): ?string
+    {
+        for ($ancestor = $form; $ancestor instanceof FormInterface; $ancestor = $ancestor->getParent()) {
+            $domain = $ancestor->getConfig()->getOption('translation_domain');
+
+            if (\is_string($domain)) {
+                return $domain;
+            }
+        }
+
+        return null;
     }
 }

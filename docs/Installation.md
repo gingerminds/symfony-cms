@@ -1,8 +1,8 @@
 # Installation
 
-Install and configure [`gingerminds/symfony-core`](https://github.com/gingerminds/symfony-core) (^1.9),
-[`gingerminds/symfony-media-manager`](https://github.com/gingerminds/symfony-media-manager) (^1.2)
-and [`gingerminds/symfony-multisite`](https://github.com/gingerminds/symfony-multisite) (^1.2)
+Install and configure [`gingerminds/symfony-core`](https://github.com/gingerminds/symfony-core) (^1.10),
+[`gingerminds/symfony-media-manager`](https://github.com/gingerminds/symfony-media-manager) (^1.3)
+and [`gingerminds/symfony-multisite`](https://github.com/gingerminds/symfony-multisite) (^1.3)
 first: the CMS registers its resources, admin menu, permissions and assets into the core, picks
 its files and medias in the media manager and scopes its contents by site and language.
 
@@ -28,13 +28,13 @@ return [
 ## 2. Routes
 
 ```yaml
-# config/routes/gingerminds_cms.yaml — reordering of the trees, block modal of the pages
+# config/routes/gingerminds_cms.yaml — block modal of the pages
 gingerminds_cms:
     resource: '@GingermindsCmsBundle/config/routes.php'
 ```
 
-The CRUD routes (`/admin/menus`, `/admin/menus/{menuId}/items`, `/admin/page-categories`,
-`/admin/pages`) come from the core `gingerminds_crud` loader, the API routes (`/api/menus`,
+The CRUD and tree reordering routes (`/admin/menus`, `/admin/menus/{menuId}/items`,
+`/admin/page-categories`, `/admin/pages`) come from the core `gingerminds_crud` loader, the API routes (`/api/menus`,
 `/api/pages`, `/api/search-indices`, `/api/search-results`) from API Platform: nothing to add.
 
 ## 3. The site entity
@@ -93,9 +93,11 @@ Give them to the editors' roles in the admin. The APIs are public.
 
 ## 7. Messenger
 
-The search reindexes the pages of a category hidden from search (or shown again) through a
-Messenger message, handled synchronously by default. To keep the admin save fast on big
-categories, route it to an async transport:
+The search reindexes through Messenger messages, handled synchronously by default: the pages of a
+category hidden from search or shown again (`ReindexSearchCategory`), and the contents changed by a
+flush when there are more than `search.message_threshold` of them (`ReindexSearchContents`, e.g. a
+category prefix renamed: the URLs of its pages). To keep the admin save fast on big sites, route
+them to an async transport (the URLs themselves are always synced in the request):
 
 ```yaml
 # config/packages/messenger.yaml
@@ -103,6 +105,7 @@ framework:
     messenger:
         routing:
             Gingerminds\CmsBundle\Search\Message\ReindexSearchCategory: async
+            Gingerminds\CmsBundle\Search\Message\ReindexSearchContents: async
 ```
 
 ## 8. After the installation

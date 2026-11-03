@@ -6,6 +6,7 @@ namespace Gingerminds\CmsBundle\Entity\Page;
 
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Gingerminds\CoreBundle\Model\EagerLoad;
 use Gingerminds\MultisiteBundle\Entity\Language\LanguageInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\SerializedName;
@@ -19,6 +20,7 @@ trait PageApiFieldsTrait
      * @var Collection<int, PageUrl>
      */
     #[ORM\OneToMany(targetEntity: PageUrl::class, mappedBy: 'page')]
+    #[EagerLoad(paths: ['language'])]
     protected Collection $urls;
 
     public function getUrls(): Collection
@@ -26,6 +28,10 @@ trait PageApiFieldsTrait
         return $this->urls;
     }
 
+    /**
+     * The API `status`: PublishableTrait is shared by other resources, its `status` carries no
+     * serialization group of the pages.
+     */
     #[Groups([BasePage::GROUP_LIST, BasePage::GROUP_READ])]
     #[SerializedName('status')]
     public function getApiStatus(): string
@@ -42,7 +48,7 @@ trait PageApiFieldsTrait
     {
         $translation = $this->getCurrentTranslation();
 
-        return $translation instanceof PageTranslation ? $translation->getContent() : null;
+        return $translation instanceof PageTranslationInterface ? $translation->getContent() : null;
     }
 
     /**
@@ -53,7 +59,7 @@ trait PageApiFieldsTrait
     public function getApiMainVisual(): ?string
     {
         $translation = $this->getCurrentTranslation();
-        $file = ($translation instanceof PageTranslation ? $translation->getMainVisual() : null) ?? $this->getMainVisual();
+        $file = ($translation instanceof PageTranslationInterface ? $translation->getMainVisual() : null) ?? $this->getMainVisual();
 
         return $file?->getId();
     }
@@ -63,7 +69,7 @@ trait PageApiFieldsTrait
     public function getApiThumbnail(): ?string
     {
         $translation = $this->getCurrentTranslation();
-        $file = ($translation instanceof PageTranslation ? $translation->getThumbnail() : null) ?? $this->getThumbnail();
+        $file = ($translation instanceof PageTranslationInterface ? $translation->getThumbnail() : null) ?? $this->getThumbnail();
 
         return $file?->getId();
     }
@@ -89,7 +95,7 @@ trait PageApiFieldsTrait
         }
 
         foreach ($this->getTranslations() as $translation) {
-            if ($translation instanceof PageTranslation && $translation->getLanguage() instanceof LanguageInterface && '' !== (string) $translation->getTitle()) {
+            if ($translation instanceof PageTranslationInterface && $translation->getLanguage() instanceof LanguageInterface && '' !== (string) $translation->getTitle()) {
                 $paths[(string) $translation->getLanguage()->getIso()] = $this->getFullPath($translation->getLanguage());
             }
         }

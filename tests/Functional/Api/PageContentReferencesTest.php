@@ -63,10 +63,13 @@ final class PageContentReferencesTest extends ApiTestCase
         self::assertSame($this->image->getId(), $this->translation()->getContent()[0]['data']['image'] ?? null);
     }
 
+    /**
+     * By path: the item by id is secured, never cached.
+     */
     public function testAChangeOfAMediaRefreshesTheCachedPages(): void
     {
-        $this->api('GET', '/api/pages/' . $this->page->getId());
-        $this->api('GET', '/api/pages/' . $this->page->getId());
+        $this->api('GET', '/api/pages/by-slug/a-propos');
+        $this->api('GET', '/api/pages/by-slug/a-propos');
         self::assertSame('HIT', $this->client->getResponse()->headers->get('X-Gingerminds-Cache'));
 
         $media = $this->entityManager()->find(Media::class, $this->media->getId());
@@ -74,7 +77,7 @@ final class PageContentReferencesTest extends ApiTestCase
         $media->setCode('tractor-red');
         $this->entityManager()->flush();
 
-        $content = $this->api('GET', '/api/pages/' . $this->page->getId())['content'];
+        $content = $this->api('GET', '/api/pages/by-slug/a-propos')['content'];
         self::assertSame('MISS', $this->client->getResponse()->headers->get('X-Gingerminds-Cache'));
         self::assertSame('tractor-red', $content[1]['data']['items'][0]['media']['code']);
     }
@@ -84,11 +87,12 @@ final class PageContentReferencesTest extends ApiTestCase
         /** @var FileReferenceRegistry $references */
         $references = self::getContainer()->get('test.file_reference_registry');
 
-        self::assertTrue($references->isUsed($this->image));
         $usages = $references->usages([$this->image])[$this->image->getId()];
         self::assertCount(1, $usages);
         self::assertSame('/admin/pages/' . $this->page->getId() . '/edit', $usages[0]->editUrl);
-        self::assertContains($this->image->getId(), $references->usedIds());
+        $unused = $this->entityManager()->createQueryBuilder()->select('f.id')->from(File::class, 'f');
+        $references->excludeReferenced($unused, 'f');
+        self::assertNotContains($this->image->getId(), array_column($unused->getQuery()->getArrayResult(), 'id'));
 
         // A merge of duplicates points the content at the kept file.
         $kept = $this->fixtures->file('photo-1.png');

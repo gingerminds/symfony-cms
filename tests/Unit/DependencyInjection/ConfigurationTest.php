@@ -22,20 +22,21 @@ final class ConfigurationTest extends TestCase
         self::assertSame(['bold', 'italic', 'underline', 'link'], $config['wysiwyg']['presets']['minimal']['extensions']);
         self::assertSame(['create' => true, 'edit' => false], $config['slug_overwrite']);
         self::assertSame(['disabled' => [], 'order' => []], $config['blocks']);
-        self::assertSame(['entity' => null, 'controller' => null, 'form' => null], $config['resources']['menu']);
-        self::assertSame(['entity' => null, 'controller' => null, 'form' => null], $config['resources']['menu_item']);
-        self::assertSame(['entity' => null, 'controller' => null, 'form' => null], $config['resources']['page_category']);
+        self::assertSame(['entity' => null, 'controller' => null, 'form' => null, 'api' => true], $config['resources']['menu']);
+        self::assertSame(['entity' => null, 'controller' => null, 'form' => null, 'api' => true], $config['resources']['menu_item']);
+        self::assertSame(['entity' => null, 'controller' => null, 'form' => null, 'api' => true], $config['resources']['page_category']);
     }
 
     public function testCustomPresetsReplaceTheDefaults(): void
     {
         $config = $this->process(['wysiwyg' => ['presets' => [
             'default' => ['extensions' => ['bold']],
-            'news' => ['extensions' => ['bold', 'heading', 'table']],
+            'news' => ['extensions' => ['bold', 'heading', 'table', 'highlight']],
         ]]]);
 
         self::assertSame(['default', 'news'], array_keys($config['wysiwyg']['presets']));
-        self::assertSame(['bold', 'heading', 'table'], $config['wysiwyg']['presets']['news']['extensions']);
+        // `highlight`: a project extension (gm-cms-wysiwyg:pre-connect).
+        self::assertSame(['bold', 'heading', 'table', 'highlight'], $config['wysiwyg']['presets']['news']['extensions']);
     }
 
     public function testBlocksCanBeDisabledAndReordered(): void
@@ -51,7 +52,7 @@ final class ConfigurationTest extends TestCase
      */
     public static function invalidConfigurations(): iterable
     {
-        yield 'unknown wysiwyg extension' => [['wysiwyg' => ['presets' => ['default' => ['extensions' => ['image']]]]]];
+        yield 'blank wysiwyg extension' => [['wysiwyg' => ['presets' => ['default' => ['extensions' => ['']]]]]];
         yield 'preset without extension' => [['wysiwyg' => ['presets' => ['default' => ['extensions' => []]]]]];
         yield 'no default preset' => [['wysiwyg' => ['presets' => ['news' => ['extensions' => ['bold']]]]]];
         yield 'non integer block weight' => [['blocks' => ['order' => ['faq' => 'first']]]];

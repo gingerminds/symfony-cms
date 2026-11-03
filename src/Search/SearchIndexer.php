@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Search;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Gingerminds\CoreBundle\Repository\RepositoryInterface;
 
 /**
  * Keeps the search engine in sync: a visible content is (re)indexed in every language it has, a
@@ -25,7 +26,7 @@ class SearchIndexer
     /**
      * @return bool whether the content is in the index (else removed from it)
      */
-    public function index(PubliclySearchableInterface $entity): bool
+    public function index(SearchIndexableInterface $entity): bool
     {
         $resource = $this->resources->forEntity($entity);
         $recordId = SearchDocumentFactory::id($entity);
@@ -45,6 +46,32 @@ class SearchIndexer
         $this->engine->index($resource->type, $recordId, $documents);
 
         return true;
+    }
+
+    /**
+     * The contents of a type by id, with the eager loads of its core repository (list query).
+     *
+     * @param list<int> $ids
+     *
+     * @return list<SearchIndexableInterface>
+     */
+    public function find(SearchResource $resource, array $ids): array
+    {
+        if ([] === $ids) {
+            return [];
+        }
+
+        $repository = $this->entityManager->getRepository($resource->entity);
+
+        if ($repository instanceof RepositoryInterface) {
+            $qb = $repository->createListQueryBuilder();
+            $alias = $qb->getRootAliases()[0];
+            $entities = $qb->andWhere($alias . '.id IN (:gm_search_ids)')->setParameter('gm_search_ids', $ids)->getQuery()->getResult();
+        } else {
+            $entities = $repository->findBy(['id' => $ids]);
+        }
+
+        return array_values(array_filter($entities, static fn (mixed $entity): bool => $entity instanceof SearchIndexableInterface));
     }
 
     public function remove(string $type, int $recordId): void
@@ -100,7 +127,7 @@ class SearchIndexer
         return $resources;
     }
 
-    public static function isVisible(PubliclySearchableInterface $entity): bool
+    public static function isVisible(SearchIndexableInterface $entity): bool
     {
         return $entity->isPubliclyVisible() && (!$entity instanceof ExcludableFromSearchInterface || !$entity->isExcludedFromSearch());
     }
@@ -126,7 +153,7 @@ class SearchIndexer
                 $qb->distinct()->innerJoin('e.' . $resource->category, 'c')->andWhere('c.id IN (:categories)')->setParameter('categories', $categoryIds);
             }
 
-            /** @var list<PubliclySearchableInterface> $entities */
+            /** @var list<SearchIndexableInterface> $entities */
             $entities = $qb->getQuery()->getResult();
 
             foreach ($entities as $entity) {

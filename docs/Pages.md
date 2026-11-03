@@ -6,7 +6,8 @@ workflow, their content made of [blocks](Blocks.md).
 ## Page categories
 
 `PageCategory` (`page_categories`, overridable `BasePageCategory`, `resources.page_category`) and
-`PageCategoryTranslation` (`page_category_translations`: `name`, `prefix`):
+`PageCategoryTranslation` (`page_category_translations`: `name`, `prefix`; overridable
+`BasePageCategoryTranslation`, `resources.page_category_translation`):
 
 | Field | |
 |---|---|
@@ -22,13 +23,14 @@ skipped (`produits/tracteurs`).
 
 Admin: CMS › Page categories (`/admin/page-categories`, `view|edit|delete page_categories`
 permissions): the tree, drag & drop within a level, "Add a child", General / Translations tabs, the
-prefix after the path of the parent and filled from the name (Stimulus `gm-cms-slug-sync`, see
+prefix after the path of the parent and filled from the name ([`SlugType`](Forms.md#slugtype), see
 [`slug_overwrite`](Configuration.md#slugs)).
 
 ## Pages
 
 `Page` (`pages`, overridable `BasePage`, `resources.page`) and `PageTranslation`
-(`page_translations`):
+(`page_translations`, overridable `BasePageTranslation`, `resources.page_translation`, see
+[Configuration](Configuration.md#resources)):
 
 | Field | |
 |---|---|
@@ -57,7 +59,8 @@ Admin: CMS › Pages (`/admin/pages`, `view|edit|delete pages` permissions):
 
 The preview links are `{front URL}[/{iso}]/preview/page/{id}` for each front URL of the site (the
 ISO prefix except for the default language): the front reads the page with `GET /api/pages/{id}`,
-whatever its status.
+whatever its status, with the bearer token of a user having the `view pages` permission (a published
+page needs none; see [API](API.md#pages)).
 
 ## Publication workflow
 
@@ -101,8 +104,9 @@ collection API and found by the search.
 ## URLs
 
 `PageUrl` (`page_urls`) holds the path of each language of a published page (the translations with
-a title). A Doctrine listener keeps them up to date after any change of a page, of a translation or
-of a category (its whole subtree, its deletion included), whoever made it.
+a title). A Doctrine listener keeps them up to date in the flush changing a page, a translation or
+a category (its whole subtree, its deletion included), whoever made it: they are written in the same
+transaction, and the search and cache listeners see them.
 
 A path already owned by another published page is not taken: the page keeps its former path and the
 conflict is reported (a warning after saving or deleting a category, `UniquePageUrl` on the page
@@ -115,4 +119,4 @@ see [Commands](Commands.md).
 
 The page API responses are cached under the `page` key. They are invalidated by a change of a page,
 of a translation or of a category, and by a change of a file or of a media (the blocks embed
-them).
+them): all of them, which pages use the file is not tracked (a media library changes seldom).

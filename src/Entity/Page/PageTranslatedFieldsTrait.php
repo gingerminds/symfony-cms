@@ -34,16 +34,16 @@ trait PageTranslatedFieldsTrait
     {
         $translation = null === $language ? $this->getCurrentTranslation() : $this->getTranslation($language, false);
         $languageId = $translation?->getLanguage()?->getId() ?? ($language instanceof LanguageInterface ? $language->getId() : $language);
-        $slug = $translation instanceof PageTranslation ? (string) $translation->getSlug() : '';
+        $slug = $translation instanceof PageTranslationInterface ? (string) $translation->getSlug() : '';
         $categoryPath = $this->getCategory()?->getFullPath($languageId) ?? '';
 
         return implode('/', array_filter([$categoryPath, $slug], static fn (string $part): bool => '' !== $part));
     }
 
-    private function currentPageTranslation(): ?PageTranslation
+    private function currentPageTranslation(): ?PageTranslationInterface
     {
         $translation = $this->getCurrentTranslation();
 
-        return $translation instanceof PageTranslation ? $translation : null;
+        return $translation instanceof PageTranslationInterface ? $translation : null;
     }
 }

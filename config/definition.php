@@ -6,9 +6,7 @@ use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 
 return static function (DefinitionConfigurator $definition): void {
-    $extensions = ['bold', 'italic', 'underline', 'strike', 'link', 'bulletList', 'orderedList', 'blockquote', 'heading', 'horizontalRule', 'table', 'history'];
-
-    $wysiwyg = static function (NodeBuilder $children) use ($extensions): void {
+    $wysiwyg = static function (NodeBuilder $children): void {
         $children
             ->arrayNode('wysiwyg')
                 ->info('WYSIWYG (TipTap) editor.')
@@ -20,10 +18,11 @@ return static function (DefinitionConfigurator $definition): void {
                         ->arrayPrototype()
                             ->children()
                                 ->arrayNode('extensions')
-                                    ->info('TipTap extensions of the toolbar, in display order.')
+                                    ->info('Toolbar entries, in display order: bold, italic, underline, strike, link, bulletList, orderedList,'
+                                        . ' blockquote, heading, horizontalRule, table, history, or a name added by a gm-cms-wysiwyg:pre-connect listener.')
                                     ->isRequired()
                                     ->requiresAtLeastOneElement()
-                                    ->enumPrototype()->values($extensions)->end()
+                                    ->scalarPrototype()->cannotBeEmpty()->end()
                                 ->end()
                             ->end()
                         ->end()
@@ -55,6 +54,23 @@ return static function (DefinitionConfigurator $definition): void {
                     ->end()
                     ->scalarNode('controller')->defaultNull()->end()
                     ->scalarNode('form')->defaultNull()->end()
+                    ->booleanNode('api')
+                        ->info('false stops exposing the entity through the API (the bundle #[ApiResource], inherited by an entity overriding it).')
+                        ->defaultTrue()
+                    ->end()
+                ->end()
+            ->end();
+    };
+
+    $entity = static function (NodeBuilder $children, string $name, string $baseClass): void {
+        $children
+            ->arrayNode($name)
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->scalarNode('entity')
+                        ->info('Entity class, extending the bundle Base' . $baseClass . ' (null: the bundle one).')
+                        ->defaultNull()
+                    ->end()
                 ->end()
             ->end();
     };
@@ -62,13 +78,16 @@ return static function (DefinitionConfigurator $definition): void {
     $children = $definition->rootNode()->children();
 
     $resources = $children->arrayNode('resources')
-        ->info('Overridable resources of the bundle, registered as gingerminds_core resources.')
+        ->info('Overridable resources of the bundle, registered as gingerminds_core admin resources.')
         ->addDefaultsIfNotSet()
         ->children();
     $resource($resources, 'menu', 'Menu');
     $resource($resources, 'menu_item', 'MenuItem');
     $resource($resources, 'page_category', 'PageCategory');
     $resource($resources, 'page', 'Page');
+    $entity($resources, 'menu_item_translation', 'MenuItemTranslation');
+    $entity($resources, 'page_category_translation', 'PageCategoryTranslation');
+    $entity($resources, 'page_translation', 'PageTranslation');
     $resources->end()->end();
 
     $wysiwyg($children);
@@ -99,7 +118,7 @@ return static function (DefinitionConfigurator $definition): void {
             ->end()
         ->end()
         ->arrayNode('search')
-            ->info('Public search (/api/search-indices, /api/search-results).')
+            ->info('Public search (/api/search-indices, /api/search-results); the indexed types: #[SearchIndex] entities.')
             ->addDefaultsIfNotSet()
             ->children()
                 ->scalarNode('engine')
@@ -107,36 +126,11 @@ return static function (DefinitionConfigurator $definition): void {
                     ->defaultValue('doctrine')
                     ->cannotBeEmpty()
                 ->end()
-                ->arrayNode('resources')
-                    ->info('Searchable contents by type (the bundle declares "page"); a project adds its own.')
-                    ->useAttributeAsKey('type')
-                    ->normalizeKeys(false)
-                    ->arrayPrototype()
-                        ->children()
-                            ->scalarNode('entity')
-                                ->info('Entity implementing PubliclySearchableInterface (null: the entity of the CMS resource of this name).')
-                                ->defaultNull()
-                            ->end()
-                            ->scalarNode('label')->info('Label of the type facet (translation key, null: the type).')->defaultNull()->end()
-                            ->scalarNode('translation_domain')->defaultValue('GingermindsCms')->end()
-                            ->scalarNode('category')
-                                ->info('Association to the categories: category facets, reindex of the contents of a category hidden from search.')
-                                ->defaultNull()
-                            ->end()
-                            ->scalarNode('group')->info('Serialization group of the content in /api/search-results (null: no content).')->defaultNull()->end()
-                            ->arrayNode('fields')
-                                ->info('Searchable fields: property path on the entry subject (its translation), else on the entity; weight 0 removes a field.')
-                                ->useAttributeAsKey('name')
-                                ->normalizeKeys(false)
-                                ->arrayPrototype()
-                                    ->treatNullLike([])
-                                    ->children()
-                                        ->integerNode('weight')->min(0)->defaultValue(1)->end()
-                                    ->end()
-                                ->end()
-                            ->end()
-                        ->end()
-                    ->end()
+                ->integerNode('message_threshold')
+                    ->info('Contents changed by a flush above which they are reindexed by ReindexSearchContents messages of this size'
+                        . ' (route them to an async transport), instead of during the request.')
+                    ->defaultValue(100)
+                    ->min(1)
                 ->end()
             ->end()
         ->end()

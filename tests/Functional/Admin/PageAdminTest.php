@@ -33,7 +33,7 @@ final class PageAdminTest extends ApiTestCase
         $this->fixtures->pageCategory($this->site, 'news', ['fr' => ['Actualités', 'actualites']], position: 1);
         $this->client->loginUser($this->fixtures->user('editor@example.com', ['view pages', 'edit pages']), 'admin');
 
-        $crawler = $this->client->request('GET', self::BASE . '?sortBy=code');
+        $crawler = $this->client->request('GET', self::BASE . '?order[code]=asc');
 
         self::assertResponseIsSuccessful();
         $rows = $crawler->filter('#gm-list-table tbody tr');
@@ -47,11 +47,11 @@ final class PageAdminTest extends ApiTestCase
             \array_slice($crawler->filter('#gm-cms-choose-page-category a')->each(static fn (Crawler $link): string => (string) $link->attr('href')), 0, 2),
         );
         // The status filter offers the project statuses too.
-        self::assertCount(1, $crawler->filter('select[name="filters[status][]"] option[value="review"]'));
+        self::assertCount(1, $crawler->filter('select[name="status[]"] option[value="review"]'));
         // Pages first in the CMS section.
         self::assertSame('/admin/pages', $crawler->filter('#gm-sidebar a[href^="/admin/page"], #gm-sidebar a[href="/admin/menus"]')->first()->attr('href'));
 
-        $crawler = $this->client->request('GET', self::BASE . '?filters[search]=Tracteur');
+        $crawler = $this->client->request('GET', self::BASE . '?search=Tracteur');
         self::assertSame(['tractor'], $crawler->filter('#gm-list-table tbody tr')->each(static fn (Crawler $row): string => $row->filter('td')->eq(1)->text()));
     }
 
@@ -123,7 +123,7 @@ final class PageAdminTest extends ApiTestCase
     {
         yield 'code taken on the site' => [['page[code]' => 'tractor'], '#page_code'];
         yield 'title required' => [['title' => ''], 'title'];
-        yield 'slug format' => [['slug' => 'Tracteur X'], 'slug'];
+        yield 'slug taken once slugified' => [['page[category]' => 'products', 'slug' => 'Tracteur X'], 'slug'];
         yield 'slug taken in the category' => [['page[category]' => 'products', 'slug' => 'tracteur-x'], 'slug'];
         yield 'blank slug taken in the category' => [['page[category]' => 'products', 'slug' => ''], 'slug'];
         yield 'single page category taken' => [['page[category]' => 'single'], '#page_category'];

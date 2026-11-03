@@ -117,6 +117,9 @@ page:
         no_items: Aucune page
 
 publication:
+    field:
+        status: Statut
+        published_at: Publiée le
     status:
         draft: Brouillon
         published: Publié

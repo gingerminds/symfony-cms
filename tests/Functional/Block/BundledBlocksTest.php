@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Tests\Functional\Block;
 
-use Gingerminds\CmsBundle\Block\Type\Video;
+use Gingerminds\CmsBundle\Block\Type\VideoType;
 use Gingerminds\CmsBundle\Tests\Functional\ApiTestCase;
 use Gingerminds\MediaManagerBundle\Entity\File\File;
 use Gingerminds\MediaManagerBundle\Entity\Media\Media;
@@ -112,10 +112,10 @@ final class BundledBlocksTest extends ApiTestCase
     public function testTheYoutubeIdOfAnEmbedCode(): void
     {
         foreach (['dQw4w9WgXcQ', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10', 'https://youtu.be/dQw4w9WgXcQ', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 'https://youtube.com/shorts/dQw4w9WgXcQ'] as $code) {
-            self::assertSame('dQw4w9WgXcQ', Video::youtubeId($code), $code);
+            self::assertSame('dQw4w9WgXcQ', VideoType::youtubeId($code), $code);
         }
 
-        self::assertNull(Video::youtubeId('https://vimeo.com/123'));
-        self::assertNull(Video::youtubeId(null));
+        self::assertNull(VideoType::youtubeId('https://vimeo.com/123'));
+        self::assertNull(VideoType::youtubeId(null));
     }
 }

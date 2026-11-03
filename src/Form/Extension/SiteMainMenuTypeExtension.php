@@ -46,7 +46,7 @@ final class SiteMainMenuTypeExtension extends AbstractTypeExtension
             $event->getForm()->add(self::FIELD, EntityType::class, [
                 'label' => 'site.field.main_menu',
                 'help' => [] === $menus ? 'site.help.main_menu_empty' : null,
-                'class' => $this->menus->getEntityClass(),
+                'class' => $this->menus->getClassName(),
                 'choices' => $menus,
                 'choice_label' => static fn (MenuInterface $menu): string => (string) $menu->getCode(),
                 'choice_translation_domain' => false,
