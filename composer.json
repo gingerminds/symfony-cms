@@ -16,7 +16,7 @@
         "doctrine/orm": "^3.5",
         "gingerminds/symfony-core": "^1.10",
         "gingerminds/symfony-media-manager": "^1.3",
-        "gingerminds/symfony-multisite": "^1.3",
+        "gingerminds/symfony-multisite": "^1.4",
         "symfony/asset-mapper": "^8.1",
         "symfony/doctrine-bridge": "^8.1",
         "symfony/form": "^8.1",

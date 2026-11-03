@@ -6,7 +6,6 @@ namespace Gingerminds\CmsBundle\Entity\Page;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Gingerminds\CmsBundle\Model\TranslationFieldsTrait;
 use Gingerminds\CmsBundle\Model\TranslationSiteTrait;
 use Gingerminds\CmsBundle\Model\VisualsInterface;
 use Gingerminds\CmsBundle\Model\VisualsTrait;
@@ -16,14 +15,14 @@ use Gingerminds\CoreBundle\Model\CacheCascade;
 use Gingerminds\CoreBundle\Model\TimestampableInterface;
 use Gingerminds\CoreBundle\Model\Trait\TimestampableTrait;
 use Gingerminds\MultisiteBundle\Entity\Site\SiteInterface;
-use Gingerminds\MultisiteBundle\Model\TranslatableInterface;
 use Gingerminds\MultisiteBundle\Model\TranslationInterface;
+use Gingerminds\MultisiteBundle\Model\TranslationTrait;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * A page in one language: title, slug (unique in the category, blank: the category home page),
  * hook, content blocks, visuals overriding the page ones. `site_id` copies the one of the page.
- * The owner relation is declared here (see MenuItemTranslation).
+ * The owner relation (`page_id`) is mapped by multisite, on the overridable PageInterface.
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'page_translations')]
@@ -35,13 +34,14 @@ use Symfony\Component\Validator\Constraints as Assert;
 class PageTranslation implements TranslationInterface, VisualsInterface, TimestampableInterface
 {
     use TimestampableTrait;
-    use TranslationFieldsTrait;
     use TranslationSiteTrait;
+    use TranslationTrait;
     use VisualsTrait;
 
-    #[ORM\ManyToOne(targetEntity: PageInterface::class, inversedBy: 'translations')]
-    #[ORM\JoinColumn(name: 'page_id', nullable: false, onDelete: 'CASCADE')]
-    protected ?PageInterface $translatable = null;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    protected ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: SiteInterface::class)]
     #[ORM\JoinColumn(name: 'site_id', nullable: true, onDelete: 'CASCADE')]
@@ -68,22 +68,12 @@ class PageTranslation implements TranslationInterface, VisualsInterface, Timesta
 
     public static function getTranslatableEntityClass(): string
     {
-        return Page::class;
+        return PageInterface::class;
     }
 
-    public function getTranslatable(): ?TranslatableInterface
+    public function getId(): ?int
     {
-        return $this->translatable;
-    }
-
-    public function setTranslatable(?TranslatableInterface $translatable): void
-    {
-        if ($translatable instanceof TranslatableInterface && !$translatable instanceof PageInterface) {
-            throw new \InvalidArgumentException(\sprintf('A page translation belongs to a "%s".', PageInterface::class));
-        }
-
-        $this->translatable = $translatable;
-        $this->site = $translatable?->getSite() ?? $this->site;
+        return $this->id;
     }
 
     public function getTitle(): ?string

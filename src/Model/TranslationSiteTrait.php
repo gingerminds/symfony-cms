@@ -6,6 +6,7 @@ namespace Gingerminds\CmsBundle\Model;
 
 use Doctrine\ORM\Mapping as ORM;
 use Gingerminds\MultisiteBundle\Entity\Site\SiteInterface;
+use Gingerminds\MultisiteBundle\Model\SiteContextedInterface;
 
 /**
  * `site_id` of a translation, a copy of the one of its owner (as Laravel). The `$site` column is
@@ -19,11 +20,12 @@ trait TranslationSiteTrait
     }
 
     /**
-     * The owner, created after its translations in a form, gives them its site.
+     * The owner gives its site to a new translation (created before or after it).
      */
     #[ORM\PrePersist]
     public function copySiteOfTheTranslatable(): void
     {
-        $this->site = $this->translatable?->getSite() ?? $this->site;
+        $owner = $this->getTranslatable();
+        $this->site = ($owner instanceof SiteContextedInterface ? $owner->getSite() : null) ?? $this->site;
     }
 }

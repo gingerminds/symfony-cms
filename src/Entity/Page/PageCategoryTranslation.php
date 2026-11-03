@@ -5,22 +5,21 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Entity\Page;
 
 use Doctrine\ORM\Mapping as ORM;
-use Gingerminds\CmsBundle\Model\TranslationFieldsTrait;
 use Gingerminds\CmsBundle\Model\TranslationSiteTrait;
 use Gingerminds\CmsBundle\Validator\UniqueSiblingPrefix;
 use Gingerminds\CoreBundle\Model\CacheCascade;
 use Gingerminds\CoreBundle\Model\TimestampableInterface;
 use Gingerminds\CoreBundle\Model\Trait\TimestampableTrait;
 use Gingerminds\MultisiteBundle\Entity\Site\SiteInterface;
-use Gingerminds\MultisiteBundle\Model\TranslatableInterface;
 use Gingerminds\MultisiteBundle\Model\TranslationInterface;
+use Gingerminds\MultisiteBundle\Model\TranslationTrait;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 /**
  * Name and URL prefix of a page category in one language. `site_id` copies the one of the
- * category (as Laravel). The owner relation is declared here (MappingException otherwise, see
- * MenuItemTranslation).
+ * category (as Laravel). The owner relation (`page_category_id`) is mapped by multisite, on the
+ * overridable PageCategoryInterface.
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'page_category_translations')]
@@ -31,14 +30,15 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class PageCategoryTranslation implements TranslationInterface, TimestampableInterface
 {
     use TimestampableTrait;
-    use TranslationFieldsTrait;
     use TranslationSiteTrait;
+    use TranslationTrait;
 
     public const string PREFIX_PATTERN = '/^[a-z0-9]+(?:-[a-z0-9]+)*$/';
 
-    #[ORM\ManyToOne(targetEntity: PageCategoryInterface::class, inversedBy: 'translations')]
-    #[ORM\JoinColumn(name: 'page_category_id', nullable: false, onDelete: 'CASCADE')]
-    protected ?PageCategoryInterface $translatable = null;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    protected ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: SiteInterface::class)]
     #[ORM\JoinColumn(name: 'site_id', nullable: false, onDelete: 'CASCADE')]
@@ -56,22 +56,12 @@ class PageCategoryTranslation implements TranslationInterface, TimestampableInte
 
     public static function getTranslatableEntityClass(): string
     {
-        return PageCategory::class;
+        return PageCategoryInterface::class;
     }
 
-    public function getTranslatable(): ?TranslatableInterface
+    public function getId(): ?int
     {
-        return $this->translatable;
-    }
-
-    public function setTranslatable(?TranslatableInterface $translatable): void
-    {
-        if ($translatable instanceof TranslatableInterface && !$translatable instanceof PageCategoryInterface) {
-            throw new \InvalidArgumentException(\sprintf('A page category translation belongs to a "%s".', PageCategoryInterface::class));
-        }
-
-        $this->translatable = $translatable;
-        $this->site = $translatable?->getSite() ?? $this->site;
+        return $this->id;
     }
 
     public function getName(): ?string

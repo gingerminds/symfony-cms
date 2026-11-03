@@ -4,12 +4,6 @@ Issu de l'audit du 27/10/2026 (portage Laravel → Symfony). L'adaptation au cor
 
 Légende — effort : S (≤ ½ j), M (1–3 j), L (> 3 j) ; [H] hypothèse à vérifier.
 
-## 5. Doublons avec les dépendances
-
-- Traductions : `TranslationFieldsTrait` + relation propriétaire déclarée à la main refont `multisite/src/Model/TranslationTrait.php`.
-- Slug unique : `UniqueSlugInCategory` ≈ `UniqueTranslationSlug` de multisite → option `scope` côté multisite.
-- CSRF par en-tête refait à la main (1 endroit) → `#[IsCsrfTokenValid(…, tokenSource: SOURCE_HEADER)]`.
-
 ## 6. Surchargeabilité
 
 | Blocage | Où | Piste | Effort |

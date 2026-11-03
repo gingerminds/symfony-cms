@@ -5,17 +5,16 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Entity\Menu;
 
 use Doctrine\ORM\Mapping as ORM;
-use Gingerminds\CmsBundle\Model\TranslationFieldsTrait;
 use Gingerminds\CoreBundle\Model\CacheCascade;
 use Gingerminds\CoreBundle\Model\TimestampableInterface;
 use Gingerminds\CoreBundle\Model\Trait\TimestampableTrait;
-use Gingerminds\MultisiteBundle\Model\TranslatableInterface;
 use Gingerminds\MultisiteBundle\Model\TranslationInterface;
+use Gingerminds\MultisiteBundle\Model\TranslationTrait;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * The owner relation is declared here: on an overridable item (MenuItemInterface target),
- * the multisite convention would name its column after the interface.
+ * Name, URL and description of a menu item in one language. The owner relation (`menu_item_id`)
+ * is mapped by multisite, on the overridable MenuItemInterface.
  */
 #[ORM\Entity]
 #[ORM\Table(name: 'menu_item_translations')]
@@ -25,11 +24,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 class MenuItemTranslation implements TranslationInterface, TimestampableInterface
 {
     use TimestampableTrait;
-    use TranslationFieldsTrait;
+    use TranslationTrait;
 
-    #[ORM\ManyToOne(targetEntity: MenuItemInterface::class, inversedBy: 'translations')]
-    #[ORM\JoinColumn(name: 'menu_item_id', nullable: false, onDelete: 'CASCADE')]
-    protected ?MenuItemInterface $translatable = null;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    protected ?int $id = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Assert\NotBlank]
@@ -45,21 +45,12 @@ class MenuItemTranslation implements TranslationInterface, TimestampableInterfac
 
     public static function getTranslatableEntityClass(): string
     {
-        return MenuItem::class;
+        return MenuItemInterface::class;
     }
 
-    public function getTranslatable(): ?TranslatableInterface
+    public function getId(): ?int
     {
-        return $this->translatable;
-    }
-
-    public function setTranslatable(?TranslatableInterface $translatable): void
-    {
-        if ($translatable instanceof TranslatableInterface && !$translatable instanceof MenuItemInterface) {
-            throw new \InvalidArgumentException(\sprintf('A menu item translation belongs to a "%s".', MenuItemInterface::class));
-        }
-
-        $this->translatable = $translatable;
+        return $this->id;
     }
 
     public function getName(): ?string

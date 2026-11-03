@@ -153,6 +153,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **BC break** — requires `gingerminds/symfony-multisite` ^1.4: the page, page category and menu
+  item translations use the multisite `TranslationTrait`, their owner relation mapped by multisite
+  on the overridable interface (`getTranslatableEntityClass()` returns `PageInterface`,
+  `PageCategoryInterface`, `MenuItemInterface`); same columns and constraints.
+  `TranslationFieldsTrait` and the type check of `setTranslatable()` are removed; the site of a
+  translation is copied from its owner on persist only.
 - Page URLs synced in the flush changing a page, a translation or a category (`onFlush`, same
   transaction) instead of a second flush in `postFlush`; the paths taken are looked up in one query
   per site, language and 500 paths, the pages of a category subtree loaded with their translations
