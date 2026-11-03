@@ -153,6 +153,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Requires `gingerminds/symfony-core` ^1.10.3: the choices of the `status` filter of the page list
+  are translated (`publication.status.*` keys were shown).
 - Requires `doctrine/orm` ^3.7: the `#[ORM\OrderBy]` of the menu items and page categories use
   `\SortDirection` (polyfilled by `symfony/polyfill-php86`, a dependency of the ORM).
 - **BC break** Overridable translations: `BasePageTranslation`, `BasePageCategoryTranslation`,
