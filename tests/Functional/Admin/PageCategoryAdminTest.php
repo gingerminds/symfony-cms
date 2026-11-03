@@ -23,7 +23,7 @@ final class PageCategoryAdminTest extends ApiTestCase
         $this->site = $this->site('main');
     }
 
-    public function testTheTreeIsOrderedByPositionThenCode(): void
+    public function testTheTreeIsOrderedByPositionThenId(): void
     {
         $products = $this->fixtures->pageCategory($this->site, 'products', ['fr' => ['Produits', 'produits']], position: 1);
         $this->fixtures->pageCategory($this->site, 'tractors', ['fr' => ['Tracteurs', 'tracteurs']], $products);
@@ -35,7 +35,7 @@ final class PageCategoryAdminTest extends ApiTestCase
         $crawler = $this->client->request('GET', self::BASE);
 
         self::assertResponseIsSuccessful();
-        self::assertSame(['À propos', 'Actualités', 'Produits', 'Tracteurs'], $crawler->filter('.sortable-item .fw-medium')->each(static fn (Crawler $node): string => $node->text()));
+        self::assertSame(['À propos', 'Produits', 'Tracteurs', 'Actualités'], $crawler->filter('.sortable-item .fw-medium')->each(static fn (Crawler $node): string => $node->text()));
         self::assertSame('/produits/tracteurs', $crawler->filter('.sortable-level .sortable-level .gm-cms-category-path')->text());
         self::assertCount(0, $crawler->filter('[data-controller="gm-sortable-tree"]'), 'Read only: no drag & drop.');
         self::assertCount(1, $crawler->filter('#gm-sidebar a[href="/admin/page-categories"]'));
@@ -191,8 +191,9 @@ final class PageCategoryAdminTest extends ApiTestCase
         self::assertSame(self::BASE . '/reorder', $tree->attr('data-gm-sortable-tree-url-value'));
         $token = (string) $tree->attr('data-gm-sortable-tree-csrf-token-value');
 
+        // The core answers an invalid token with a flash and a redirection.
         $this->reorder([(int) $second->getId(), (int) $first->getId()], 'invalid');
-        self::assertResponseStatusCodeSame(403);
+        self::assertResponseRedirects(self::BASE);
 
         $this->reorder([(int) $second->getId(), (int) $first->getId()], $token);
         self::assertResponseIsSuccessful();

@@ -1,8 +1,8 @@
 # Installation
 
-Install and configure [`gingerminds/symfony-core`](https://github.com/gingerminds/symfony-core) (^1.9),
-[`gingerminds/symfony-media-manager`](https://github.com/gingerminds/symfony-media-manager) (^1.2)
-and [`gingerminds/symfony-multisite`](https://github.com/gingerminds/symfony-multisite) (^1.2)
+Install and configure [`gingerminds/symfony-core`](https://github.com/gingerminds/symfony-core) (^1.10),
+[`gingerminds/symfony-media-manager`](https://github.com/gingerminds/symfony-media-manager) (^1.3)
+and [`gingerminds/symfony-multisite`](https://github.com/gingerminds/symfony-multisite) (^1.3)
 first: the CMS registers its resources, admin menu, permissions and assets into the core, picks
 its files and medias in the media manager and scopes its contents by site and language.
 
@@ -28,13 +28,13 @@ return [
 ## 2. Routes
 
 ```yaml
-# config/routes/gingerminds_cms.yaml — reordering of the trees, block modal of the pages
+# config/routes/gingerminds_cms.yaml — block modal of the pages
 gingerminds_cms:
     resource: '@GingermindsCmsBundle/config/routes.php'
 ```
 
-The CRUD routes (`/admin/menus`, `/admin/menus/{menuId}/items`, `/admin/page-categories`,
-`/admin/pages`) come from the core `gingerminds_crud` loader, the API routes (`/api/menus`,
+The CRUD and tree reordering routes (`/admin/menus`, `/admin/menus/{menuId}/items`,
+`/admin/page-categories`, `/admin/pages`) come from the core `gingerminds_crud` loader, the API routes (`/api/menus`,
 `/api/pages`, `/api/search-indices`, `/api/search-results`) from API Platform: nothing to add.
 
 ## 3. The site entity

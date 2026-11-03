@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Gingerminds\CmsBundle\Model\TranslationFieldsTrait;
 use Gingerminds\CmsBundle\Model\TranslationSiteTrait;
 use Gingerminds\CmsBundle\Validator\UniqueSiblingPrefix;
-use Gingerminds\CoreBundle\Model\CacheCascadeInterface;
+use Gingerminds\CoreBundle\Model\CacheCascade;
 use Gingerminds\CoreBundle\Model\TimestampableInterface;
 use Gingerminds\CoreBundle\Model\Trait\TimestampableTrait;
 use Gingerminds\MultisiteBundle\Entity\Site\SiteInterface;
@@ -27,7 +27,8 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 #[ORM\UniqueConstraint(name: 'page_category_translations_page_category_id_language_id_unique', columns: ['page_category_id', 'language_id'])]
 #[ORM\HasLifecycleCallbacks]
 #[UniqueSiblingPrefix]
-class PageCategoryTranslation implements TranslationInterface, TimestampableInterface, CacheCascadeInterface
+#[CacheCascade(['page_category', 'page'])]
+class PageCategoryTranslation implements TranslationInterface, TimestampableInterface
 {
     use TimestampableTrait;
     use TranslationFieldsTrait;
@@ -56,11 +57,6 @@ class PageCategoryTranslation implements TranslationInterface, TimestampableInte
     public static function getTranslatableEntityClass(): string
     {
         return PageCategory::class;
-    }
-
-    public static function getCascadeCacheKeys(): array
-    {
-        return ['page_category', 'page'];
     }
 
     public function getTranslatable(): ?TranslatableInterface

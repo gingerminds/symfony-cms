@@ -4,61 +4,67 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Page;
 
+use ApiPlatform\Metadata\Parameters;
 use Gingerminds\CmsBundle\Entity\Page\PageCategoryInterface;
-use Gingerminds\CmsBundle\Entity\Page\PageInterface;
+use Gingerminds\CmsBundle\Repository\Page\PageCategoryRepository;
 use Gingerminds\CmsBundle\Repository\Page\PageRepository;
-use Gingerminds\CoreBundle\Model\FilterableInterface;
-use Gingerminds\CoreBundle\Repository\ListQuery;
-use Gingerminds\CoreBundle\Service\AbstractFilterComputeService;
+use Gingerminds\CoreBundle\ApiPlatform\Filter\ComputedFilterStore;
+use Gingerminds\CoreBundle\ApiPlatform\Filter\FilterParameters;
 
 /**
- * The facets of the page collection API (Laravel PageFilterComputeService): publication dates,
- * categories with their page count against the other active filters. The status is always
- * `published` on the API: no status facet.
+ * The facets of the page collection API (Laravel PageFilterComputeService), against the other
+ * valued list parameters: publication dates, categories with their page count. The status is
+ * always `published` on the API: no status facet.
  *
- * @extends AbstractFilterComputeService<PageInterface&FilterableInterface>
+ * @phpstan-import-type ComputedFilters from ComputedFilterStore
  */
-class PageFilterComputeService extends AbstractFilterComputeService
+class PageFilterComputeService
 {
-    /**
-     * @param class-string<PageInterface&FilterableInterface> $entityClass
-     */
     public function __construct(
         private readonly PageRepository $pages,
-        private readonly string $entityClass,
+        private readonly PageCategoryRepository $categories,
     ) {
     }
 
     /**
-     * @return array<string, array{type: string, options: mixed}>
+     * @return ComputedFilters
      */
-    public function compute(ListQuery $query): array
+    public function compute(Parameters $parameters): array
     {
-        return [
-            ...$this->computeDateFilters($query),
-            'category' => ['type' => 'select-entity', 'options' => $this->categories($query)],
-        ];
+        $filters = [];
+        $dates = $this->pages->getDateFacetStats($parameters, 'publishedAt');
+
+        if (null !== $dates['min']) {
+            $filters['publishedAt'] = ['type' => 'date', 'options' => $dates];
+        }
+
+        $filters['category'] = ['type' => 'relation', 'options' => $this->categories($parameters)];
+
+        return $filters;
     }
 
     /**
+     * The categories with pages, and the selected ones.
+     *
      * @return list<array{value: int, label: string, total: int}>
      */
-    public function categories(ListQuery $query): array
+    public function categories(Parameters $parameters): array
     {
-        return $this->resolveCategoryOptions(
-            PageCategoryInterface::class,
-            $this->pages->getAssociationFacetCounts($query, 'category'),
-            $this->normalizeIds($this->activeFilterValue($query, 'category')),
-        );
-    }
+        $counts = $this->pages->getAssociationFacetCounts($parameters, 'category');
+        $value = FilterParameters::value($parameters, 'category');
+        $selected = array_map(intval(...), array_filter(\is_array($value) ? $value : [$value], is_numeric(...)));
+        $ids = array_values(array_unique([...array_map(intval(...), array_keys($counts)), ...$selected]));
+        $options = [];
 
-    protected function getEntityClass(): string
-    {
-        return $this->entityClass;
-    }
+        foreach ([] === $ids ? [] : $this->categories->findBy(['id' => $ids]) as $category) {
+            $id = (int) $category->getId();
+            $total = $counts[$id] ?? 0;
 
-    protected function dateFacetStats(ListQuery $query): array
-    {
-        return ['publishedAt' => $this->pages->getDateFacetStats($query, 'publishedAt')];
+            if ($category instanceof PageCategoryInterface && ($total > 0 || \in_array($id, $selected, true))) {
+                $options[] = ['value' => $id, 'label' => (string) $category, 'total' => $total];
+            }
+        }
+
+        return $options;
     }
 }

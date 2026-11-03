@@ -45,13 +45,15 @@ gingerminds_cms:
 
 `resources.menu`, `resources.menu_item`, `resources.page_category` and `resources.page` are
 registered as [core resources](https://github.com/gingerminds/symfony-core/blob/master/docs/ResourceModel.md)
-(admin CRUD, voter, permissions, API cache). Each takes:
+(admin CRUD, core `ResourceVoter` permissions, API cache), below the project
+`gingerminds_core.resources`. Each takes:
 
 | Key | Default | |
 |---|---|---|
 | `entity` | `Gingerminds\CmsBundle\Entity\…` | Your entity, extending the mapped superclass (`BaseMenu`, `BaseMenuItem`, `BasePageCategory`, `BasePage`). The relations of the bundle point at it (`resolve_target_entities`). |
 | `controller` | the bundle one | Your admin controller, extending the bundle one. |
 | `form` | the bundle one | Your admin form type. |
+| `api` | `true` | `false` stops exposing the entity through the API. An entity overriding a bundle one inherits its `#[ApiResource]`. |
 
 To add a few fields, prefer a form type extension and the form include slots (see below) to a new
 form.

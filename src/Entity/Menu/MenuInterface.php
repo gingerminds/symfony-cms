@@ -7,13 +7,9 @@ namespace Gingerminds\CmsBundle\Entity\Menu;
 use Doctrine\Common\Collections\Collection;
 use Gingerminds\CoreBundle\Model\ResourceInterface;
 use Gingerminds\CoreBundle\Model\TimestampableInterface;
-use Gingerminds\MultisiteBundle\Model\LanguageScopedInterface;
 use Gingerminds\MultisiteBundle\Model\SiteContextedInterface;
 
-/**
- * Language scoped: the API serializes the item tree in the current language (`Accept-Language`).
- */
-interface MenuInterface extends ResourceInterface, SiteContextedInterface, LanguageScopedInterface, TimestampableInterface, \Stringable
+interface MenuInterface extends ResourceInterface, SiteContextedInterface, TimestampableInterface, \Stringable
 {
     public function getId(): ?int;
 

@@ -12,7 +12,7 @@ use Gingerminds\CmsBundle\Model\VisualsInterface;
 use Gingerminds\CmsBundle\Model\VisualsTrait;
 use Gingerminds\CmsBundle\Validator\UniquePageUrl;
 use Gingerminds\CmsBundle\Validator\UniqueSlugInCategory;
-use Gingerminds\CoreBundle\Model\CacheCascadeInterface;
+use Gingerminds\CoreBundle\Model\CacheCascade;
 use Gingerminds\CoreBundle\Model\TimestampableInterface;
 use Gingerminds\CoreBundle\Model\Trait\TimestampableTrait;
 use Gingerminds\MultisiteBundle\Entity\Site\SiteInterface;
@@ -31,7 +31,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 #[UniqueSlugInCategory]
 #[UniquePageUrl]
-class PageTranslation implements TranslationInterface, VisualsInterface, TimestampableInterface, CacheCascadeInterface
+#[CacheCascade(['page'])]
+class PageTranslation implements TranslationInterface, VisualsInterface, TimestampableInterface
 {
     use TimestampableTrait;
     use TranslationFieldsTrait;
@@ -68,11 +69,6 @@ class PageTranslation implements TranslationInterface, VisualsInterface, Timesta
     public static function getTranslatableEntityClass(): string
     {
         return Page::class;
-    }
-
-    public static function getCascadeCacheKeys(): array
-    {
-        return ['page'];
     }
 
     public function getTranslatable(): ?TranslatableInterface

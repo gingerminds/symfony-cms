@@ -16,7 +16,7 @@ pages.
 | `config/gingerminds-cms.php` | `gingerminds_cms:` config | See the table below. |
 | `ResourceResolver` (`resources.menu\|menu_item\|page\|page_category`) | `resources.*` (`entity`, `controller`, `form`) | Core resources, see [Configuration](Configuration.md#resources). |
 | `Menu`, `MenuItem`, `PageCategory`, `Page` models + translations | `BaseMenu`, `BaseMenuItem`, `BasePageCategory`, `BasePage` mapped superclasses + entities | Overridable. |
-| Policies | Voters | Same permission names. |
+| Policies | Core `ResourceVoter` | Same permission names. |
 | Spatie model states (`State\Page\Status\*`, transitions) | `symfony/workflow` state machine `gingerminds_cms_publication` | Extensible by configuration, see [Pages](Pages.md#publication-workflow). |
 | `<x-...::form.inputs.wysiwyg>` (TipTap 2) | [`WysiwygType`](Forms.md#wysiwygtype) (TipTap 3) | Same presets, same HTML. |
 | `<x-...::form.inputs.canvas>`, `content-blocks.js` | [`BlockCanvasType`](Forms.md#blockcanvastype), Stimulus `gm-cms-blocks` | |
@@ -78,7 +78,7 @@ pages.
 
 ### URLs and page API
 
-- `filters[category]` instead of `category_id`.
+- `category=` (core list parameters) instead of `category_id`.
 - The collection serves the published pages only; `/api/pages/{id}` serves any status for the
   preview.
 - The URL sync is tolerant: a path taken by another page keeps the former path and reports the

@@ -20,6 +20,15 @@ final class PublicationStatus
     public const array PLACES = [self::DRAFT, self::PUBLISHED, self::ARCHIVED];
 
     /**
+     * The translation key of each status of the bundle (GingermindsCms domain): labels() for the project ones.
+     */
+    public const array LABELS = [
+        self::DRAFT => 'publication.status.' . self::DRAFT,
+        self::PUBLISHED => 'publication.status.' . self::PUBLISHED,
+        self::ARCHIVED => 'publication.status.' . self::ARCHIVED,
+    ];
+
+    /**
      * @var array<string, array{string, string}> transition name => [from, to]
      */
     public const array TRANSITIONS = [

@@ -78,7 +78,7 @@ trait MenuItemTreeTrait
     }
 
     /**
-     * The parent belongs to the same menu and is neither the item nor one of its descendants.
+     * The parent belongs to the same menu (NoTreeCycle: neither the item nor one of its descendants).
      */
     #[Assert\Callback]
     public function validateParent(ExecutionContextInterface $context): void
@@ -91,16 +91,6 @@ trait MenuItemTreeTrait
 
         if ($parent->getMenu() !== $this->menu) {
             $context->buildViolation('gingerminds_cms.menu_item.parent_other_menu')->atPath('parent')->addViolation();
-
-            return;
-        }
-
-        for ($ancestor = $parent; $ancestor instanceof MenuItemInterface; $ancestor = $ancestor->getParent()) {
-            if ($ancestor === $this) {
-                $context->buildViolation('gingerminds_cms.menu_item.parent_cycle')->atPath('parent')->addViolation();
-
-                return;
-            }
         }
     }
 }

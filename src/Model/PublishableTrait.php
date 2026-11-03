@@ -6,6 +6,8 @@ namespace Gingerminds\CmsBundle\Model;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Gingerminds\CoreBundle\Model\Filter;
+use Gingerminds\CoreBundle\Model\Sortable;
 
 /**
  * Implements PublishableInterface: `status` (the workflow marking), `published_at`, `archived_at`
@@ -14,9 +16,13 @@ use Doctrine\ORM\Mapping as ORM;
 trait PublishableTrait
 {
     #[ORM\Column(length: 255, options: ['default' => PublicationStatus::DRAFT])]
+    #[Sortable]
+    #[Filter(type: Filter::EXACT, label: 'publication.field.status', choices: PublicationStatus::LABELS, multiple: true)]
     protected string $status = PublicationStatus::DRAFT;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    #[Sortable]
+    #[Filter(label: 'publication.field.published_at')]
     protected ?\DateTimeImmutable $publishedAt = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]

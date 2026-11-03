@@ -56,8 +56,7 @@ trait PageCategoryTreeTrait
     }
 
     /**
-     * The parent belongs to the same site, is neither the category nor one of its descendants,
-     * and has a prefix in each of its languages (its children would go up in the URLs otherwise).
+     * The parent belongs to the same site and has a prefix in each of its languages (its children would go up in the URLs otherwise).
      */
     #[Assert\Callback]
     public function validateParent(ExecutionContextInterface $context): void
@@ -72,14 +71,6 @@ trait PageCategoryTreeTrait
             $context->buildViolation('gingerminds_cms.page_category.parent_other_site')->atPath('parent')->addViolation();
 
             return;
-        }
-
-        for ($ancestor = $parent; $ancestor instanceof PageCategoryInterface; $ancestor = $ancestor->getParent()) {
-            if ($ancestor === $this) {
-                $context->buildViolation('gingerminds_cms.page_category.parent_cycle')->atPath('parent')->addViolation();
-
-                return;
-            }
         }
 
         $languages = [];

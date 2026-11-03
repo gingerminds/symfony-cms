@@ -1,8 +1,6 @@
 {% extends '@GingermindsCore/crud/list_tree.html.twig' %}
 {% trans_default_domain 'GingermindsCms' %}
 
-{% set tree_reorder_url = is_granted('EDIT', resource.name) ? path('gingerminds_cms_page_category_reorder') : null %}
-{% set tree_csrf_token_id = reorder_csrf_token_id %}
 
 {% block list_filters %}{% endblock %}
 

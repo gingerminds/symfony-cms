@@ -32,7 +32,7 @@ final class SearchEngineChoiceTest extends ApiTestCase
         self::assertSame(['title' => 'Tracteur rouge', 'hook' => ''], $documents[0]->fields);
         self::assertSame(['title' => 3, 'hook' => 1], $documents[0]->weights);
 
-        self::assertSame(['Tracteur rouge'], array_column($this->api('GET', '/api/search-indices?filters[search]=rouge', locale: 'fr')['member'], 'title'));
+        self::assertSame(['Tracteur rouge'], array_column($this->api('GET', '/api/search-indices?search=rouge', locale: 'fr')['member'], 'title'));
 
         $page->setStatus('draft');
         $this->entityManager()->flush();

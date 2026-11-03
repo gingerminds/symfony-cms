@@ -7,8 +7,8 @@ the contents; the engine is chosen by configuration:
 - `doctrine` (default): two tables of the database, `LIKE` search, facets in SQL;
 - any service implementing `SearchEngineInterface`: TNTSearch, Elasticsearch...
 
-The admin search of a list (`filters[search]` on `/admin/pages`, `/api/pages`...) is another,
-unrelated mechanism (core `SearchableInterface`).
+The search of a list (`search=` on `/admin/pages`, `/api/pages`...) is another, unrelated
+mechanism (core `#[Searchable]`).
 
 ## What is indexed
 

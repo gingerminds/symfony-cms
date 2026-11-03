@@ -155,5 +155,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - CI: PHPUnit coverage (Xdebug, Clover report) sent to SonarQube, which now runs after the tests;
   line coverage shown on the merge requests. `assets/` analysed by SonarQube.
+- **BC break** — requires `gingerminds/symfony-core` ^1.10, `gingerminds/symfony-media-manager` ^1.3
+  and `gingerminds/symfony-multisite` ^1.3:
+  - the bundle extends the core `AbstractResourceBundle`: the admin resources are registered on load
+    (below the project `gingerminds_core.resources`), `resources.*.api: false` removes an entity
+    from the API, an entity overriding a bundle one inherits its `#[ApiResource]` (the bundle `Site`
+    no longer copies the multisite one);
+  - `#[Cacheable]`, `#[CacheCascade]`, `#[Sortable]`, `#[Searchable]`, `#[EagerLoad]` and `#[Filter]`
+    on the entities instead of the removed core interfaces; `#[LanguageScoped]` on `BaseMenu`; the
+    `status` and `publishedAt` filters are declared by `PublishableTrait`;
+  - page categories and menu items: core admin tree (`AbstractTreeCrudController`,
+    `TreeRepositoryTrait`, `TreeNodeInterface`, `TreeNodes`, `#[NoTreeCycle]`); the bundle copies are
+    removed with `PageCategoryRepository::findTree()` / `reorder()`,
+    `MenuItemRepository::findByMenu()` / `reorder()` and the `*_reorder` routes of
+    `config/routes.php` (same names and paths, from the core loader); a level is ordered by
+    position then id (was code for the categories);
+  - permissions checked by the core `ResourceVoter` (`MenuVoter`, `MenuItemVoter`, `PageVoter`,
+    `PageCategoryVoter` removed); the admin controllers follow the core `AbstractCrudController`
+    (no `CrudContext`), a menu item of another menu is a 404 (`entityBelongsToRoute()`);
+  - API: native Doctrine providers and core list contract (`order[code]=asc`, `search=`,
+    `category=`, `publishedAt[after]=`, `422` on an invalid value); `PageProvider` is replaced by
+    `PageCollectionProvider` (published only, facets) and `PageItemProvider` (`by-slug`, unpublished
+    pages behind `security`), the menus have no provider; the `category` facet is of type
+    `relation`; `PageFilterComputeService` no longer extends the removed core
+    `AbstractFilterComputeService`;
+  - search API: `search` and `type[]` (API Platform query parameters) instead of `filters[search]`
+    and `filters[type][]`, API Platform pagination (100 items per page at most).
 - Requires `symfony/workflow` ^8.1, `symfony/html-sanitizer` ^8.1, `gingerminds/symfony-core` ^1.9 (nested resources, input groups), `gingerminds/symfony-media-manager` ^1.2 (picker modals over the block modal) and
   `gingerminds/symfony-multisite` ^1.2 (form include slots, `translation_fallback`).

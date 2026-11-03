@@ -6,6 +6,7 @@ namespace Gingerminds\CmsBundle\Entity\Page;
 
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Gingerminds\CoreBundle\Model\EagerLoad;
 use Gingerminds\MultisiteBundle\Entity\Language\LanguageInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\SerializedName;
@@ -19,6 +20,7 @@ trait PageApiFieldsTrait
      * @var Collection<int, PageUrl>
      */
     #[ORM\OneToMany(targetEntity: PageUrl::class, mappedBy: 'page')]
+    #[EagerLoad(paths: ['language'])]
     protected Collection $urls;
 
     public function getUrls(): Collection

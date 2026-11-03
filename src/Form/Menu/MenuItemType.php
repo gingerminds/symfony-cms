@@ -7,8 +7,8 @@ namespace Gingerminds\CmsBundle\Form\Menu;
 use Gingerminds\CmsBundle\Entity\Menu\MenuInterface;
 use Gingerminds\CmsBundle\Entity\Menu\MenuItemInterface;
 use Gingerminds\CmsBundle\GingermindsCmsBundle;
-use Gingerminds\CmsBundle\Model\TreeNodes;
 use Gingerminds\CmsBundle\Repository\Menu\MenuItemRepository;
+use Gingerminds\CoreBundle\Model\TreeNodes;
 use Gingerminds\CoreBundle\Resource\ResourceRegistry;
 use Gingerminds\MultisiteBundle\Form\Type\TranslationsType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -37,7 +37,7 @@ class MenuItemType extends AbstractType
         /** @var MenuInterface $menu */
         $menu = $options['menu'];
         $item = $builder->getData();
-        [$choices, $depths] = TreeNodes::parentChoices($this->items->findByMenu($menu), $item instanceof MenuItemInterface ? $item : null);
+        [$choices, $depths] = TreeNodes::parentChoices($this->items->findTreeNodes(['menu' => $menu]), $item instanceof MenuItemInterface ? $item : null);
 
         $builder
             ->add('code', TextType::class, [

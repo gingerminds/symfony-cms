@@ -50,8 +50,7 @@ return static function (ContainerConfigurator $container): void {
         ->tag('kernel.reset', ['method' => 'reset']);
 
     $services->set('gingerminds_cms.page.filter_compute', PageFilterComputeService::class)
-        ->args([service(PageRepository::class), param('gingerminds_cms.resource.page.entity')])
-        ->call('setEntityManager', [service('doctrine.orm.entity_manager')]);
+        ->args([service(PageRepository::class), service(PageCategoryRepository::class)]);
 
     $services->set('gingerminds_cms.command.sync_page_urls', SyncPageUrlsCommand::class)
         ->args([service(PageRepository::class), service('gingerminds_cms.page.url_syncer'), service('doctrine.orm.entity_manager')])

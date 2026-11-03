@@ -9,7 +9,7 @@ use Gingerminds\CmsBundle\Block\BlockInterface;
 use Gingerminds\CmsBundle\Block\BlockRegistry;
 use Gingerminds\CmsBundle\Block\Reference\ContentReferenceResolver;
 use Gingerminds\CmsBundle\Form\Block\BlockDataType;
-use Gingerminds\CoreBundle\Security\Voter\AbstractResourceVoter;
+use Gingerminds\CoreBundle\Security\Voter\ResourceVoter;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -78,7 +78,7 @@ class BlockController
 
     private function block(string $resource, string $key): BlockInterface
     {
-        if (!$this->authorizationChecker->isGranted(AbstractResourceVoter::CREATE, $resource) && !$this->authorizationChecker->isGranted(AbstractResourceVoter::EDIT, $resource)) {
+        if (!$this->authorizationChecker->isGranted(ResourceVoter::CREATE, $resource) && !$this->authorizationChecker->isGranted(ResourceVoter::EDIT, $resource)) {
             throw new AccessDeniedException();
         }
 

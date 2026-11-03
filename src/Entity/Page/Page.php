@@ -19,18 +19,21 @@ use Gingerminds\CmsBundle\Repository\Page\PageRepository;
 #[ApiResource(
     shortName: 'Page',
     operations: [
-        new GetCollection(normalizationContext: ['groups' => [BasePage::GROUP_LIST], 'skip_null_values' => false]),
-        new Get(security: self::API_ITEM_SECURITY),
+        new GetCollection(
+            normalizationContext: ['groups' => [BasePage::GROUP_LIST], 'skip_null_values' => false],
+            provider: 'gingerminds_cms.api.provider.page_collection',
+        ),
+        new Get(security: self::API_ITEM_SECURITY, provider: 'gingerminds_cms.api.provider.page_item'),
         new Get(
             uriTemplate: '/pages/by-slug/{slug}',
             uriVariables: ['slug' => new Link(fromClass: self::class, identifiers: ['slug'])],
             requirements: ['slug' => '.+'],
             name: 'gingerminds_cms_page_by_path',
+            provider: 'gingerminds_cms.api.provider.page_item',
         ),
     ],
     normalizationContext: ['groups' => [BasePage::GROUP_READ], 'skip_null_values' => false],
     paginationClientItemsPerPage: true,
-    provider: 'gingerminds_cms.api.provider.page',
 )]
 #[ORM\Entity(repositoryClass: PageRepository::class)]
 #[ORM\Table(name: 'pages')]

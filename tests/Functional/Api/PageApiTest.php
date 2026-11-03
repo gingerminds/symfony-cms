@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Tests\Functional\Api;
 
-use ApiPlatform\Metadata\Get;
-use Gingerminds\CmsBundle\ApiPlatform\State\PageProvider;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use Gingerminds\CmsBundle\ApiPlatform\State\PageItemProvider;
 use Gingerminds\CmsBundle\Entity\Page\Page;
 use Gingerminds\CmsBundle\Entity\Page\PageInterface;
 use Gingerminds\CmsBundle\Entity\Page\PageTranslation;
@@ -45,7 +45,7 @@ final class PageApiTest extends ApiTestCase
         self::assertSame([['value' => $products->getId(), 'label' => 'Products', 'total' => 1]], $data['filters']['category']['options']);
         self::assertSame('date', $data['filters']['publishedAt']['type']);
 
-        $data = $this->api('GET', '/api/pages?filters[category]=' . $products->getId());
+        $data = $this->api('GET', '/api/pages?category=' . $products->getId());
         self::assertSame(['tractor'], array_column($data['member'], 'code'));
     }
 
@@ -109,7 +109,7 @@ final class PageApiTest extends ApiTestCase
         $token = $this->fixtures->token($this->fixtures->user('viewer@example.com', ['view pages']));
 
         foreach ([null, $token] as $viewer) {
-            $data = $this->api('GET', '/api/pages?filters[status]=draft', $viewer);
+            $data = $this->api('GET', '/api/pages?status=draft', $viewer);
             self::assertStatus(200);
             self::assertSame(['about'], array_column($data['member'], 'code'));
 
@@ -126,12 +126,16 @@ final class PageApiTest extends ApiTestCase
     {
         $draft = $this->fixtures->page($this->site, 'draft', ['fr' => ['Brouillon', 'brouillon']]);
         $published = $this->fixtures->page($this->site, 'about', ['fr' => ['À propos', 'a-propos']], status: 'published');
-        $provider = static::getContainer()->get('gingerminds_cms.api.provider.page');
-        self::assertInstanceOf(PageProvider::class, $provider);
+        $provider = self::getContainer()->get('gingerminds_cms.api.provider.page_item');
+        self::assertInstanceOf(PageItemProvider::class, $provider);
+        $metadata = self::getContainer()->get('api_platform.metadata.resource.metadata_collection_factory');
+        self::assertInstanceOf(ResourceMetadataCollectionFactoryInterface::class, $metadata);
+        $secured = $metadata->create(Page::class)->getOperation('_api_/pages/{id}{._format}_get');
+        $unsecured = $secured->withSecurity();
 
-        self::assertNull($provider->provide(new Get(class: Page::class), ['id' => $draft->getId()]));
-        self::assertSame($published->getId(), $this->providedId($provider->provide(new Get(class: Page::class), ['id' => $published->getId()])));
-        self::assertSame($draft->getId(), $this->providedId($provider->provide(new Get(class: Page::class, security: Page::API_ITEM_SECURITY), ['id' => $draft->getId()])));
+        self::assertNull($provider->provide($unsecured, ['id' => $draft->getId()]));
+        self::assertSame($published->getId(), $this->providedId($provider->provide($unsecured, ['id' => $published->getId()])));
+        self::assertSame($draft->getId(), $this->providedId($provider->provide($secured, ['id' => $draft->getId()])));
     }
 
     public function testTheContentIsServedAsStoredWithTheTranslationFallback(): void

@@ -66,7 +66,7 @@ return static function (ContainerConfigurator $container): void {
             service('gingerminds_core.api.computed_filter_store'),
             service('gingerminds_multisite.context.site'),
             service('gingerminds_multisite.context.language'),
-            service('request_stack'),
+            service('api_platform.pagination'),
             service('doctrine.orm.entity_manager'),
             service_closure('serializer'),
         ])

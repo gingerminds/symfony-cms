@@ -87,11 +87,12 @@ final class PageContentReferencesTest extends ApiTestCase
         /** @var FileReferenceRegistry $references */
         $references = self::getContainer()->get('test.file_reference_registry');
 
-        self::assertTrue($references->isUsed($this->image));
         $usages = $references->usages([$this->image])[$this->image->getId()];
         self::assertCount(1, $usages);
         self::assertSame('/admin/pages/' . $this->page->getId() . '/edit', $usages[0]->editUrl);
-        self::assertContains($this->image->getId(), $references->usedIds());
+        $unused = $this->entityManager()->createQueryBuilder()->select('f.id')->from(File::class, 'f');
+        $references->excludeReferenced($unused, 'f');
+        self::assertNotContains($this->image->getId(), array_column($unused->getQuery()->getArrayResult(), 'id'));
 
         // A merge of duplicates points the content at the kept file.
         $kept = $this->fixtures->file('photo-1.png');

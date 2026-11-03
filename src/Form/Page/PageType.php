@@ -8,9 +8,9 @@ use Gingerminds\CmsBundle\Entity\Page\PageCategoryInterface;
 use Gingerminds\CmsBundle\Entity\Page\PageInterface;
 use Gingerminds\CmsBundle\Form\Type\PublicationStatusType;
 use Gingerminds\CmsBundle\GingermindsCmsBundle;
-use Gingerminds\CmsBundle\Model\TreeNodes;
 use Gingerminds\CmsBundle\Page\PreviewUrls;
 use Gingerminds\CmsBundle\Repository\Page\PageCategoryRepository;
+use Gingerminds\CoreBundle\Model\TreeNodes;
 use Gingerminds\CoreBundle\Resource\ResourceRegistry;
 use Gingerminds\MediaManagerBundle\Form\File\FilePickerType;
 use Gingerminds\MultisiteBundle\Form\Type\TranslationsType;
@@ -43,7 +43,7 @@ class PageType extends AbstractType
     {
         $page = $builder->getData();
         $page = $page instanceof PageInterface ? $page : null;
-        [$categories, $depths] = TreeNodes::parentChoices($this->categories->findTree(), null);
+        [$categories, $depths] = TreeNodes::parentChoices($this->categories->findTreeNodes(), null);
 
         $builder
             ->add('code', TextType::class, [

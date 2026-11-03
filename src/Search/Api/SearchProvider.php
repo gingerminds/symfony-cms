@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Search\Api;
 
 use ApiPlatform\Metadata\Operation;
+use ApiPlatform\State\Pagination\Pagination;
 use ApiPlatform\State\Pagination\TraversablePaginator;
 use ApiPlatform\State\ProviderInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -15,11 +16,9 @@ use Gingerminds\CmsBundle\Search\SearchQuery;
 use Gingerminds\CmsBundle\Search\SearchResource;
 use Gingerminds\CmsBundle\Search\SearchResourceRegistry;
 use Gingerminds\CoreBundle\ApiPlatform\Filter\ComputedFilterStore;
-use Gingerminds\CoreBundle\Repository\ListQuery;
 use Gingerminds\MultisiteBundle\Context\LanguageContext;
 use Gingerminds\MultisiteBundle\Context\SiteContext;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
@@ -30,8 +29,6 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  */
 final readonly class SearchProvider implements ProviderInterface
 {
-    private const int MAX_ITEMS_PER_PAGE = 100;
-
     /**
      * @param \Closure(): NormalizerInterface $normalizer lazy: the serializer builds the API Platform providers
      */
@@ -42,7 +39,7 @@ final readonly class SearchProvider implements ProviderInterface
         private ComputedFilterStore $filterStore,
         private SiteContext $siteContext,
         private LanguageContext $languageContext,
-        private RequestStack $requestStack,
+        private Pagination $pagination,
         private EntityManagerInterface $entityManager,
         private \Closure $normalizer,
     ) {
@@ -50,8 +47,8 @@ final readonly class SearchProvider implements ProviderInterface
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): TraversablePaginator
     {
-        $request = $context['request'] ?? $this->requestStack->getCurrentRequest();
-        $query = $this->query($request instanceof Request ? ListQuery::fromRequest($request) : new ListQuery());
+        $request = $context['request'] ?? null;
+        $query = $this->query($operation, $context);
         $result = $this->engine->search($query);
         $items = array_map($this->item(...), $result->hits);
 
@@ -68,19 +65,23 @@ final readonly class SearchProvider implements ProviderInterface
         return new SearchItem($hit->recordId, $hit->type, $hit->title, $hit->url, $hit->excerpt, $hit->publishedAt);
     }
 
-    private function query(ListQuery $list): SearchQuery
+    /**
+     * @param array<string, mixed> $context
+     */
+    private function query(Operation $operation, array $context): SearchQuery
     {
-        $text = $list->getFilter(ListQuery::SEARCH_FILTER);
-        [$types, $categories] = $this->typeFilter($list->getFilter('type'));
+        $parameters = $operation->getParameters();
+        $text = $parameters?->get(SearchItem::SEARCH)?->getValue();
+        [$types, $categories] = $this->typeFilter($parameters?->get(SearchItem::TYPE)?->getValue());
 
         return new SearchQuery(
             $this->siteContext->id(),
             $this->languageContext->ids(),
-            \is_string($text) ? $text : null,
+            \is_string($text) && '' !== $text ? $text : null,
             $types,
             $categories,
-            $list->page,
-            min(self::MAX_ITEMS_PER_PAGE, $list->itemsPerPage ?? 10),
+            $this->pagination->getPage($context),
+            $this->pagination->getLimit($operation, $context),
         );
     }
 
@@ -94,7 +95,7 @@ final readonly class SearchProvider implements ProviderInterface
         $types = [];
         $categories = [];
 
-        foreach (\is_array($value) ? $value : [$value] as $item) {
+        foreach (\is_array($value) ? $value : (\is_string($value) ? [$value] : []) as $item) {
             $parts = explode(':', \is_scalar($item) ? (string) $item : '', 2);
             $type = $parts[0];
             $categoryId = $parts[1] ?? null;

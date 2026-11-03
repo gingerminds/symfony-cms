@@ -30,24 +30,20 @@ use Gingerminds\CmsBundle\Model\PublishableInterface;
 use Gingerminds\CmsBundle\Search\PubliclySearchableInterface;
 use Gingerminds\CmsBundle\Search\SearchEngineInterface;
 use Gingerminds\CmsBundle\Site\Entity\Site;
-use Gingerminds\CoreBundle\DependencyInjection\Compiler\OverriddenEntityPass;
+use Gingerminds\CoreBundle\Bundle\AbstractResourceBundle;
 use Symfony\Bundle\MakerBundle\MakerBundle;
-use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
-use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
-use Symfony\Component\DependencyInjection\Extension\ConfigurationExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 
 /**
  * Menus, pages, content blocks and search on top of the core, media manager and multisite bundles.
  */
-final class GingermindsCmsBundle extends AbstractBundle
+final class GingermindsCmsBundle extends AbstractResourceBundle
 {
     /**
-     * Overridable entities of the bundle, registered as `gingerminds_core` resources.
+     * Overridable entities and admin resources of the bundle (AbstractResourceBundle::resources()).
      */
     public const array RESOURCES = [
         'menu' => [
@@ -132,42 +128,15 @@ final class GingermindsCmsBundle extends AbstractBundle
         $builder->setAlias(SearchEngineInterface::class, self::SEARCH_ENGINE_DOCTRINE === $engine ? 'gingerminds_cms.search.engine.doctrine' : $engine);
         $builder->setAlias('gingerminds_cms.search.engine', SearchEngineInterface::class);
 
-        foreach (self::RESOURCES as $name => $resource) {
-            $entity = $this->resourceValue($config, $name, 'entity');
-            $parameters->set('gingerminds_cms.resource.' . $name . '.entity', $entity);
-            $parameters->set('gingerminds_cms.resource.' . $name . '.controller', $this->resourceValue($config, $name, 'controller'));
-
-            if ($entity !== $resource['entity']) {
-                OverriddenEntityPass::registerOverriddenEntity($builder, $resource['entity']);
-            }
-        }
+        parent::loadExtension($config, $container, $builder);
     }
 
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
     {
+        parent::prependExtension($container, $builder);
+
         $config = $this->resolveConfig($builder);
-        $resolveTargetEntities = [];
-        $resources = [];
-
-        foreach (self::RESOURCES as $name => $resource) {
-            $resolveTargetEntities[$resource['interface']] = $this->resourceValue($config, $name, 'entity');
-            $resources[$name] = [
-                'entity' => $this->resourceValue($config, $name, 'entity'),
-                'controller' => $this->resourceValue($config, $name, 'controller'),
-                'form' => $this->resourceValue($config, $name, 'form'),
-                'path' => $resource['path'],
-                'permission' => $resource['permission'],
-                'route_prefix' => 'gingerminds_cms_' . $name,
-                'translation_prefix' => $name,
-                'translation_domain' => self::TRANSLATION_DOMAIN,
-                'template_prefix' => '@GingermindsCms/pages/' . $name,
-            ];
-        }
-
-        $mappings = [
-            'GingermindsCmsMenu' => $this->mapping('Entity/Menu'),
-            'GingermindsCmsPage' => $this->mapping('Entity/Page'),
-        ];
+        $mappings = [];
 
         // The tables of the `doctrine` search engine, only when it is the engine.
         if (self::SEARCH_ENGINE_DOCTRINE === ($config['search']['engine'] ?? self::SEARCH_ENGINE_DOCTRINE)) {
@@ -182,21 +151,18 @@ final class GingermindsCmsBundle extends AbstractBundle
             'fields' => ['title' => ['weight' => 3], 'hook' => ['weight' => 1]],
         ]]]]);
 
-        if (Site::class === $this->multisiteSiteEntity($builder)) {
+        $siteEntity = $builder->getParameterBag()->resolveValue(self::extensionConfigValue($builder, 'gingerminds_multisite', 'resources.site.entity'));
+
+        if (\is_string($siteEntity) && Site::class === ltrim($siteEntity, '\\')) {
             $mappings['GingermindsCmsSite'] = $this->mapping('Site/Entity');
-            $builder->prependExtensionConfig('api_platform', ['mapping' => ['paths' => [$this->getPath() . '/src/Site/Entity']]]);
         }
 
-        $builder->prependExtensionConfig('doctrine', [
-            'orm' => [
-                'resolve_target_entities' => $resolveTargetEntities,
-                'mappings' => $mappings,
-            ],
-        ]);
+        if ([] !== $mappings) {
+            $builder->prependExtensionConfig('doctrine', ['orm' => ['mappings' => $mappings]]);
+        }
 
         // Prepended: the project configuration still overrides any key.
         $builder->prependExtensionConfig('gingerminds_core', [
-            'resources' => $resources,
             'admin_includes' => [
                 'head' => ['@GingermindsCms/admin/_head.html.twig'],
                 'site_form_sidebar' => ['@GingermindsCms/site/_main_menu.html.twig'],
@@ -235,16 +201,6 @@ final class GingermindsCmsBundle extends AbstractBundle
     }
 
     /**
-     * @param array<string, mixed> $config
-     */
-    private function resourceValue(array $config, string $name, string $key): string
-    {
-        $value = $config['resources'][$name][$key] ?? null;
-
-        return \is_string($value) && '' !== $value ? $value : self::RESOURCES[$name][$key];
-    }
-
-    /**
      * The search types with their entity (null: the entity of the CMS resource of the same name).
      *
      * @param array<string, mixed> $config
@@ -256,7 +212,7 @@ final class GingermindsCmsBundle extends AbstractBundle
         $resources = [];
 
         foreach ($config['search']['resources'] as $type => $resource) {
-            $entity = $resource['entity'] ?? (isset(self::RESOURCES[$type]) ? $this->resourceValue($config, $type, 'entity') : null);
+            $entity = $resource['entity'] ?? (isset(self::RESOURCES[$type]) ? $this->resourceValue($config, $type, 'entity', self::RESOURCES[$type]) : null);
 
             if (!\is_string($entity) || !is_subclass_of($entity, PubliclySearchableInterface::class)) {
                 throw new LogicException(\sprintf('The search type "%s" needs an "entity" implementing "%s".', $type, PubliclySearchableInterface::class));
@@ -269,44 +225,19 @@ final class GingermindsCmsBundle extends AbstractBundle
         return $resources;
     }
 
-    /**
-     * The bundle configuration needed while prepending: the other keys may hold env placeholders.
-     *
-     * @return array<string, mixed>
-     */
-    private function resolveConfig(ContainerBuilder $builder): array
+    protected function resources(array $config): array
     {
-        $extension = $this->getContainerExtension();
-        $configuration = $extension instanceof ConfigurationExtensionInterface ? $extension->getConfiguration([], $builder) : null;
-
-        if (!$configuration instanceof ConfigurationInterface) {
-            throw new LogicException('The GingermindsCmsBundle configuration cannot be resolved.');
-        }
-
-        $configs = array_map(
-            static fn (array $config): array => array_intersect_key($config, ['resources' => true, 'search' => true]),
-            $builder->getExtensionConfig($this->extensionAlias),
-        );
-
-        return new Processor()->processConfiguration($configuration, $builder->getParameterBag()->resolveValue($configs));
+        return self::RESOURCES;
     }
 
-    /**
-     * `gingerminds_multisite.resources.site.entity` of the project configuration (the last one wins).
-     */
-    private function multisiteSiteEntity(ContainerBuilder $builder): ?string
+    protected function entityDirectories(): array
     {
-        $entity = null;
+        return ['Menu', 'Page'];
+    }
 
-        foreach ($builder->getExtensionConfig('gingerminds_multisite') as $config) {
-            $value = $config['resources']['site']['entity'] ?? null;
-
-            if (\is_string($value) && '' !== $value) {
-                $entity = $builder->getParameterBag()->resolveValue($value);
-            }
-        }
-
-        return \is_string($entity) ? ltrim($entity, '\\') : null;
+    protected function prependConfigKeys(): array
+    {
+        return ['resources', 'search'];
     }
 
     /**

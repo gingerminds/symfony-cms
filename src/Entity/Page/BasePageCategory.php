@@ -7,10 +7,10 @@ namespace Gingerminds\CmsBundle\Entity\Page;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Gingerminds\CmsBundle\Search\ExcludableFromSearchInterface;
-use Gingerminds\CoreBundle\Model\CacheableResourceInterface;
-use Gingerminds\CoreBundle\Model\CacheCascadeInterface;
-use Gingerminds\CoreBundle\Model\EagerLoadableInterface;
+use Gingerminds\CoreBundle\Model\Cacheable;
+use Gingerminds\CoreBundle\Model\CacheCascade;
 use Gingerminds\CoreBundle\Model\Trait\TimestampableTrait;
+use Gingerminds\CoreBundle\Validator\NoTreeCycle;
 use Gingerminds\MultisiteBundle\Entity\Site\SiteInterface;
 use Gingerminds\MultisiteBundle\Model\TranslatableTrait;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -22,7 +22,11 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 #[ORM\MappedSuperclass]
 #[UniqueEntity(fields: ['code', 'site'], errorPath: 'code')]
-abstract class BasePageCategory implements PageCategoryInterface, EagerLoadableInterface, CacheableResourceInterface, CacheCascadeInterface, ExcludableFromSearchInterface
+#[NoTreeCycle(message: 'gingerminds_cms.page_category.parent_cycle')]
+#[Cacheable(key: 'page_category')]
+// The prefixes build the page paths.
+#[CacheCascade(['page'])]
+abstract class BasePageCategory implements PageCategoryInterface, ExcludableFromSearchInterface
 {
     use PageCategoryTranslatedFieldsTrait;
     use PageCategoryTreeTrait;
@@ -62,27 +66,6 @@ abstract class BasePageCategory implements PageCategoryInterface, EagerLoadableI
     public static function getTranslationEntityClass(): string
     {
         return PageCategoryTranslation::class;
-    }
-
-    public static function getEagerLoads(): array
-    {
-        return [...self::getTranslationEagerLoads()];
-    }
-
-    public static function getCacheKey(): string
-    {
-        return 'page_category';
-    }
-
-    public static function getCacheTtl(): ?int
-    {
-        return null;
-    }
-
-    // The prefixes build the page paths.
-    public static function getCascadeCacheKeys(): array
-    {
-        return ['page'];
     }
 
     public function getId(): ?int

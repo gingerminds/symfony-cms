@@ -39,7 +39,7 @@ final class SearchApiTest extends ApiTestCase
 
     public function testTheLeanHits(): void
     {
-        $data = $this->api('GET', '/api/search-indices?filters[search]=tracteur', locale: 'fr');
+        $data = $this->api('GET', '/api/search-indices?search=tracteur', locale: 'fr');
 
         self::assertStatus(200);
         self::assertSame(2, $data['totalItems']);
@@ -51,14 +51,14 @@ final class SearchApiTest extends ApiTestCase
         self::assertArrayNotHasKey('resource', $hit);
         self::assertArrayNotHasKey('filters', $data, 'No facets on the lean hits.');
 
-        $data = $this->api('GET', '/api/search-indices?filters[search]=tracteur&itemsPerPage=1&page=2', locale: 'fr');
+        $data = $this->api('GET', '/api/search-indices?search=tracteur&itemsPerPage=1&page=2', locale: 'fr');
         self::assertCount(1, $data['member']);
         self::assertSame(2, $data['totalItems']);
     }
 
     public function testTheResultsWithTheirContentAndTheFacets(): void
     {
-        $data = $this->api('GET', '/api/search-results?filters[search]=tracteur', locale: 'fr');
+        $data = $this->api('GET', '/api/search-results?search=tracteur', locale: 'fr');
 
         self::assertStatus(200);
         $hits = array_column($data['member'], null, 'title');
@@ -72,16 +72,16 @@ final class SearchApiTest extends ApiTestCase
         self::assertSame('facet', $data['filters']['type']['type']);
 
         // A category: the type facet still counts every type.
-        $data = $this->api('GET', '/api/search-results?filters[search]=tracteur&filters[type][]=page:' . $this->news->getId(), locale: 'fr');
+        $data = $this->api('GET', '/api/search-results?search=tracteur&type[]=page:' . $this->news->getId(), locale: 'fr');
         self::assertSame(['Salon du tracteur'], array_column($data['member'], 'title'));
         self::assertSame(2, $data['filters']['type']['options'][0]['total']);
 
         // Types and categories are OR'd.
-        $data = $this->api('GET', '/api/search-results?filters[type][]=page:' . $this->news->getId() . '&filters[type][]=page:' . $this->products->getId(), locale: 'fr');
+        $data = $this->api('GET', '/api/search-results?type[]=page:' . $this->news->getId() . '&type[]=page:' . $this->products->getId(), locale: 'fr');
         self::assertEqualsCanonicalizing(['Tracteur rouge', 'Salon du tracteur'], array_column($data['member'], 'title'));
 
         // An unknown type is ignored.
-        $data = $this->api('GET', '/api/search-results?filters[type][]=news', locale: 'fr');
+        $data = $this->api('GET', '/api/search-results?type[]=news', locale: 'fr');
         self::assertSame(3, $data['totalItems']);
     }
 
@@ -91,7 +91,7 @@ final class SearchApiTest extends ApiTestCase
         $data = $this->api('GET', '/api/search-indices', locale: 'en');
         self::assertEqualsCanonicalizing(['Red tractor', 'Salon du tracteur', 'À propos'], array_column($data['member'], 'title'));
 
-        $data = $this->api('GET', '/api/search-indices?filters[search]=tracteur', locale: 'en');
+        $data = $this->api('GET', '/api/search-indices?search=tracteur', locale: 'en');
         self::assertSame(['Salon du tracteur'], array_column($data['member'], 'title'), 'Translated: searched in English only.');
     }
 

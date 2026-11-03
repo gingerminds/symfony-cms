@@ -5,21 +5,21 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Entity\Page;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Gingerminds\CmsBundle\Model\PublicationStatus;
 use Gingerminds\CmsBundle\Model\PublishableTrait;
 use Gingerminds\CmsBundle\Model\VisualsTrait;
 use Gingerminds\CmsBundle\Search\ExcludableSearchableInterface;
 use Gingerminds\CmsBundle\Validator\SinglePageCategory;
-use Gingerminds\CoreBundle\Model\CacheableResourceInterface;
-use Gingerminds\CoreBundle\Model\EagerLoadableInterface;
-use Gingerminds\CoreBundle\Model\FilterableInterface;
-use Gingerminds\CoreBundle\Model\SearchableInterface;
-use Gingerminds\CoreBundle\Model\SortableInterface;
-use Gingerminds\CoreBundle\Model\Trait\CacheableResourceTrait;
+use Gingerminds\CoreBundle\Model\Cacheable;
+use Gingerminds\CoreBundle\Model\EagerLoad;
+use Gingerminds\CoreBundle\Model\Filter;
+use Gingerminds\CoreBundle\Model\Searchable;
+use Gingerminds\CoreBundle\Model\Sortable;
 use Gingerminds\CoreBundle\Model\Trait\TimestampableTrait;
 use Gingerminds\MultisiteBundle\Entity\Site\SiteInterface;
 use Gingerminds\MultisiteBundle\Model\TranslatableTrait;
+use Gingerminds\MultisiteBundle\Model\TranslationInterface;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -31,9 +31,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\MappedSuperclass]
 #[UniqueEntity(fields: ['code', 'site'], errorPath: 'code')]
 #[SinglePageCategory]
-abstract class BasePage implements PageInterface, SortableInterface, SearchableInterface, FilterableInterface, EagerLoadableInterface, CacheableResourceInterface, ExcludableSearchableInterface
+#[Cacheable(key: 'page')]
+abstract class BasePage implements PageInterface, ExcludableSearchableInterface
 {
-    use CacheableResourceTrait;
     use PageApiFieldsTrait;
     use PageSearchTrait;
     use PageTranslatedFieldsTrait;
@@ -63,6 +63,8 @@ abstract class BasePage implements PageInterface, SortableInterface, SearchableI
     #[Assert\NotBlank]
     #[Assert\Length(max: 255)]
     #[Groups([self::GROUP_LIST, self::GROUP_READ])]
+    #[Sortable]
+    #[Searchable]
     protected ?string $code = null;
 
     #[ORM\ManyToOne(targetEntity: SiteInterface::class)]
@@ -72,7 +74,18 @@ abstract class BasePage implements PageInterface, SortableInterface, SearchableI
 
     #[ORM\ManyToOne(targetEntity: PageCategoryInterface::class)]
     #[ORM\JoinColumn(name: 'category_id', nullable: true, onDelete: 'SET NULL')]
+    #[EagerLoad(paths: ['translations'])]
+    #[Filter(label: 'page.field.category')]
     protected ?PageCategoryInterface $category = null;
+
+    /**
+     * TranslatableTrait's, redeclared to search the titles.
+     *
+     * @var Collection<int, TranslationInterface>
+     */
+    #[EagerLoad(paths: ['language'])]
+    #[Searchable(paths: ['title'])]
+    protected Collection $translations;
 
     #[ORM\Column(name: 'is_hidden_from_search', options: ['default' => false])]
     protected bool $hiddenFromSearch = false;
@@ -86,38 +99,6 @@ abstract class BasePage implements PageInterface, SortableInterface, SearchableI
     public static function getTranslationEntityClass(): string
     {
         return PageTranslation::class;
-    }
-
-    public static function getEagerLoads(): array
-    {
-        return [...self::getTranslationEagerLoads(), 'category', 'category.translations', 'urls', 'urls.language'];
-    }
-
-    public static function getCacheKey(): string
-    {
-        return 'page';
-    }
-
-    public static function getSearchableFields(): array
-    {
-        return ['code', 'translations.title'];
-    }
-
-    /**
-     * The status choices are the places of the bundle workflow: PageController adds the project ones.
-     */
-    public static function getFilters(): array
-    {
-        return [
-            'publishedAt' => ['type' => 'date', 'label' => 'page.field.published_at'],
-            'status' => [
-                'type' => 'select',
-                'label' => 'page.field.status',
-                'choices' => PublicationStatus::labels(),
-                'multiple' => true,
-            ],
-            'category' => ['type' => 'select-entity', 'label' => 'page.field.category', 'entity' => PageCategoryInterface::class],
-        ];
     }
 
     public function getId(): ?int

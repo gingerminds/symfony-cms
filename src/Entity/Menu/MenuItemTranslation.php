@@ -6,7 +6,7 @@ namespace Gingerminds\CmsBundle\Entity\Menu;
 
 use Doctrine\ORM\Mapping as ORM;
 use Gingerminds\CmsBundle\Model\TranslationFieldsTrait;
-use Gingerminds\CoreBundle\Model\CacheCascadeInterface;
+use Gingerminds\CoreBundle\Model\CacheCascade;
 use Gingerminds\CoreBundle\Model\TimestampableInterface;
 use Gingerminds\CoreBundle\Model\Trait\TimestampableTrait;
 use Gingerminds\MultisiteBundle\Model\TranslatableInterface;
@@ -20,7 +20,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity]
 #[ORM\Table(name: 'menu_item_translations')]
 #[ORM\UniqueConstraint(name: 'menu_item_translations_menu_item_id_language_id_unique', columns: ['menu_item_id', 'language_id'])]
-class MenuItemTranslation implements TranslationInterface, TimestampableInterface, CacheCascadeInterface
+// The menu cache embeds the item tree.
+#[CacheCascade(['menu'])]
+class MenuItemTranslation implements TranslationInterface, TimestampableInterface
 {
     use TimestampableTrait;
     use TranslationFieldsTrait;
@@ -44,12 +46,6 @@ class MenuItemTranslation implements TranslationInterface, TimestampableInterfac
     public static function getTranslatableEntityClass(): string
     {
         return MenuItem::class;
-    }
-
-    // The menu cache embeds the item tree.
-    public static function getCascadeCacheKeys(): array
-    {
-        return ['menu'];
     }
 
     public function getTranslatable(): ?TranslatableInterface

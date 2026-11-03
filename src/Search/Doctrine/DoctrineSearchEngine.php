@@ -172,7 +172,7 @@ class DoctrineSearchEngine implements SearchEngineInterface
     }
 
     /**
-     * Whole types OR (type, categories): `filters[type]=page&filters[type]=news:12`.
+     * Whole types OR (type, categories): `type[]=page&type[]=news:12`.
      */
     private function filterTypes(QueryBuilder $qb, SearchQuery $query): void
     {

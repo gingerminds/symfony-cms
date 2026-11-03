@@ -6,9 +6,9 @@ namespace Gingerminds\CmsBundle\Entity\Menu;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
-use Gingerminds\CoreBundle\Model\CacheCascadeInterface;
-use Gingerminds\CoreBundle\Model\EagerLoadableInterface;
+use Gingerminds\CoreBundle\Model\CacheCascade;
 use Gingerminds\CoreBundle\Model\Trait\TimestampableTrait;
+use Gingerminds\CoreBundle\Validator\NoTreeCycle;
 use Gingerminds\MultisiteBundle\Entity\Site\SiteInterface;
 use Gingerminds\MultisiteBundle\Model\TranslatableTrait;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -20,7 +20,10 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Serialized in the menu API (active items only).
  */
 #[ORM\MappedSuperclass]
-abstract class BaseMenuItem implements MenuItemInterface, EagerLoadableInterface, CacheCascadeInterface
+#[NoTreeCycle(message: 'gingerminds_cms.menu_item.parent_cycle')]
+// The menu cache embeds the item tree.
+#[CacheCascade(['menu'])]
+abstract class BaseMenuItem implements MenuItemInterface
 {
     use MenuItemLinkTrait;
     use MenuItemTranslatedFieldsTrait;
@@ -60,17 +63,6 @@ abstract class BaseMenuItem implements MenuItemInterface, EagerLoadableInterface
     public static function getTranslationEntityClass(): string
     {
         return MenuItemTranslation::class;
-    }
-
-    public static function getEagerLoads(): array
-    {
-        return [...self::getTranslationEagerLoads()];
-    }
-
-    // The menu cache embeds the item tree.
-    public static function getCascadeCacheKeys(): array
-    {
-        return ['menu'];
     }
 
     public function getId(): ?int
