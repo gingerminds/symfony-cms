@@ -4,25 +4,28 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Twig;
 
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFunction;
+use Twig\Attribute\AsTwigFunction;
 
 /**
- * `gm_cms_status_color(status)`: the Bootstrap color of a publication status badge
- * (`gingerminds_cms.publication.status_colors`, `secondary` otherwise).
+ * Twig helpers of the publication workflow.
  */
-final class PublicationExtension extends AbstractExtension
+final readonly class PublicationExtension
 {
     /**
      * @param array<string, string> $statusColors
      */
     public function __construct(
-        private readonly array $statusColors,
+        private array $statusColors,
     ) {
     }
 
-    public function getFunctions(): array
+    /**
+     * The Bootstrap color of a publication status badge (`gingerminds_cms.publication.status_colors`,
+     * `secondary` otherwise).
+     */
+    #[AsTwigFunction('gm_cms_status_color')]
+    public function statusColor(string $status): string
     {
-        return [new TwigFunction('gm_cms_status_color', fn (string $status): string => $this->statusColors[$status] ?? 'secondary')];
+        return $this->statusColors[$status] ?? 'secondary';
     }
 }

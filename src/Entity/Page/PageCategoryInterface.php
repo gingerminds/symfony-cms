@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Entity\Page;
 
 use Doctrine\Common\Collections\Collection;
-use Gingerminds\CmsBundle\Model\TreeNodeInterface;
 use Gingerminds\CoreBundle\Model\ResourceInterface;
 use Gingerminds\CoreBundle\Model\TimestampableInterface;
+use Gingerminds\CoreBundle\Model\TreeNodeInterface;
 use Gingerminds\MultisiteBundle\Entity\Language\LanguageInterface;
 use Gingerminds\MultisiteBundle\Model\SiteContextedInterface;
 use Gingerminds\MultisiteBundle\Model\TranslatableInterface;

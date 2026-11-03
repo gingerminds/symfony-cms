@@ -10,6 +10,7 @@ use Gingerminds\CmsBundle\Search\Api\SearchFilterComputeService;
 use Gingerminds\CmsBundle\Search\Api\SearchProvider;
 use Gingerminds\CmsBundle\Search\Doctrine\DoctrineSearchEngine;
 use Gingerminds\CmsBundle\Search\Message\ReindexSearchCategoryHandler;
+use Gingerminds\CmsBundle\Search\Message\ReindexSearchContentsHandler;
 use Gingerminds\CmsBundle\Search\SearchDocumentFactory;
 use Gingerminds\CmsBundle\Search\SearchEngineInterface;
 use Gingerminds\CmsBundle\Search\SearchIndexer;
@@ -23,7 +24,7 @@ return static function (ContainerConfigurator $container): void {
     $services = $container->services();
 
     $services->set('gingerminds_cms.search.resources', SearchResourceRegistry::class)
-        ->args([param('gingerminds_cms.search.resources')]);
+        ->args([service('doctrine'), service('cache.system')]);
     $services->alias(SearchResourceRegistry::class, 'gingerminds_cms.search.resources');
 
     $services->set('gingerminds_cms.search.engine.doctrine', DoctrineSearchEngine::class)
@@ -42,13 +43,22 @@ return static function (ContainerConfigurator $container): void {
     $services->alias(SearchIndexer::class, 'gingerminds_cms.search.indexer');
 
     $services->set('gingerminds_cms.search.index_listener', SearchIndexListener::class)
-        ->args([service('gingerminds_cms.search.resources'), service('gingerminds_cms.search.indexer'), service('messenger.default_bus')])
+        ->args([
+            service('gingerminds_cms.search.resources'),
+            service('gingerminds_cms.search.indexer'),
+            service('messenger.default_bus'),
+            param('gingerminds_cms.search.message_threshold'),
+        ])
         ->tag('doctrine.event_listener', ['event' => 'onFlush'])
         ->tag('doctrine.event_listener', ['event' => 'postFlush'])
         ->tag('kernel.reset', ['method' => 'reset']);
 
     $services->set('gingerminds_cms.search.reindex_category_handler', ReindexSearchCategoryHandler::class)
         ->args([service('doctrine.orm.entity_manager'), service('gingerminds_cms.search.indexer')])
+        ->tag('messenger.message_handler');
+
+    $services->set('gingerminds_cms.search.reindex_contents_handler', ReindexSearchContentsHandler::class)
+        ->args([service('gingerminds_cms.search.resources'), service('gingerminds_cms.search.indexer')])
         ->tag('messenger.message_handler');
 
     $services->set('gingerminds_cms.command.search_reindex', ReindexSearchCommand::class)
@@ -66,8 +76,8 @@ return static function (ContainerConfigurator $container): void {
             service('gingerminds_core.api.computed_filter_store'),
             service('gingerminds_multisite.context.site'),
             service('gingerminds_multisite.context.language'),
-            service('request_stack'),
-            service('doctrine.orm.entity_manager'),
+            service('api_platform.pagination'),
+            service('gingerminds_cms.search.indexer'),
             service_closure('serializer'),
         ])
         ->tag('api_platform.state_provider');

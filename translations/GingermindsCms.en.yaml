@@ -117,6 +117,9 @@ page:
         no_items: No page
 
 publication:
+    field:
+        status: Status
+        published_at: Published on
     status:
         draft: Draft
         published: Published

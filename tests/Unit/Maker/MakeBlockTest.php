@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Tests\Unit\Maker;
 
 use Composer\Autoload\ClassLoader;
-use Gingerminds\CmsBundle\Block\BlockInterface;
 use Gingerminds\CmsBundle\Block\BlockRegistry;
-use Gingerminds\CmsBundle\Block\Type\TitleText;
+use Gingerminds\CmsBundle\Block\Type\TitleTextType;
 use Gingerminds\CmsBundle\Maker\MakeBlock;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
@@ -23,6 +22,10 @@ use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
+use Symfony\Component\Form\Forms;
+use Symfony\Component\Form\FormTypeInterface;
+use Symfony\Component\Validator\Validation;
 
 final class MakeBlockTest extends TestCase
 {
@@ -49,32 +52,32 @@ final class MakeBlockTest extends TestCase
     {
         $output = $this->make('Quote');
 
-        $class = (string) file_get_contents($this->directory . '/src/Cms/Block/Quote.php');
+        $class = (string) file_get_contents($this->directory . '/src/Cms/Block/QuoteType.php');
         self::assertStringContainsString('namespace ' . $this->namespace . '\Cms\Block;', $class);
-        self::assertStringContainsString('class Quote extends AbstractBlock', $class);
-        self::assertStringContainsString("return 'quote';", $class);
-        self::assertStringContainsString("return 'cms/block/quote/preview.html.twig';", $class);
+        self::assertStringContainsString('class QuoteType extends AbstractType', $class);
+        self::assertStringContainsString("#[AsContentBlock(key: 'quote', preview: 'cms/block/quote/preview.html.twig'", $class);
         self::assertStringContainsString('{{ data.title }}', (string) file_get_contents($this->directory . '/templates/cms/block/quote/preview.html.twig'));
         self::assertStringContainsString('block.quote.label', $output);
 
         // The generated class is a valid block.
-        require $this->directory . '/src/Cms/Block/Quote.php';
-        $block = new ($this->namespace . '\Cms\Block\Quote')();
-        self::assertInstanceOf(BlockInterface::class, $block);
-        self::assertSame(['title'], array_column($block->getFields(), 'name'));
+        require $this->directory . '/src/Cms/Block/QuoteType.php';
+        /** @var class-string<FormTypeInterface<mixed>> $type */
+        $type = $this->namespace . '\Cms\Block\QuoteType';
+        self::assertSame('quote', BlockRegistry::attribute($type)->key);
+        self::assertSame(['title'], array_keys(Forms::createFormFactoryBuilder()->addExtension(new ValidatorExtension(Validation::createValidator()))->getFormFactory()->create($type)->all()));
     }
 
     public function testAKeyAlreadyUsedIsRefused(): void
     {
         $this->expectException(RuntimeCommandException::class);
-        $this->expectExceptionMessage(\sprintf('The key "title_text" is already used by the block "%s"', TitleText::class));
+        $this->expectExceptionMessage(\sprintf('The key "title_text" is already used by the block "%s"', TitleTextType::class));
 
         $this->make('TitleText');
     }
 
     private function make(string $name): string
     {
-        $maker = new MakeBlock(new BlockRegistry(new ServiceLocator(['title_text' => static fn (): BlockInterface => new TitleText()]), new ServiceLocator([])));
+        $maker = new MakeBlock(new BlockRegistry(new ServiceLocator(['title_text' => static fn (): TitleTextType => new TitleTextType()]), Forms::createFormFactory()));
         $command = new Command(MakeBlock::getCommandName());
         $maker->configureCommand($command, new InputConfiguration());
         $input = new ArrayInput(['name' => $name], $command->getDefinition());

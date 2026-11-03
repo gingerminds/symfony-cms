@@ -3,7 +3,7 @@
  # full URL too.
  #}
 {% trans_default_domain 'GingermindsCms' %}
-{% set video_id = block.youtubeId(data.embed_code) %}
+{% set video_id = gm_cms_youtube_id(data.embed_code) %}
 <div class="gm-cms-block-preview-video">
     {% if data.title %}<h3 class="h5 mb-2">{{ data.title }}</h3>{% endif %}
     {% if video_id %}

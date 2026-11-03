@@ -10,16 +10,15 @@ use Gingerminds\CmsBundle\Entity\Page\PageCategoryInterface;
 use Gingerminds\CmsBundle\Entity\Page\PageInterface;
 use Gingerminds\CmsBundle\Entity\Page\PageUrl;
 use Gingerminds\CmsBundle\Model\PublicationStatus;
-use Gingerminds\CoreBundle\Model\FilterableInterface;
 use Gingerminds\CoreBundle\Repository\AbstractFacetRepository;
 
 /**
- * @extends AbstractFacetRepository<PageInterface&FilterableInterface>
+ * @extends AbstractFacetRepository<PageInterface>
  */
 class PageRepository extends AbstractFacetRepository
 {
     /**
-     * @param class-string<PageInterface&FilterableInterface> $entityClass
+     * @param class-string<PageInterface> $entityClass
      */
     public function __construct(ManagerRegistry $registry, string $entityClass)
     {
@@ -47,8 +46,6 @@ class PageRepository extends AbstractFacetRepository
      * The published page of a URL path (`page_urls`), tried in each language, best first.
      *
      * @param list<int> $languageIds
-     *
-     * @return (PageInterface&FilterableInterface)|null
      */
     public function findPublishedByPath(string $path, int $siteId, array $languageIds): ?PageInterface
     {
@@ -82,11 +79,11 @@ class PageRepository extends AbstractFacetRepository
     }
 
     /**
-     * The pages of these categories.
+     * The pages of these categories, with their translations and URLs (URL sync).
      *
-     * @param list<int> $categoryIds
+     * @param list<int|string> $categoryIds
      *
-     * @return list<PageInterface&FilterableInterface>
+     * @return list<PageInterface>
      */
     public function findInCategories(array $categoryIds): array
     {
@@ -94,8 +91,11 @@ class PageRepository extends AbstractFacetRepository
             return [];
         }
 
-        /** @var list<PageInterface&FilterableInterface> */
+        /** @var list<PageInterface> */
         return $this->createQueryBuilder('p')
+            ->addSelect('t', 'u')
+            ->leftJoin('p.translations', 't')
+            ->leftJoin('p.urls', 'u')
             ->andWhere('p.category IN (:categories)')
             ->setParameter('categories', $categoryIds)
             ->getQuery()

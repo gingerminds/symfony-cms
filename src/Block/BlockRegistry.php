@@ -4,29 +4,34 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Block;
 
+use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormTypeInterface;
 use Symfony\Contracts\Service\ServiceProviderInterface;
 
 /**
- * The content blocks by key (BlockPass): every block for the stored content, the enabled ones
- * (`gingerminds_cms.blocks.disabled`) for the picker. A disabled block is only hidden from the
- * picker: the pages using it keep working.
+ * The content blocks by key: the #[AsContentBlock] form types (tag `gingerminds_cms.block`). Every
+ * block for the stored content, the enabled ones (`gingerminds_cms.blocks.disabled`) for the
+ * picker: a disabled block is only hidden from it, the pages using it keep working.
  */
 class BlockRegistry
 {
-    /** @var array<string, list<BlockField>> */
-    private array $fields = [];
+    public const string TAG = 'gingerminds_cms.block';
+
+    /** @var array<string, ContentBlock>|null */
+    private ?array $blocks = null;
+
+    /** @var array<string, array<mixed>> */
+    private array $defaults = [];
 
     /**
-     * @param ServiceProviderInterface<BlockInterface>          $blocks       block key => block
-     * @param ServiceProviderInterface<BlockExtensionInterface> $extensions   service id => extension
-     * @param array<string, list<string>>                       $extensionIds block key => extension ids, by priority
-     * @param list<string>                                      $disabled     keys hidden from the picker
-     * @param array<string, int>                                $order        block key => picker weight
+     * @param ServiceProviderInterface<FormTypeInterface<mixed>> $types    the block form types
+     * @param list<string>                                       $disabled keys hidden from the picker
+     * @param array<string, int>                                 $order    block key => picker weight
      */
     public function __construct(
-        private readonly ServiceProviderInterface $blocks,
-        private readonly ServiceProviderInterface $extensions,
-        private readonly array $extensionIds = [],
+        private readonly ServiceProviderInterface $types,
+        private readonly FormFactoryInterface $formFactory,
         private readonly array $disabled = [],
         private readonly array $order = [],
     ) {
@@ -35,94 +40,126 @@ class BlockRegistry
     /**
      * Every block, enabled or not.
      *
-     * @return array<string, BlockInterface>
+     * @return array<string, ContentBlock>
      */
     public function all(): array
     {
-        $blocks = [];
-
-        foreach (array_keys($this->blocks->getProvidedServices()) as $key) {
-            $blocks[$key] = $this->blocks->get($key);
+        if (null !== $this->blocks) {
+            return $this->blocks;
         }
 
-        return $blocks;
+        $blocks = [];
+
+        foreach ($this->types->getProvidedServices() as $type) {
+            /** @var class-string<FormTypeInterface<mixed>> $class */
+            $class = ltrim($type, '?');
+            $block = ContentBlock::fromAttribute($class, self::attribute($class));
+            $other = $blocks[$block->key] ?? null;
+
+            // The same class twice: a bundle block service replaced by the project one.
+            if ($other instanceof ContentBlock && $other->formType !== $class) {
+                throw new \LogicException(\sprintf(
+                    'The content blocks "%s" and "%s" have the same key "%s": replace the service of the first one instead.',
+                    $other->formType,
+                    $class,
+                    $block->key,
+                ));
+            }
+
+            $blocks[$block->key] = $block;
+        }
+
+        return $this->blocks = $blocks;
     }
 
     /**
      * The blocks of the picker: enabled, by weight then key.
      *
-     * @return list<BlockInterface>
+     * @return list<ContentBlock>
      */
     public function active(): array
     {
-        $blocks = array_filter($this->all(), fn (BlockInterface $block): bool => !\in_array($block::getKey(), $this->disabled, true));
-        uasort($blocks, fn (BlockInterface $a, BlockInterface $b): int => [$this->weight($a), $a::getKey()] <=> [$this->weight($b), $b::getKey()]);
+        $blocks = array_filter($this->all(), fn (ContentBlock $block): bool => !\in_array($block->key, $this->disabled, true));
+        uasort($blocks, fn (ContentBlock $a, ContentBlock $b): int => [$this->weight($a), $a->key] <=> [$this->weight($b), $b->key]);
 
         return array_values($blocks);
     }
 
-    public function has(string $key): bool
+    public function find(string $key): ?ContentBlock
     {
-        return $this->blocks->has($key);
-    }
-
-    public function find(string $key): ?BlockInterface
-    {
-        return $this->blocks->has($key) ? $this->blocks->get($key) : null;
+        return $this->all()[$key] ?? null;
     }
 
     /**
-     * The fields of a block, its extensions applied.
+     * The form of a block (named `data`), its fields labelled `block.<key>.field.<name>` in its
+     * domain; the stored fields it no longer has are ignored.
      *
-     * @return list<BlockField>
+     * @param array<mixed>|null    $data
+     * @param array<string, mixed> $options
+     *
+     * @return FormInterface<array<string, mixed>|null>
      */
-    public function getFields(BlockInterface $block): array
+    public function createForm(ContentBlock $block, ?array $data = null, array $options = []): FormInterface
     {
-        $key = $block::getKey();
+        return $this->formFactory->createNamed('data', $block->formType, $data, [
+            'label' => false,
+            'label_format' => $block->fieldLabelFormat(),
+            'translation_domain' => $block->translationDomain,
+            'allow_extra_fields' => true,
+            ...$options,
+        ]);
+    }
 
-        if (!isset($this->fields[$key])) {
-            $fields = $block->getFields();
+    /**
+     * The form of a block submitted with stored data: a field missing from it gets its `empty_data`.
+     *
+     * @param array<mixed> $data
+     *
+     * @return FormInterface<array<string, mixed>|null>
+     */
+    public function submit(ContentBlock $block, array $data): FormInterface
+    {
+        $form = $this->createForm($block, null, ['csrf_protection' => false]);
+        // Form::submit() casts the scalars to strings and a false toggle to unchecked.
+        $form->submit($data);
 
-            foreach ($this->extensionIds[$key] ?? [] as $id) {
-                $fields = $this->extensions->get($id)->buildFields($fields, $block);
+        return $form;
+    }
+
+    /**
+     * The data of an empty block: the `empty_data` of each field. A stored block completed with
+     * it gets the fields added since it was saved.
+     *
+     * @return array<mixed>
+     */
+    public function defaults(ContentBlock $block): array
+    {
+        if (!isset($this->defaults[$block->key])) {
+            $data = $this->submit($block, [])->getData();
+            $this->defaults[$block->key] = \is_array($data) ? $data : [];
+        }
+
+        return $this->defaults[$block->key];
+    }
+
+    /**
+     * The #[AsContentBlock] of a form type, its parents included.
+     *
+     * @param class-string $class
+     */
+    public static function attribute(string $class): AsContentBlock
+    {
+        for ($reflection = new \ReflectionClass($class); false !== $reflection; $reflection = $reflection->getParentClass()) {
+            foreach ($reflection->getAttributes(AsContentBlock::class) as $attribute) {
+                return $attribute->newInstance();
             }
-
-            $this->fields[$key] = $fields;
         }
 
-        return $this->fields[$key];
+        throw new \LogicException(\sprintf('The content block "%s" has no #[%s].', $class, AsContentBlock::class));
     }
 
-    /**
-     * The default value of each field: the data of a new block, completed in the stored ones (a
-     * field added after the pages were saved).
-     *
-     * @return array<string, mixed>
-     */
-    public function getDefaults(BlockInterface $block): array
+    private function weight(ContentBlock $block): int
     {
-        $defaults = [];
-
-        foreach ($this->getFields($block) as $field) {
-            $defaults[$field->name] = $field->default;
-        }
-
-        return $defaults;
-    }
-
-    /**
-     * Translation key of a field label (block domain): its own label, else
-     * `block.<key>.field.<name>` (`<repeater>_<name>` for a repeater sub-field).
-     */
-    public function getFieldLabel(BlockInterface $block, BlockField $field, ?BlockField $repeater = null): string
-    {
-        $name = $repeater instanceof BlockField ? $repeater->name . '_' . $field->name : $field->name;
-
-        return $field->label ?? 'block.' . $block::getKey() . '.field.' . $name;
-    }
-
-    private function weight(BlockInterface $block): int
-    {
-        return $this->order[$block::getKey()] ?? $block->getOrder();
+        return $this->order[$block->key] ?? $block->order;
     }
 }

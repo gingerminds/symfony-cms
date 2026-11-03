@@ -94,6 +94,37 @@ final class SearchSyncTest extends ApiTestCase
         self::assertSame(['x'], $this->indexedCodes());
     }
 
+    public function testAboveTheThresholdTheContentsAreReindexedByMessages(): void
+    {
+        // 101 pages (threshold 100): created, then moved by a prefix, through ReindexSearchContents.
+        $fr = $this->site->getDefaultLanguage();
+
+        for ($i = 1; $i <= 101; ++$i) {
+            $page = new Page();
+            $page->setSite($this->site);
+            $page->setCode('p' . $i);
+            $page->setCategory($this->tractors);
+            $page->setStatus('published');
+            $translation = new PageTranslation();
+            $translation->setLanguage($fr);
+            $translation->setTitle('Page ' . $i);
+            $translation->setSlug('page-' . $i);
+            $page->addTranslation($translation);
+            $this->entityManager()->persist($page);
+        }
+
+        $this->entityManager()->flush();
+        self::assertCount(101, $this->rows());
+
+        $translation = $this->tractors->getTranslations()->first();
+        self::assertInstanceOf(PageCategoryTranslation::class, $translation);
+        $translation->setPrefix('engins');
+        $this->entityManager()->flush();
+
+        $urls = array_unique(array_map(static fn (array $row): string => \dirname($row[4]), $this->rows()));
+        self::assertSame(['produits/engins'], array_values($urls));
+    }
+
     public function testTheReindexCommandRebuildsTheIndex(): void
     {
         $this->fixtures->page($this->site, 'x', ['fr' => ['Tracteur X', 'tracteur-x']], $this->tractors, 'published');

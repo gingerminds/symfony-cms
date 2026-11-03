@@ -13,6 +13,7 @@ use Gingerminds\CmsBundle\Form\Page\PageCategoryType;
 use Gingerminds\CmsBundle\Form\Page\PageTranslationType;
 use Gingerminds\CmsBundle\Form\Page\PageType;
 use Gingerminds\CmsBundle\Form\Type\PublicationStatusType;
+use Gingerminds\CmsBundle\Form\Type\SlugType;
 use Gingerminds\CmsBundle\Form\Type\WysiwygType;
 use Gingerminds\CmsBundle\Repository\Menu\MenuItemRepository;
 use Gingerminds\CmsBundle\Repository\Menu\MenuRepository;
@@ -40,6 +41,7 @@ return static function (ContainerConfigurator $container): void {
         ->tag('form.type');
 
     $services->set('gingerminds_cms.form.type.menu_item_translation', MenuItemTranslationType::class)
+        ->args([param('gingerminds_cms.resource.menu_item_translation.entity')])
         ->tag('form.type');
 
     $services->set('gingerminds_cms.form.type.page_category', PageCategoryType::class)
@@ -52,6 +54,7 @@ return static function (ContainerConfigurator $container): void {
         ->tag('form.type');
 
     $services->set('gingerminds_cms.form.type.page_category_translation', PageCategoryTranslationType::class)
+        ->args([param('gingerminds_cms.resource.page_category_translation.entity')])
         ->tag('form.type');
 
     $services->set('gingerminds_cms.form.type.page', PageType::class)
@@ -65,17 +68,23 @@ return static function (ContainerConfigurator $container): void {
         ->tag('form.type');
 
     $services->set('gingerminds_cms.form.type.page_translation', PageTranslationType::class)
+        ->args([param('gingerminds_cms.resource.page_translation.entity')])
         ->tag('form.type');
 
     $services->set('gingerminds_cms.form.type.publication_status', PublicationStatusType::class)
         ->args([service('workflow.registry')])
         ->tag('form.type');
 
-    $services->set('gingerminds_cms.wysiwyg.sanitizer', WysiwygSanitizer::class);
+    $services->set('gingerminds_cms.wysiwyg.sanitizer', WysiwygSanitizer::class)
+        ->args([service('html_sanitizer.sanitizer.' . WysiwygSanitizer::NAME)]);
     $services->alias(WysiwygSanitizer::class, 'gingerminds_cms.wysiwyg.sanitizer');
 
+    $services->set('gingerminds_cms.form.type.slug', SlugType::class)
+        ->args([service('slugger')])
+        ->tag('form.type');
+
     $services->set('gingerminds_cms.form.type.wysiwyg', WysiwygType::class)
-        ->args([param('gingerminds_cms.wysiwyg.presets'), service('gingerminds_cms.wysiwyg.sanitizer')])
+        ->args([param('gingerminds_cms.wysiwyg.presets')])
         ->tag('form.type');
 
     $services->set('gingerminds_cms.validator.link_url', LinkUrlValidator::class)

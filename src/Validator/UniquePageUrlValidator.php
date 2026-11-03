@@ -6,7 +6,7 @@ namespace Gingerminds\CmsBundle\Validator;
 
 use Doctrine\Persistence\ManagerRegistry;
 use Gingerminds\CmsBundle\Entity\Page\PageInterface;
-use Gingerminds\CmsBundle\Entity\Page\PageTranslation;
+use Gingerminds\CmsBundle\Entity\Page\PageTranslationInterface;
 use Gingerminds\CmsBundle\Entity\Page\PageUrl;
 use Gingerminds\MultisiteBundle\Entity\Language\LanguageInterface;
 use Gingerminds\MultisiteBundle\Entity\Site\SiteInterface;
@@ -28,8 +28,8 @@ final class UniquePageUrlValidator extends ConstraintValidator
             throw new UnexpectedTypeException($constraint, UniquePageUrl::class);
         }
 
-        if (!$value instanceof PageTranslation) {
-            throw new UnexpectedValueException($value, PageTranslation::class);
+        if (!$value instanceof PageTranslationInterface) {
+            throw new UnexpectedValueException($value, PageTranslationInterface::class);
         }
 
         $page = $value->getTranslatable();

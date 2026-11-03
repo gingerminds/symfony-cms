@@ -12,7 +12,8 @@ permissions), the menus of the current site; "Items" opens the tree of a menu.
 
 `MenuItem` (`menu_items`, overridable `BaseMenuItem`, `resources.menu_item`) and
 `MenuItemTranslation` (`menu_item_translations`: `name`, `url`, `description` in the
-[WYSIWYG](Forms.md#wysiwygtype) `minimal` preset):
+[WYSIWYG](Forms.md#wysiwygtype) `minimal` preset; overridable `BaseMenuItemTranslation`,
+`resources.menu_item_translation`):
 
 | Field | |
 |---|---|

@@ -16,19 +16,19 @@ pages.
 | `config/gingerminds-cms.php` | `gingerminds_cms:` config | See the table below. |
 | `ResourceResolver` (`resources.menu\|menu_item\|page\|page_category`) | `resources.*` (`entity`, `controller`, `form`) | Core resources, see [Configuration](Configuration.md#resources). |
 | `Menu`, `MenuItem`, `PageCategory`, `Page` models + translations | `BaseMenu`, `BaseMenuItem`, `BasePageCategory`, `BasePage` mapped superclasses + entities | Overridable. |
-| Policies | Voters | Same permission names. |
+| Policies | Core `ResourceVoter` | Same permission names. |
 | Spatie model states (`State\Page\Status\*`, transitions) | `symfony/workflow` state machine `gingerminds_cms_publication` | Extensible by configuration, see [Pages](Pages.md#publication-workflow). |
 | `<x-...::form.inputs.wysiwyg>` (TipTap 2) | [`WysiwygType`](Forms.md#wysiwygtype) (TipTap 3) | Same presets, same HTML. |
 | `<x-...::form.inputs.canvas>`, `content-blocks.js` | [`BlockCanvasType`](Forms.md#blockcanvastype), Stimulus `gm-cms-blocks` | |
-| `BlockInterface` (`key()`, `label()`, `icon()`, `order()`, `fields()`, `previewView()`) | `BlockInterface` (`static getKey()`, `getLabel()`, `getIcon()`, `getOrder()`, `getFields()`, `getPreviewTemplate()`, `getTranslationDomain()`) | See [Blocks](Blocks.md). |
-| `fields()` arrays, `AbstractBlock::textField()`... | `BlockField::text()`... (immutable objects) | |
+| `BlockInterface` (`key()`, `label()`, `icon()`, `order()`, `fields()`, `previewView()`) | A form type with `#[AsContentBlock(key, preview, icon, order, label, translationDomain)]` | See [Blocks](Blocks.md). |
+| `fields()` arrays, `AbstractBlock::textField()`... | the fields of the form type (`TextType`, `WysiwygType`, `FilePickerType`, `BlockCollectionType`...) | |
 | `BlockRegistry` (static, folder scan) | `BlockRegistry` service, autoconfigured `gingerminds_cms.block` services | |
 | `PageBlockController` (`GET form`, `POST validate`) | `BlockController` (`POST form`, `POST validate`) | |
-| `BlockFieldValidator`, `ContentFieldSupport`, `HandlesContentBlocksTrait` | `BlockConstraints`, `BlockContentNormalizer`, `ValidBlocks` | |
+| `BlockFieldValidator`, `ContentFieldSupport`, `HandlesContentBlocksTrait` | the block form submitted (`BlockContentNormalizer`, `ValidBlocks`) | |
 | `ContentReferenceResolver`, `ReferenceFieldResolver`, `reference_resolvers` | `ContentReferenceResolver`, `BlockReferenceResolverInterface` (autoconfigured) | |
 | `make:cms-block` | `make:gm:cms-block` | `App\Cms\Block\Name`, `templates/cms/block/<key>/`. |
 | `SearchIndex` model, `SearchIndexer`, observers | `SearchEngineInterface`, `SearchIndexer`, `SearchIndexListener` | Pluggable engine, see [Search](Search.md). |
-| `PubliclySearchableInterface::getPublicSearchTranslations()` | `PubliclySearchableInterface::getSearchEntries()` (`SearchEntry`) | The searched text comes from the configured `fields`. |
+| `SearchIndexableInterface::getPublicSearchTranslations()` | `SearchIndexableInterface::getSearchEntries()` (`SearchEntry`) | The searched text: the title and the `texts` of the `SearchEntry`. |
 | `ExcludableFromSearchInterface` + trait | `ExcludableFromSearchInterface` | |
 | `ReindexCategoryItemsJob` (queue) | `ReindexSearchCategory` message (Messenger) | |
 | `search:reindex` | `gingerminds:cms:search:reindex` | |
@@ -47,7 +47,7 @@ pages.
 | `blocks` (override by key) | — (a block extending the bundle one replaces it) |
 | `disabled_blocks`, `block_order` | `blocks.disabled`, `blocks.order` |
 | `reference_resolvers` | — (`BlockReferenceResolverInterface` services) |
-| `search_resources.<type>` (`model`, `label`, `category_relation`, `category_model`, `group`) | `search.resources.<type>` (`entity`, `label`, `category`, `group`, `fields`) |
+| `search_resources.<type>` (`model`, `label`, `category_relation`, `category_model`, `group`) | `#[SearchIndex(type, label, category, group)]` on the entity |
 | — | `search.engine`, `publication.status_colors` |
 
 ## Behaviour changes
@@ -78,7 +78,7 @@ pages.
 
 ### URLs and page API
 
-- `filters[category]` instead of `category_id`.
+- `category=` (core list parameters) instead of `category_id`.
 - The collection serves the published pages only; `/api/pages/{id}` serves any status for the
   preview.
 - The URL sync is tolerant: a path taken by another page keeps the former path and reports the
@@ -92,11 +92,10 @@ pages.
 
 ### Content blocks
 
-- Blocks are autoconfigured services (no `block_paths` scan), a bundled block is overridden by
-  extending it (no `blocks` mapping), block extensions are new.
-- Fields are `BlockField` objects; labels `block.<key>.field.<name>` and
-  `block.<key>.field.<repeater>_<name>` for a sub-field.
-- The key is static (`getKey()`).
+- Blocks are autoconfigured form types (no `block_paths` scan); a bundled block is extended by a
+  form type extension, replaced through its service (no `blocks` mapping).
+- Labels `block.<key>.field.<name>` and `block.<key>.field.<repeater>_<name>` for a sub-field
+  (`label_format`); defaults are the `empty_data` of the fields.
 - The modal endpoints are `POST` (the data of the edited block in the body, not the query string);
   the block form errors are rendered by the server.
 - The WYSIWYG HTML of the blocks is sanitized again on save; an empty content is stored as `null`.
@@ -111,8 +110,8 @@ pages.
 ### Search
 
 - Pluggable engine (`search.engine`); `doctrine` keeps the Laravel tables.
-- The searched fields and their weight are configured; the pages search the title and the hook
-  (Laravel: the title only).
+- The searched text comes from the entity (`getSearchEntries()`); the pages search the title and
+  the hook (Laravel: the title only).
 - A category hidden from search hides the pages of its subcategories too.
 - With `translation_fallback`, a content without a version in the current language is found in the
   fallback language.
@@ -148,4 +147,4 @@ bin/console gingerminds:permissions:sync
 
 The block contents are compatible (`[{uid, type, data}]`, same keys and field names): the `file`
 fields hold `files` ids, the `media` fields `medias` ids. A project block is rewritten as a
-`BlockInterface` class with the same key.
+form type with `#[AsContentBlock]` of the same key.

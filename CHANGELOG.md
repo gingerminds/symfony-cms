@@ -136,7 +136,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `SearchEngineInterface` (TNTSearch, Elasticsearch...). The searchable types are declared in
   `gingerminds_cms.search.resources` (`page` by the bundle): entity, facet label, category
   association, serialization group, and the searched `fields` with their weight (page: `title`
-  weight 3, `hook`). A type implements `PubliclySearchableInterface` (one `SearchEntry` per
+  weight 3, `hook`). A type implements `SearchIndexableInterface` (one `SearchEntry` per
   language: title, URL, excerpt) and `ExcludableFromSearchInterface`: a page is found when published
   and neither it nor a category of its branch is hidden from search.
 - The search follows the contents after each flush (`SearchIndexListener`: the content, its
@@ -153,7 +153,97 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Requires `doctrine/orm` ^3.7: the `#[ORM\OrderBy]` of the menu items and page categories use
+  `\SortDirection` (polyfilled by `symfony/polyfill-php86`, a dependency of the ORM).
+- **BC break** Overridable translations: `BasePageTranslation`, `BasePageCategoryTranslation`,
+  `BaseMenuItemTranslation` (mapped superclasses) and their interfaces, resources
+  `page_translation`, `page_category_translation`, `menu_item_translation` (`entity` only, no
+  admin): a project translation adds a translated field. The relations, the validators and the
+  file usages target the interface; the translation form types take the configured class as
+  `data_class` (constructor argument).
+- WYSIWYG: `gm-cms-wysiwyg:pre-connect` (TipTap extensions and toolbar buttons added by a project
+  listener) and `gm-cms-wysiwyg:connect` (the editor) events; a preset entry is any name, no longer
+  one of the bundled ones only.
+- **BC break** — requires `gingerminds/symfony-multisite` ^1.4: the page, page category and menu
+  item translations use the multisite `TranslationTrait`, their owner relation mapped by multisite
+  on the overridable interface (`getTranslatableEntityClass()` returns `PageInterface`,
+  `PageCategoryInterface`, `MenuItemInterface`); same columns and constraints.
+  `TranslationFieldsTrait` and the type check of `setTranslatable()` are removed; the site of a
+  translation is copied from its owner on persist only.
+- Page URLs synced in the flush changing a page, a translation or a category (`onFlush`, same
+  transaction) instead of a second flush in `postFlush`; the paths taken are looked up in one query
+  per site, language and 500 paths, the pages of a category subtree loaded with their translations
+  and URLs. `PageUrlSyncer::sync()` takes several pages and returns the URLs it created or changed.
+  2,000 pages of a renamed category: 2,009 queries instead of 6,000 for the URLs.
+- Search: above `search.message_threshold` (100) contents changed by a flush, they are reindexed by
+  `ReindexSearchContents` messages of that size, which can be routed to an async transport. The hits
+  of `/api/search-*` and these messages load the contents with the eager loads of their core
+  repository (no query per category or translation).
+- **BC break** Content blocks: a block is a form type with `#[AsContentBlock(key, preview, icon,
+  order, label, translationDomain)]` (autoconfigured, tag `gingerminds_cms.block`): its fields,
+  their validation (`constraints`) and defaults (`empty_data`) are the form ones; the rows are a
+  `BlockCollectionType`. The stored content, the keys, the field names and the modal are unchanged.
+  On save, each block is submitted to its form: its data is stored, its errors are those of the
+  form (`ValidBlocks`). The bundled blocks are `TitleTextType`, `TextImageType`, `MediaType`,
+  `VideoType`, `CardsType`, `SliderType`, `LinkListType`, `MediaListType` and `FaqType`; a block is
+  extended by a form type extension, replaced through its service (`gingerminds_cms.block.<key>`).
+  A `BlockReferenceResolverInterface` is indexed by its form type with `#[AsTaggedItem(index:)]`
+  (`getFieldType()` removed): the reference fields of a block are found in its form (cached in
+  `cache.system`). `make:gm:cms-block` generates a form
+  type. Removed: `BlockInterface`, `AbstractBlock`, `BlockField`, `BlockFieldFactoryTrait`,
+  `BlockDataType`, `BlockConstraints`, `BlockExtensionInterface`, `BlockPass`,
+  `DuplicateBlockKeyException`, `BlockRegistry::getFields()` / `getDefaults()` / `getFieldLabel()`;
+  the video preview uses `gm_cms_youtube_id()`.
+- **BC break** Search index: a type is declared by `#[SearchIndex(type, label, translationDomain,
+  category, group)]` on its entity (inherited by an entity overriding it) instead of the
+  `search.resources` configuration, removed with its `fields` and `weight`; the searched text is the
+  title and the `texts` of the `SearchEntry` (`getSearchEntries()`), no longer property paths;
+  `SearchDocument::$text` replaces `fields` / `weights` / `text()`. `PubliclySearchableInterface` is
+  renamed `SearchIndexableInterface`, `ExcludableSearchableInterface` is removed (implement
+  `ExcludableFromSearchInterface` too), the `doctrine` engine entity `SearchIndex` is renamed
+  `SearchIndexRow` (same table).
+- WYSIWYG sanitizer: the `gingerminds_cms` sanitizer of `framework.html_sanitizer`, prepended by
+  the bundle (`WysiwygSanitizer::CONFIG`) and completed by the project configuration; `WysiwygType`
+  uses the `sanitize_html` option of the form (no `WysiwygSanitizer` argument any more).
+- `SlugType` for the page slugs and category prefixes: the server slugifies the submitted value
+  (`AsciiSlugger`, requires `symfony/string`) instead of rejecting it, and wires `gm-cms-slug-sync`
+  (`source`, `overwrite`); the `finishView()` of the translation form types are removed.
+- `gm_cms_status_color()`: `#[AsTwigFunction]`, `PublicationExtension` is no longer a Twig extension.
+- Deleting a menu item relies on the `ON DELETE SET NULL` foreign key for its children
+  (`MenuItemRepository::beforeRemove()` removed). The test application enforces the SQLite foreign
+  keys.
+- Public search: each hit is checked against its content when read (published, not hidden from
+  search): a hit of an index out of sync (DQL write, async engine) is not served by
+  `/api/search-indices` nor `/api/search-results`.
+- WYSIWYG: `rel="noopener noreferrer"` forced on the links by `WysiwygSanitizer` and set by the
+  editor (was any `rel`, TipTap's `nofollow` included).
 - CI: PHPUnit coverage (Xdebug, Clover report) sent to SonarQube, which now runs after the tests;
   line coverage shown on the merge requests. `assets/` analysed by SonarQube.
+- **BC break** — requires `gingerminds/symfony-core` ^1.10, `gingerminds/symfony-media-manager` ^1.3
+  and `gingerminds/symfony-multisite` ^1.3:
+  - the bundle extends the core `AbstractResourceBundle`: the admin resources are registered on load
+    (below the project `gingerminds_core.resources`), `resources.*.api: false` removes an entity
+    from the API, an entity overriding a bundle one inherits its `#[ApiResource]` (the bundle `Site`
+    no longer copies the multisite one);
+  - `#[Cacheable]`, `#[CacheCascade]`, `#[Sortable]`, `#[Searchable]`, `#[EagerLoad]` and `#[Filter]`
+    on the entities instead of the removed core interfaces; `#[LanguageScoped]` on `BaseMenu`; the
+    `status` and `publishedAt` filters are declared by `PublishableTrait`;
+  - page categories and menu items: core admin tree (`AbstractTreeCrudController`,
+    `TreeRepositoryTrait`, `TreeNodeInterface`, `TreeNodes`, `#[NoTreeCycle]`); the bundle copies are
+    removed with `PageCategoryRepository::findTree()` / `reorder()`,
+    `MenuItemRepository::findByMenu()` / `reorder()` and the `*_reorder` routes of
+    `config/routes.php` (same names and paths, from the core loader); a level is ordered by
+    position then id (was code for the categories);
+  - permissions checked by the core `ResourceVoter` (`MenuVoter`, `MenuItemVoter`, `PageVoter`,
+    `PageCategoryVoter` removed); the admin controllers follow the core `AbstractCrudController`
+    (no `CrudContext`), a menu item of another menu is a 404 (`entityBelongsToRoute()`);
+  - API: native Doctrine providers and core list contract (`order[code]=asc`, `search=`,
+    `category=`, `publishedAt[after]=`, `422` on an invalid value); `PageProvider` is replaced by
+    `PageCollectionProvider` (published only, facets) and `PageItemProvider` (`by-slug`, unpublished
+    pages behind `security`), the menus have no provider; the `category` facet is of type
+    `relation`; `PageFilterComputeService` no longer extends the removed core
+    `AbstractFilterComputeService`;
+  - search API: `search` and `type[]` (API Platform query parameters) instead of `filters[search]`
+    and `filters[type][]`, API Platform pagination (100 items per page at most).
 - Requires `symfony/workflow` ^8.1, `symfony/html-sanitizer` ^8.1, `gingerminds/symfony-core` ^1.9 (nested resources, input groups), `gingerminds/symfony-media-manager` ^1.2 (picker modals over the block modal) and
   `gingerminds/symfony-multisite` ^1.2 (form include slots, `translation_fallback`).

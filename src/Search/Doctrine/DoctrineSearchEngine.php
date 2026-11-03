@@ -17,8 +17,8 @@ use Gingerminds\CmsBundle\Search\SearchResult;
 
 /**
  * The `doctrine` search engine: the `search_index` / `search_index_categories` tables (as Laravel),
- * a `LIKE` on the text of every field (the weights are ignored), the facets by `GROUP BY`. Written
- * with DBAL: indexing runs after a flush.
+ * a `LIKE` on the searched text (no index, no relevance: implement SearchEngineInterface for a full
+ * text engine), the facets by `GROUP BY`. Written with DBAL: indexing runs after a flush.
  */
 class DoctrineSearchEngine implements SearchEngineInterface
 {
@@ -172,7 +172,7 @@ class DoctrineSearchEngine implements SearchEngineInterface
     }
 
     /**
-     * Whole types OR (type, categories): `filters[type]=page&filters[type]=news:12`.
+     * Whole types OR (type, categories): `type[]=page&type[]=news:12`.
      */
     private function filterTypes(QueryBuilder $qb, SearchQuery $query): void
     {
@@ -251,7 +251,7 @@ class DoctrineSearchEngine implements SearchEngineInterface
             'title' => mb_substr($document->title, 0, 255),
             'url' => mb_substr($document->url, 0, 255),
             'excerpt' => $document->excerpt,
-            'searchable_text' => $document->text(),
+            'searchable_text' => $document->text,
             'published_at' => $document->publishedAt,
             'updated_at' => $now,
         ];

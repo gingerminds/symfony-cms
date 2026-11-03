@@ -4,42 +4,25 @@ declare(strict_types=1);
 
 namespace <?= $namespace ?>;
 
-use Gingerminds\CmsBundle\Block\AbstractBlock;
-use Gingerminds\CmsBundle\Block\BlockField;
+use Gingerminds\CmsBundle\Block\AsContentBlock;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
- * Content block `<?= $key ?>`, found by the CMS block registry (autoconfigured service).
+ * Content block `<?= $key ?>`: its fields (form type), found by the CMS block registry.
  * Labels: `block.<?= $key ?>.label`, `block.<?= $key ?>.field.<name>` of the `messages` domain.
+ *
+ * @extends AbstractType<array<string, mixed>>
  */
-class <?= $class_name ?> extends AbstractBlock
+// `key`: stored as `type` in the content, never change it once pages use the block.
+#[AsContentBlock(key: '<?= $key ?>', preview: '<?= $preview_template ?>', icon: 'bi-square')]
+class <?= $class_name ?> extends AbstractType
 {
-    /**
-     * Stored as `type` in the content: never change it once pages use the block.
-     */
-    public static function getKey(): string
+    public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        return '<?= $key ?>';
-    }
-
-    public function getIcon(): string
-    {
-        return 'bi-square';
-    }
-
-    public function getFields(): array
-    {
-        return [
-            BlockField::text('title')->required(),
-        ];
-    }
-
-    public function getPreviewTemplate(): string
-    {
-        return '<?= $preview_template ?>';
-    }
-
-    public function getTranslationDomain(): string
-    {
-        return 'messages';
+        $builder
+            ->add('title', TextType::class, ['constraints' => [new NotBlank()]]);
     }
 }

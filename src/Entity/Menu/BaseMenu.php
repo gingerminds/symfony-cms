@@ -7,12 +7,13 @@ namespace Gingerminds\CmsBundle\Entity\Menu;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Gingerminds\CoreBundle\Model\CacheableResourceInterface;
-use Gingerminds\CoreBundle\Model\EagerLoadableInterface;
-use Gingerminds\CoreBundle\Model\SearchableInterface;
-use Gingerminds\CoreBundle\Model\SortableInterface;
+use Gingerminds\CoreBundle\Model\Cacheable;
+use Gingerminds\CoreBundle\Model\EagerLoad;
+use Gingerminds\CoreBundle\Model\Searchable;
+use Gingerminds\CoreBundle\Model\Sortable;
 use Gingerminds\CoreBundle\Model\Trait\TimestampableTrait;
 use Gingerminds\MultisiteBundle\Entity\Site\SiteInterface;
+use Gingerminds\MultisiteBundle\Model\LanguageScoped;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\SerializedName;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -21,7 +22,11 @@ use Symfony\Component\Validator\Constraints as Assert;
  * A menu always belongs to a site (`site_id` NOT NULL, as Laravel), the current one on creation.
  */
 #[ORM\MappedSuperclass]
-abstract class BaseMenu implements MenuInterface, SortableInterface, SearchableInterface, EagerLoadableInterface, CacheableResourceInterface
+// Language scoped: the API serializes the item tree in the current language (`Accept-Language`).
+#[LanguageScoped]
+// Barely changes: 24h instead of the default TTL.
+#[Cacheable(key: 'menu', ttl: 86400)]
+abstract class BaseMenu implements MenuInterface
 {
     use TimestampableTrait;
 
@@ -38,6 +43,8 @@ abstract class BaseMenu implements MenuInterface, SortableInterface, SearchableI
     #[Assert\NotBlank]
     #[Assert\Length(max: 255)]
     #[Groups([self::GROUP_LIST, self::GROUP_READ])]
+    #[Sortable]
+    #[Searchable]
     protected ?string $code = null;
 
     #[ORM\ManyToOne(targetEntity: SiteInterface::class)]
@@ -49,7 +56,8 @@ abstract class BaseMenu implements MenuInterface, SortableInterface, SearchableI
      * @var Collection<int, MenuItemInterface>
      */
     #[ORM\OneToMany(targetEntity: MenuItemInterface::class, mappedBy: 'menu')]
-    #[ORM\OrderBy(['position' => 'ASC', 'id' => 'ASC'])]
+    #[ORM\OrderBy(['position' => \SortDirection::Ascending, 'id' => \SortDirection::Ascending])]
+    #[EagerLoad(paths: ['translations', 'translations.language'])]
     protected Collection $items;
 
     public function __construct()
@@ -109,27 +117,6 @@ abstract class BaseMenu implements MenuInterface, SortableInterface, SearchableI
             $this->items->toArray(),
             static fn (MenuItemInterface $item): bool => $item->isActive() && !$item->getParent() instanceof MenuItemInterface,
         ));
-    }
-
-    public static function getEagerLoads(): array
-    {
-        return ['items', 'items.translations', 'items.translations.language'];
-    }
-
-    public static function getSearchableFields(): array
-    {
-        return ['code'];
-    }
-
-    public static function getCacheKey(): string
-    {
-        return 'menu';
-    }
-
-    // Barely changes: 24h instead of the default TTL.
-    public static function getCacheTtl(): ?int
-    {
-        return 86400;
     }
 
     public function __toString(): string

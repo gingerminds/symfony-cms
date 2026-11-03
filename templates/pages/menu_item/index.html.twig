@@ -8,8 +8,6 @@
     {label: menu.code},
     {label: 'menu_item.name_p'|trans},
 ] %}
-{% set tree_reorder_url = is_granted('EDIT', resource.name) ? path('gingerminds_cms_menu_item_reorder', route_parameters) : null %}
-{% set tree_csrf_token_id = reorder_csrf_token_id %}
 
 {% block list_filters %}{% endblock %}
 

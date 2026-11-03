@@ -8,7 +8,7 @@ use Gingerminds\CmsBundle\GingermindsCmsBundle;
 use Gingerminds\CoreBundle\Menu\AdminMenuProviderInterface;
 use Gingerminds\CoreBundle\Menu\MenuItem;
 use Gingerminds\CoreBundle\Resource\ResourceRegistry;
-use Gingerminds\CoreBundle\Security\Voter\AbstractResourceVoter;
+use Gingerminds\CoreBundle\Security\Voter\ResourceVoter;
 
 /**
  * "CMS" section of the admin menu, before the media manager one (50).
@@ -42,7 +42,7 @@ final readonly class CmsAdminMenuProvider implements AdminMenuProviderInterface
                 $resource->translationKey('name_p'),
                 $resource->route('index'),
                 icon: $icon,
-                permission: AbstractResourceVoter::VIEW,
+                permission: ResourceVoter::VIEW,
                 permissionSubject: $name,
                 translationDomain: $resource->translationDomain,
                 weight: $weight,

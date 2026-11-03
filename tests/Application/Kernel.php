@@ -43,6 +43,10 @@ final class Kernel extends BaseKernel
             $container->import(__DIR__ . '/config/no_fallback.yaml');
         }
 
+        if ('test_override' === $this->environment) {
+            $container->import(__DIR__ . '/config/override.yaml');
+        }
+
         if ('test_memory_search' === $this->environment) {
             $container->import(__DIR__ . '/config/memory_search.yaml');
         }

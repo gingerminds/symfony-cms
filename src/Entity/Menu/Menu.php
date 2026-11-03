@@ -22,7 +22,6 @@ use Gingerminds\CmsBundle\Repository\Menu\MenuRepository;
     ],
     normalizationContext: ['groups' => [BaseMenu::GROUP_READ], 'skip_null_values' => false],
     paginationClientItemsPerPage: true,
-    provider: 'gingerminds_cms.api.provider.menu',
 )]
 #[ORM\Entity(repositoryClass: MenuRepository::class)]
 #[ORM\Table(name: 'menus')]

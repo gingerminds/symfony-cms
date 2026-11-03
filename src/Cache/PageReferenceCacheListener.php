@@ -6,7 +6,7 @@ namespace Gingerminds\CmsBundle\Cache;
 
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Gingerminds\CoreBundle\Cache\CacheKeyBuilder;
-use Gingerminds\CoreBundle\Model\CacheableResourceInterface;
+use Gingerminds\CoreBundle\Model\CacheMetadata;
 use Gingerminds\MediaManagerBundle\Entity\File\FileInterface;
 use Gingerminds\MediaManagerBundle\Entity\Media\MediaInterface;
 use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
@@ -22,7 +22,7 @@ final class PageReferenceCacheListener implements ResetInterface
     private bool $invalidate = false;
 
     /**
-     * @param class-string<CacheableResourceInterface> $pageClass
+     * @param class-string $pageClass
      */
     public function __construct(
         private readonly TagAwareAdapterInterface $cache,
@@ -56,7 +56,11 @@ final class PageReferenceCacheListener implements ResetInterface
         }
 
         $this->invalidate = false;
-        $this->cache->invalidateTags([$this->keyBuilder->resourceTag($this->pageClass::getCacheKey())]);
+        $key = CacheMetadata::cacheable($this->pageClass)?->key;
+
+        if (null !== $key) {
+            $this->cache->invalidateTags([$this->keyBuilder->resourceTag($key)]);
+        }
     }
 
     public function reset(): void

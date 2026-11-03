@@ -162,8 +162,9 @@ final class MenuItemAdminTest extends ApiTestCase
         self::assertSame($this->base() . '/reorder', $tree->attr('data-gm-sortable-tree-url-value'));
         $token = (string) $tree->attr('data-gm-sortable-tree-csrf-token-value');
 
+        // The core answers an invalid token with a flash and a redirection.
         $this->reorder([(int) $second->getId(), (int) $first->getId()], 'invalid');
-        self::assertResponseStatusCodeSame(403);
+        self::assertResponseRedirects($this->base());
 
         $this->reorder([(int) $second->getId(), (int) $first->getId()], $token);
         self::assertResponseIsSuccessful();

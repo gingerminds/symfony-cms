@@ -29,10 +29,10 @@ trait MenuItemTranslatedFieldsTrait
         return $this->currentMenuItemTranslation()?->getDescription();
     }
 
-    private function currentMenuItemTranslation(): ?MenuItemTranslation
+    private function currentMenuItemTranslation(): ?MenuItemTranslationInterface
     {
         $translation = $this->getCurrentTranslation();
 
-        return $translation instanceof MenuItemTranslation ? $translation : null;
+        return $translation instanceof MenuItemTranslationInterface ? $translation : null;
     }
 }

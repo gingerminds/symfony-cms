@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Maker;
 
-use Gingerminds\CmsBundle\Block\BlockInterface;
 use Gingerminds\CmsBundle\Block\BlockRegistry;
+use Gingerminds\CmsBundle\Block\ContentBlock;
 use Symfony\Bundle\MakerBundle\ConsoleStyle;
 use Symfony\Bundle\MakerBundle\DependencyBuilder;
 use Symfony\Bundle\MakerBundle\Exception\RuntimeCommandException;
@@ -18,7 +18,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 
 /**
- * make:gm:cms-block Name (Laravel make:cms-block): `App\Cms\Block\Name` (key: the snake case
+ * make:gm:cms-block Name (Laravel make:cms-block): `App\Cms\Block\NameType` (key: the snake case
  * name) and its preview `templates/cms/block/<key>/preview.html.twig`. Refuses an existing class
  * or a key already used by another block.
  */
@@ -51,12 +51,13 @@ final class MakeBlock extends AbstractMaker
 
     public function generate(InputInterface $input, ConsoleStyle $io, Generator $generator): void
     {
-        $details = $generator->createClassNameDetails(Str::asClassName((string) $input->getArgument('name')), 'Cms\\Block\\');
-        $key = Str::asSnakeCase($details->getShortName());
+        $name = Str::removeSuffix(Str::asClassName((string) $input->getArgument('name')), 'Type');
+        $details = $generator->createClassNameDetails($name, 'Cms\\Block\\', 'Type');
+        $key = Str::asSnakeCase($name);
         $existing = $this->registry->find($key);
 
-        if ($existing instanceof BlockInterface) {
-            throw new RuntimeCommandException(\sprintf('The key "%s" is already used by the block "%s": choose another name.', $key, $existing::class));
+        if ($existing instanceof ContentBlock) {
+            throw new RuntimeCommandException(\sprintf('The key "%s" is already used by the block "%s": choose another name.', $key, $existing->formType));
         }
 
         $previewTemplate = 'cms/block/' . $key . '/preview.html.twig';
@@ -70,7 +71,7 @@ final class MakeBlock extends AbstractMaker
         $this->writeSuccessMessage($io);
         $io->text('Next:');
         $io->listing([
-            \sprintf('Declare the fields in <fg=yellow>%s::getFields()</> and render them in the preview.', $details->getShortName()),
+            \sprintf('Add the fields in <fg=yellow>%s::buildForm()</> and render them in the preview.', $details->getShortName()),
             \sprintf('Translate <comment>block.%1$s.label</comment> and <comment>block.%1$s.field.title</comment> in <fg=yellow>translations/messages.<locale>.yaml</>.', $key),
         ]);
     }

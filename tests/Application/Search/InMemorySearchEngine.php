@@ -40,7 +40,7 @@ final class InMemorySearchEngine implements SearchEngineInterface
 
         foreach ($this->documents as $documents) {
             foreach ($documents as $document) {
-                if ($document->languageId === ($query->languageIds[0] ?? null) && (null === $query->text || str_contains(mb_strtolower($document->text()), mb_strtolower($query->text)))) {
+                if ($document->languageId === ($query->languageIds[0] ?? null) && (null === $query->text || str_contains(mb_strtolower($document->text), mb_strtolower($query->text)))) {
                     $hits[] = new SearchHit($document->type, $document->recordId, $document->languageId, $document->title, $document->url, $document->excerpt, $document->publishedAt);
                 }
             }

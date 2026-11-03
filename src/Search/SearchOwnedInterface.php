@@ -10,5 +10,5 @@ namespace Gingerminds\CmsBundle\Search;
  */
 interface SearchOwnedInterface
 {
-    public function getSearchOwner(): ?PubliclySearchableInterface;
+    public function getSearchOwner(): ?SearchIndexableInterface;
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Form\Menu;
 
-use Gingerminds\CmsBundle\Entity\Menu\MenuItemTranslation;
+use Gingerminds\CmsBundle\Entity\Menu\MenuItemTranslationInterface;
 use Gingerminds\CmsBundle\Form\Type\WysiwygType;
 use Gingerminds\CmsBundle\GingermindsCmsBundle;
 use Symfony\Component\Form\AbstractType;
@@ -15,10 +15,18 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 /**
  * Fields of one language of a menu item, the description in a WYSIWYG.
  *
- * @extends AbstractType<MenuItemTranslation>
+ * @extends AbstractType<MenuItemTranslationInterface>
  */
 class MenuItemTranslationType extends AbstractType
 {
+    /**
+     * @param class-string<MenuItemTranslationInterface> $dataClass the configured entity (`resources.menu_item_translation.entity`)
+     */
+    public function __construct(
+        private readonly string $dataClass,
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -42,7 +50,7 @@ class MenuItemTranslationType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => MenuItemTranslation::class,
+            'data_class' => $this->dataClass,
             'translation_domain' => GingermindsCmsBundle::TRANSLATION_DOMAIN,
         ]);
     }

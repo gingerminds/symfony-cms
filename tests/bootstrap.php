@@ -13,7 +13,7 @@ require __DIR__ . '/../vendor/autoload.php';
 $_SERVER['GINGERMINDS_VAR_DIR'] = $_ENV['GINGERMINDS_VAR_DIR'] = __DIR__ . '/../var/phpunit';
 
 // Fresh cache and SQLite schema for every run, per test environment.
-foreach (['test', 'test_no_fallback'] as $environment) {
+foreach (['test', 'test_no_fallback', 'test_override'] as $environment) {
     $kernel = new Kernel($environment, true);
     new Filesystem()->remove($kernel->getCacheDir());
     $kernel->boot();

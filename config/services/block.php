@@ -5,87 +5,95 @@ declare(strict_types=1);
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use Gingerminds\CmsBundle\Block\BlockContentNormalizer;
-use Gingerminds\CmsBundle\Block\BlockInterface;
 use Gingerminds\CmsBundle\Block\BlockRegistry;
 use Gingerminds\CmsBundle\Block\Reference\BlockReferenceResolverInterface;
 use Gingerminds\CmsBundle\Block\Reference\ContentReferenceResolver;
 use Gingerminds\CmsBundle\Block\Reference\FileReferenceResolver;
 use Gingerminds\CmsBundle\Block\Reference\MediaReferenceResolver;
-use Gingerminds\CmsBundle\Block\Type\Cards;
-use Gingerminds\CmsBundle\Block\Type\FrequentlyAskedQuestions;
-use Gingerminds\CmsBundle\Block\Type\LinkList;
-use Gingerminds\CmsBundle\Block\Type\Media;
-use Gingerminds\CmsBundle\Block\Type\MediaList;
-use Gingerminds\CmsBundle\Block\Type\Slider;
-use Gingerminds\CmsBundle\Block\Type\TextImage;
-use Gingerminds\CmsBundle\Block\Type\TitleText;
-use Gingerminds\CmsBundle\Block\Type\Video;
+use Gingerminds\CmsBundle\Block\Type\CardsType;
+use Gingerminds\CmsBundle\Block\Type\CardType;
+use Gingerminds\CmsBundle\Block\Type\FaqItemType;
+use Gingerminds\CmsBundle\Block\Type\FaqType;
+use Gingerminds\CmsBundle\Block\Type\LinkListType;
+use Gingerminds\CmsBundle\Block\Type\LinkType;
+use Gingerminds\CmsBundle\Block\Type\MediaListItemType;
+use Gingerminds\CmsBundle\Block\Type\MediaListType;
+use Gingerminds\CmsBundle\Block\Type\MediaType;
+use Gingerminds\CmsBundle\Block\Type\SliderType;
+use Gingerminds\CmsBundle\Block\Type\SlideType;
+use Gingerminds\CmsBundle\Block\Type\TextImageType;
+use Gingerminds\CmsBundle\Block\Type\TitleTextType;
+use Gingerminds\CmsBundle\Block\Type\VideoType;
 use Gingerminds\CmsBundle\Cache\PageReferenceCacheListener;
 use Gingerminds\CmsBundle\Controller\Block\BlockController;
-use Gingerminds\CmsBundle\DependencyInjection\Compiler\BlockPass;
-use Gingerminds\CmsBundle\Entity\Page\PageTranslation;
 use Gingerminds\CmsBundle\Form\Block\BlockCanvasType;
-use Gingerminds\CmsBundle\Form\Block\BlockDataType;
+use Gingerminds\CmsBundle\Form\Block\BlockCollectionType;
+use Gingerminds\CmsBundle\Twig\BlockExtension;
 use Gingerminds\CmsBundle\Validator\ValidBlocksValidator;
 use Gingerminds\MediaManagerBundle\File\Reference\FileReferenceSourceInterface;
 use Gingerminds\MediaManagerBundle\File\Reference\JsonFieldFileReferenceSource;
 
 /*
- * Content blocks: the blocks of the bundle, the registry (filled by BlockPass), the references
- * (API, previews, file usages, cache), the forms, the validation and the block modal controller.
+ * Content blocks: the blocks of the bundle, the registry (#[AsContentBlock] form types), the references
+ * (API, previews, file usages, cache), the canvas form, the validation and the block modal controller.
  */
 return static function (ContainerConfigurator $container): void {
     $services = $container->services();
 
+    // #[AsContentBlock] form types (autoconfigured): replace a service to replace a block.
     $blocks = [
-        TitleText::class,
-        TextImage::class,
-        Media::class,
-        Video::class,
-        Cards::class,
-        Slider::class,
-        LinkList::class,
-        MediaList::class,
-        FrequentlyAskedQuestions::class,
+        'title_text' => TitleTextType::class,
+        'text_image' => TextImageType::class,
+        'media' => MediaType::class,
+        'video' => VideoType::class,
+        'cards' => CardsType::class,
+        'slider' => SliderType::class,
+        'link_list' => LinkListType::class,
+        'media_list' => MediaListType::class,
+        'faq' => FaqType::class,
     ];
 
-    foreach ($blocks as $block) {
-        $services->set('gingerminds_cms.block.' . $block::getKey(), $block)
-            ->tag(BlockInterface::TAG);
+    foreach ($blocks as $key => $block) {
+        $services->set('gingerminds_cms.block.' . $key, $block)->autoconfigure();
     }
 
-    $services->set(BlockPass::REGISTRY, BlockRegistry::class)
+    foreach ([CardType::class, SlideType::class, LinkType::class, MediaListItemType::class, FaqItemType::class, BlockCollectionType::class] as $type) {
+        $services->set($type)->tag('form.type');
+    }
+
+    $services->set('gingerminds_cms.block.registry', BlockRegistry::class)
         ->args([
-            abstract_arg('blocks, set by BlockPass'),
-            abstract_arg('block extensions, set by BlockPass'),
-            abstract_arg('block extension ids, set by BlockPass'),
+            tagged_locator(BlockRegistry::TAG),
+            service('form.factory'),
             param('gingerminds_cms.blocks.disabled'),
             param('gingerminds_cms.blocks.order'),
         ]);
-    $services->alias(BlockRegistry::class, BlockPass::REGISTRY);
+    $services->alias(BlockRegistry::class, 'gingerminds_cms.block.registry');
 
     $services->set('gingerminds_cms.block.content_normalizer', BlockContentNormalizer::class)
-        ->args([service(BlockPass::REGISTRY), service('gingerminds_cms.wysiwyg.sanitizer')]);
+        ->args([service('gingerminds_cms.block.registry')]);
     $services->alias(BlockContentNormalizer::class, 'gingerminds_cms.block.content_normalizer');
 
+    // Autoconfigured: tagged, and indexed by their #[AsTaggedItem] form type.
     $services->set('gingerminds_cms.block.reference.file', FileReferenceResolver::class)
         ->args([service('doctrine.orm.entity_manager'), service('gingerminds_media_manager.twig.extension'), param('gingerminds_media_manager.images.presets')])
-        ->tag(BlockReferenceResolverInterface::TAG);
+        ->autoconfigure();
 
     $services->set('gingerminds_cms.block.reference.media', MediaReferenceResolver::class)
         ->args([service('doctrine.orm.entity_manager'), service('serializer')])
-        ->tag(BlockReferenceResolverInterface::TAG);
+        ->autoconfigure();
 
     $services->set('gingerminds_cms.block.reference_resolver', ContentReferenceResolver::class)
         ->args([
-            service(BlockPass::REGISTRY),
-            tagged_locator(BlockReferenceResolverInterface::TAG, defaultIndexMethod: 'getFieldType'),
+            service('gingerminds_cms.block.registry'),
+            tagged_locator(BlockReferenceResolverInterface::TAG),
+            service('cache.system'),
         ]);
     $services->alias(ContentReferenceResolver::class, 'gingerminds_cms.block.reference_resolver');
 
     // The files of the blocks are usages of the library: a used file is not deleted, a merge rewrites the content.
     $services->set('gingerminds_cms.block.file_reference_source', JsonFieldFileReferenceSource::class)
-        ->args([service('doctrine.orm.entity_manager'), PageTranslation::class, 'content'])
+        ->args([service('doctrine.orm.entity_manager'), param('gingerminds_cms.resource.page_translation.entity'), 'content'])
         ->tag(FileReferenceSourceInterface::TAG);
 
     $services->set('gingerminds_cms.block.reference_cache_listener', PageReferenceCacheListener::class)
@@ -99,13 +107,9 @@ return static function (ContainerConfigurator $container): void {
         ->tag('doctrine.event_listener', ['event' => 'postFlush'])
         ->tag('kernel.reset', ['method' => 'reset']);
 
-    $services->set('gingerminds_cms.form.type.block_data', BlockDataType::class)
-        ->args([service(BlockPass::REGISTRY)])
-        ->tag('form.type');
-
     $services->set('gingerminds_cms.form.type.block_canvas', BlockCanvasType::class)
         ->args([
-            service(BlockPass::REGISTRY),
+            service('gingerminds_cms.block.registry'),
             service('gingerminds_cms.block.content_normalizer'),
             service('router'),
             service('gingerminds_cms.block.reference_resolver'),
@@ -113,15 +117,17 @@ return static function (ContainerConfigurator $container): void {
         ->tag('form.type');
 
     $services->set('gingerminds_cms.validator.valid_blocks', ValidBlocksValidator::class)
-        ->args([service(BlockPass::REGISTRY), service('translator')])
+        ->args([service('gingerminds_cms.block.registry'), service('translator')])
         ->tag('validator.constraint_validator');
+
+    // #[AsTwigFunction] methods (autoconfigured).
+    $services->set('gingerminds_cms.twig.block_extension', BlockExtension::class)->autoconfigure();
 
     $services->set('gingerminds_cms.controller.admin.block', BlockController::class)
         ->args([
-            service(BlockPass::REGISTRY),
+            service('gingerminds_cms.block.registry'),
             service('gingerminds_cms.block.content_normalizer'),
             service('gingerminds_cms.block.reference_resolver'),
-            service('form.factory'),
             service('security.authorization_checker'),
             service('translator'),
             service('twig'),

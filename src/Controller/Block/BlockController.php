@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\Controller\Block;
 
 use Gingerminds\CmsBundle\Block\BlockContentNormalizer;
-use Gingerminds\CmsBundle\Block\BlockInterface;
 use Gingerminds\CmsBundle\Block\BlockRegistry;
+use Gingerminds\CmsBundle\Block\ContentBlock;
 use Gingerminds\CmsBundle\Block\Reference\ContentReferenceResolver;
-use Gingerminds\CmsBundle\Form\Block\BlockDataType;
-use Gingerminds\CoreBundle\Security\Voter\AbstractResourceVoter;
-use Symfony\Component\Form\FormFactoryInterface;
+use Gingerminds\CoreBundle\Security\Voter\ResourceVoter;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -34,7 +32,6 @@ class BlockController
         private readonly BlockRegistry $registry,
         private readonly BlockContentNormalizer $normalizer,
         private readonly ContentReferenceResolver $references,
-        private readonly FormFactoryInterface $formFactory,
         private readonly AuthorizationCheckerInterface $authorizationChecker,
         private readonly TranslatorInterface $translator,
         private readonly Environment $twig,
@@ -45,7 +42,7 @@ class BlockController
     {
         $block = $this->block($resource, $key);
         $data = json_decode($request->request->getString('data'), true);
-        $form = $this->createForm($block, \is_array($data) ? $data : []);
+        $form = $this->registry->createForm($block, $this->normalizer->normalizeData($block, \is_array($data) ? $data : []));
 
         return $this->formResponse($block, $form, $this->uid($request));
     }
@@ -54,31 +51,30 @@ class BlockController
     {
         $block = $this->block($resource, $key);
         $uid = $this->uid($request);
-        $form = $this->createForm($block, [])->handleRequest($request);
+        $form = $this->registry->createForm($block)->handleRequest($request);
 
         if (!$form->isSubmitted() || !$form->isValid()) {
             return $this->formResponse($block, $form, $uid, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        /** @var array<string, mixed> $submitted */
-        $submitted = $form->getData();
-        $data = $this->normalizer->normalizeData($block, $submitted);
+        /** @var array<string, mixed> $data */
+        $data = $form->getData() ?? [];
 
         return new JsonResponse([
             ...$this->payload($block, $uid),
             'data' => $data,
-            'preview' => $this->twig->render($block->getPreviewTemplate(), [
+            'preview' => $this->twig->render($block->previewTemplate, [
                 'block' => $block,
                 'data' => $data,
-                'refs' => $this->references->entities([['type' => $block::getKey(), 'data' => $data]])[0]['data'] ?? $data,
+                'refs' => $this->references->entities([['type' => $block->key, 'data' => $data]])[0]['data'] ?? $data,
                 'uid' => $uid,
             ]),
         ]);
     }
 
-    private function block(string $resource, string $key): BlockInterface
+    private function block(string $resource, string $key): ContentBlock
     {
-        if (!$this->authorizationChecker->isGranted(AbstractResourceVoter::CREATE, $resource) && !$this->authorizationChecker->isGranted(AbstractResourceVoter::EDIT, $resource)) {
+        if (!$this->authorizationChecker->isGranted(ResourceVoter::CREATE, $resource) && !$this->authorizationChecker->isGranted(ResourceVoter::EDIT, $resource)) {
             throw new AccessDeniedException();
         }
 
@@ -86,19 +82,9 @@ class BlockController
     }
 
     /**
-     * @param array<mixed> $data
-     *
-     * @return FormInterface<array<string, mixed>>
+     * @param FormInterface<array<string, mixed>|null> $form
      */
-    private function createForm(BlockInterface $block, array $data): FormInterface
-    {
-        return $this->formFactory->createNamed('data', BlockDataType::class, $this->normalizer->normalizeData($block, $data), ['block' => $block]);
-    }
-
-    /**
-     * @param FormInterface<array<string, mixed>> $form
-     */
-    private function formResponse(BlockInterface $block, FormInterface $form, string $uid, int $status = Response::HTTP_OK): JsonResponse
+    private function formResponse(ContentBlock $block, FormInterface $form, string $uid, int $status = Response::HTTP_OK): JsonResponse
     {
         return new JsonResponse([
             ...$this->payload($block, $uid),
@@ -109,13 +95,13 @@ class BlockController
     /**
      * @return array{uid: string, type: string, label: string, icon: string}
      */
-    private function payload(BlockInterface $block, string $uid): array
+    private function payload(ContentBlock $block, string $uid): array
     {
         return [
             'uid' => $uid,
-            'type' => $block::getKey(),
-            'label' => $this->translator->trans($block->getLabel(), [], $block->getTranslationDomain()),
-            'icon' => $block->getIcon(),
+            'type' => $block->key,
+            'label' => $this->translator->trans($block->label, [], $block->translationDomain),
+            'icon' => $block->icon,
         ];
     }
 

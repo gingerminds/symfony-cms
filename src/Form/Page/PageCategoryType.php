@@ -6,8 +6,8 @@ namespace Gingerminds\CmsBundle\Form\Page;
 
 use Gingerminds\CmsBundle\Entity\Page\PageCategoryInterface;
 use Gingerminds\CmsBundle\GingermindsCmsBundle;
-use Gingerminds\CmsBundle\Model\TreeNodes;
 use Gingerminds\CmsBundle\Repository\Page\PageCategoryRepository;
+use Gingerminds\CoreBundle\Model\TreeNodes;
 use Gingerminds\CoreBundle\Resource\ResourceRegistry;
 use Gingerminds\MultisiteBundle\Form\Type\TranslationsType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -38,7 +38,7 @@ class PageCategoryType extends AbstractType
     {
         $category = $builder->getData();
         $category = $category instanceof PageCategoryInterface ? $category : null;
-        [$choices, $depths] = TreeNodes::parentChoices($this->categories->findTree(), $category);
+        [$choices, $depths] = TreeNodes::parentChoices($this->categories->findTreeNodes(), $category);
         $isNew = null === $category?->getId();
 
         $builder

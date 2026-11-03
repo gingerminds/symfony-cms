@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Gingerminds\CmsBundle\File;
 
 use Gingerminds\CmsBundle\Entity\Page\PageInterface;
-use Gingerminds\CmsBundle\Entity\Page\PageTranslation;
+use Gingerminds\CmsBundle\Entity\Page\PageTranslationInterface;
 use Gingerminds\CoreBundle\Resource\ResourceRegistry;
 use Gingerminds\MediaManagerBundle\File\Reference\FileReference;
 use Gingerminds\MediaManagerBundle\File\Reference\FileUsage;
@@ -28,9 +28,9 @@ final readonly class PageTranslationUsageResolver implements FileUsageResolverIn
     public function resolve(FileReference $reference): ?FileUsage
     {
         $owner = $reference->owner;
-        $page = $owner instanceof PageTranslation ? $owner->getTranslatable() : null;
+        $page = $owner instanceof PageTranslationInterface ? $owner->getTranslatable() : null;
 
-        if (!$owner instanceof PageTranslation || !$page instanceof PageInterface) {
+        if (!$owner instanceof PageTranslationInterface || !$page instanceof PageInterface) {
             return null;
         }
 

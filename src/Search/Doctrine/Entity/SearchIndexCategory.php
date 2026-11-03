@@ -18,16 +18,16 @@ class SearchIndexCategory
 {
     public function __construct(
         #[ORM\Id]
-        #[ORM\ManyToOne(targetEntity: SearchIndex::class)]
+        #[ORM\ManyToOne(targetEntity: SearchIndexRow::class)]
         #[ORM\JoinColumn(name: 'search_index_id', nullable: false, onDelete: 'CASCADE')]
-        private SearchIndex $searchIndex,
+        private SearchIndexRow $searchIndex,
         #[ORM\Id]
         #[ORM\Column(name: 'category_id', type: Types::BIGINT, options: ['unsigned' => true])]
         private int $categoryId,
     ) {
     }
 
-    public function getSearchIndex(): SearchIndex
+    public function getSearchIndex(): SearchIndexRow
     {
         return $this->searchIndex;
     }

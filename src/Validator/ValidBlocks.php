@@ -8,7 +8,7 @@ use Symfony\Component\Validator\Constraint;
 
 /**
  * On a content (`[{uid, type, data}]`, BlockCanvasType): each block has a uid and a known type,
- * its data is valid for its fields (BlockConstraints). The violations are at `[<index>]`, their
+ * its data is valid for its form (BlockRegistry::submit()). The violations are at `[<index>]`, their
  * message names the field.
  */
 #[\Attribute(\Attribute::TARGET_PROPERTY | \Attribute::TARGET_METHOD)]

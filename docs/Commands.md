@@ -12,7 +12,8 @@
 bin/console gingerminds:cms:page-urls:sync
 ```
 
-Recomputes the `page_urls` of every page (a path per language of a published page), by batches.
+Recomputes the `page_urls` of every page from the database (a path per language of a published
+page), by batches.
 Needed once after an import (the Laravel backfill migration `0027`); afterwards a Doctrine
 listener keeps them up to date. A path already owned by another page is not taken: the page keeps
 its former path and the command lists these conflicts (page, language, path, owner) to fix the
@@ -38,10 +39,10 @@ bin/console make:gm:cms-block Quote
 
 Needs `symfony/maker-bundle`. Creates:
 
-- `src/Cms/Block/Quote.php` (`App\Cms\Block\Quote`), key `quote` (the class name in snake case), an
-  example `title` field, labels in the `messages` domain;
+- `src/Cms/Block/QuoteType.php` (`App\Cms\Block\QuoteType`, a form type with `#[AsContentBlock]`),
+  key `quote` (the name in snake case), an example `title` field, labels in the `messages` domain;
 - `templates/cms/block/quote/preview.html.twig`, its admin preview.
 
-The block is in the picker at once (autoconfigured service). The command refuses an existing class
+The block is in the picker at once (autoconfigured form type). The command refuses an existing class
 and a key already used by another block. Then declare its fields, its preview and its translations
 (`block.quote.label`, `block.quote.field.title`...). See [Blocks](Blocks.md#writing-a-block).
