@@ -101,7 +101,7 @@ abstract class BasePage implements PageInterface, SearchIndexableInterface, Excl
 
     public static function getTranslationEntityClass(): string
     {
-        return PageTranslation::class;
+        return PageTranslationInterface::class;
     }
 
     public function getId(): ?int

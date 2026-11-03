@@ -7,7 +7,7 @@ namespace Gingerminds\CmsBundle\Validator;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Gingerminds\CmsBundle\Entity\Page\PageCategoryInterface;
-use Gingerminds\CmsBundle\Entity\Page\PageCategoryTranslation;
+use Gingerminds\CmsBundle\Entity\Page\PageCategoryTranslationInterface;
 use Gingerminds\MultisiteBundle\Entity\Language\LanguageInterface;
 use Gingerminds\MultisiteBundle\Entity\Site\SiteInterface;
 use Symfony\Component\Validator\Constraint;
@@ -28,8 +28,8 @@ final class UniqueSiblingPrefixValidator extends ConstraintValidator
             throw new UnexpectedTypeException($constraint, UniqueSiblingPrefix::class);
         }
 
-        if (!$value instanceof PageCategoryTranslation) {
-            throw new UnexpectedValueException($value, PageCategoryTranslation::class);
+        if (!$value instanceof PageCategoryTranslationInterface) {
+            throw new UnexpectedValueException($value, PageCategoryTranslationInterface::class);
         }
 
         $category = $value->getTranslatable();
@@ -40,14 +40,17 @@ final class UniqueSiblingPrefixValidator extends ConstraintValidator
             return;
         }
 
-        if ($this->isTakenBySibling($category, $prefix, (int) $language->getId())) {
+        if ($this->isTakenBySibling($value::class, $category, $prefix, (int) $language->getId())) {
             $this->context->buildViolation($constraint->message)->atPath('prefix')->addViolation();
         }
     }
 
-    private function isTakenBySibling(PageCategoryInterface $category, string $prefix, int $languageId): bool
+    /**
+     * @param class-string<PageCategoryTranslationInterface> $class the translation entity
+     */
+    private function isTakenBySibling(string $class, PageCategoryInterface $category, string $prefix, int $languageId): bool
     {
-        $manager = $this->doctrine->getManagerForClass(PageCategoryTranslation::class);
+        $manager = $this->doctrine->getManagerForClass($class);
 
         if (!$manager instanceof EntityManagerInterface) {
             return false;
@@ -55,7 +58,7 @@ final class UniqueSiblingPrefixValidator extends ConstraintValidator
 
         $qb = $manager->createQueryBuilder()
             ->select('COUNT(t.id)')
-            ->from(PageCategoryTranslation::class, 't')
+            ->from($class, 't')
             ->join('t.translatable', 'c')
             ->andWhere('t.language = :language')
             ->andWhere('t.prefix = :prefix')

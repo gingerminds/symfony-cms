@@ -153,6 +153,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **BC break** Overridable translations: `BasePageTranslation`, `BasePageCategoryTranslation`,
+  `BaseMenuItemTranslation` (mapped superclasses) and their interfaces, resources
+  `page_translation`, `page_category_translation`, `menu_item_translation` (`entity` only, no
+  admin): a project translation adds a translated field. The relations, the validators and the
+  file usages target the interface; the translation form types take the configured class as
+  `data_class` (constructor argument).
+- WYSIWYG: `gm-cms-wysiwyg:pre-connect` (TipTap extensions and toolbar buttons added by a project
+  listener) and `gm-cms-wysiwyg:connect` (the editor) events; a preset entry is any name, no longer
+  one of the bundled ones only.
 - **BC break** — requires `gingerminds/symfony-multisite` ^1.4: the page, page category and menu
   item translations use the multisite `TranslationTrait`, their owner relation mapped by multisite
   on the overridable interface (`getTranslatableEntityClass()` returns `PageInterface`,

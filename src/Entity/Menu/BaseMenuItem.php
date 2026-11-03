@@ -62,7 +62,7 @@ abstract class BaseMenuItem implements MenuItemInterface
 
     public static function getTranslationEntityClass(): string
     {
-        return MenuItemTranslation::class;
+        return MenuItemTranslationInterface::class;
     }
 
     public function getId(): ?int

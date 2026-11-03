@@ -8,7 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Gingerminds\CmsBundle\Entity\Page\PageCategoryInterface;
 use Gingerminds\CmsBundle\Entity\Page\PageInterface;
-use Gingerminds\CmsBundle\Entity\Page\PageTranslation;
+use Gingerminds\CmsBundle\Entity\Page\PageTranslationInterface;
 use Gingerminds\MultisiteBundle\Entity\Language\LanguageInterface;
 use Gingerminds\MultisiteBundle\Entity\Site\SiteInterface;
 use Symfony\Component\Validator\Constraint;
@@ -29,8 +29,8 @@ final class UniqueSlugInCategoryValidator extends ConstraintValidator
             throw new UnexpectedTypeException($constraint, UniqueSlugInCategory::class);
         }
 
-        if (!$value instanceof PageTranslation) {
-            throw new UnexpectedValueException($value, PageTranslation::class);
+        if (!$value instanceof PageTranslationInterface) {
+            throw new UnexpectedValueException($value, PageTranslationInterface::class);
         }
 
         $page = $value->getTranslatable();
@@ -40,14 +40,17 @@ final class UniqueSlugInCategoryValidator extends ConstraintValidator
             return;
         }
 
-        if ($this->isTaken($page, $value->getSlug(), (int) $language->getId())) {
+        if ($this->isTaken($value::class, $page, $value->getSlug(), (int) $language->getId())) {
             $this->context->buildViolation($constraint->message)->atPath('slug')->addViolation();
         }
     }
 
-    private function isTaken(PageInterface $page, ?string $slug, int $languageId): bool
+    /**
+     * @param class-string<PageTranslationInterface> $class the translation entity
+     */
+    private function isTaken(string $class, PageInterface $page, ?string $slug, int $languageId): bool
     {
-        $manager = $this->doctrine->getManagerForClass(PageTranslation::class);
+        $manager = $this->doctrine->getManagerForClass($class);
 
         if (!$manager instanceof EntityManagerInterface) {
             return false;
@@ -55,7 +58,7 @@ final class UniqueSlugInCategoryValidator extends ConstraintValidator
 
         $qb = $manager->createQueryBuilder()
             ->select('COUNT(t.id)')
-            ->from(PageTranslation::class, 't')
+            ->from($class, 't')
             ->join('t.translatable', 'p')
             ->andWhere('t.language = :language')
             ->andWhere('p.site = :site')

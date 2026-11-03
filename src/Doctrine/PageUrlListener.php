@@ -6,9 +6,9 @@ namespace Gingerminds\CmsBundle\Doctrine;
 
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Gingerminds\CmsBundle\Entity\Page\PageCategoryInterface;
-use Gingerminds\CmsBundle\Entity\Page\PageCategoryTranslation;
+use Gingerminds\CmsBundle\Entity\Page\PageCategoryTranslationInterface;
 use Gingerminds\CmsBundle\Entity\Page\PageInterface;
-use Gingerminds\CmsBundle\Entity\Page\PageTranslation;
+use Gingerminds\CmsBundle\Entity\Page\PageTranslationInterface;
 use Gingerminds\CmsBundle\Entity\Page\PageUrl;
 use Gingerminds\CmsBundle\Page\PageUrlSyncer;
 use Gingerminds\CmsBundle\Repository\Page\PageCategoryRepository;
@@ -38,12 +38,12 @@ final readonly class PageUrlListener
         $categoryIds = [];
 
         // A deleted category: its pages lose it beforehand (PageCategoryRepository), as updates.
-        $deletedTranslations = array_filter($uow->getScheduledEntityDeletions(), static fn (object $entity): bool => $entity instanceof PageTranslation);
+        $deletedTranslations = array_filter($uow->getScheduledEntityDeletions(), static fn (object $entity): bool => $entity instanceof PageTranslationInterface);
 
         foreach ([...$uow->getScheduledEntityInsertions(), ...$uow->getScheduledEntityUpdates(), ...$deletedTranslations] as $entity) {
             $page = match (true) {
                 $entity instanceof PageInterface => $entity,
-                $entity instanceof PageTranslation => $entity->getTranslatable(),
+                $entity instanceof PageTranslationInterface => $entity->getTranslatable(),
                 default => null,
             };
 
@@ -53,7 +53,7 @@ final readonly class PageUrlListener
 
             $category = match (true) {
                 $entity instanceof PageCategoryInterface => $entity,
-                $entity instanceof PageCategoryTranslation => $entity->getTranslatable(),
+                $entity instanceof PageCategoryTranslationInterface => $entity->getTranslatable(),
                 default => null,
             };
 

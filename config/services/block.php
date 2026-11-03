@@ -26,7 +26,6 @@ use Gingerminds\CmsBundle\Block\Type\TitleTextType;
 use Gingerminds\CmsBundle\Block\Type\VideoType;
 use Gingerminds\CmsBundle\Cache\PageReferenceCacheListener;
 use Gingerminds\CmsBundle\Controller\Block\BlockController;
-use Gingerminds\CmsBundle\Entity\Page\PageTranslation;
 use Gingerminds\CmsBundle\Form\Block\BlockCanvasType;
 use Gingerminds\CmsBundle\Form\Block\BlockCollectionType;
 use Gingerminds\CmsBundle\Twig\BlockExtension;
@@ -93,7 +92,7 @@ return static function (ContainerConfigurator $container): void {
 
     // The files of the blocks are usages of the library: a used file is not deleted, a merge rewrites the content.
     $services->set('gingerminds_cms.block.file_reference_source', JsonFieldFileReferenceSource::class)
-        ->args([service('doctrine.orm.entity_manager'), PageTranslation::class, 'content'])
+        ->args([service('doctrine.orm.entity_manager'), param('gingerminds_cms.resource.page_translation.entity'), 'content'])
         ->tag(FileReferenceSourceInterface::TAG);
 
     $services->set('gingerminds_cms.block.reference_cache_listener', PageReferenceCacheListener::class)

@@ -6,7 +6,7 @@ namespace Gingerminds\CmsBundle\Page;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Gingerminds\CmsBundle\Entity\Page\PageInterface;
-use Gingerminds\CmsBundle\Entity\Page\PageTranslation;
+use Gingerminds\CmsBundle\Entity\Page\PageTranslationInterface;
 use Gingerminds\CmsBundle\Entity\Page\PageUrl;
 use Gingerminds\MultisiteBundle\Entity\Language\LanguageInterface;
 use Gingerminds\MultisiteBundle\Entity\Site\SiteInterface;
@@ -128,7 +128,7 @@ class PageUrlSyncer implements ResetInterface
         foreach ($page->getTranslations() as $translation) {
             $language = $translation->getLanguage();
 
-            if ($translation instanceof PageTranslation && $language instanceof LanguageInterface && '' !== (string) $translation->getTitle()) {
+            if ($translation instanceof PageTranslationInterface && $language instanceof LanguageInterface && '' !== (string) $translation->getTitle()) {
                 $paths[(int) $language->getId()] = [$language, $page->getFullPath($language)];
             }
         }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Form\Page;
 
-use Gingerminds\CmsBundle\Entity\Page\PageCategoryTranslation;
+use Gingerminds\CmsBundle\Entity\Page\PageCategoryTranslationInterface;
 use Gingerminds\CmsBundle\Form\Type\SlugType;
 use Gingerminds\CmsBundle\GingermindsCmsBundle;
 use Symfony\Component\Form\AbstractType;
@@ -16,10 +16,18 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  * Name and prefix of one language of a page category. The prefix is slugified from the name
  * (SlugType); `slug_overwrite`: whether a filled prefix is replaced too.
  *
- * @extends AbstractType<PageCategoryTranslation>
+ * @extends AbstractType<PageCategoryTranslationInterface>
  */
 class PageCategoryTranslationType extends AbstractType
 {
+    /**
+     * @param class-string<PageCategoryTranslationInterface> $dataClass the configured entity (`resources.page_category_translation.entity`)
+     */
+    public function __construct(
+        private readonly string $dataClass,
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -42,7 +50,7 @@ class PageCategoryTranslationType extends AbstractType
     {
         $resolver
             ->setDefaults([
-                'data_class' => PageCategoryTranslation::class,
+                'data_class' => $this->dataClass,
                 'translation_domain' => GingermindsCmsBundle::TRANSLATION_DOMAIN,
                 'slug_overwrite' => true,
             ])

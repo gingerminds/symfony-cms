@@ -42,6 +42,41 @@ framework:
                     mark: []
 ```
 
+### TipTap extensions
+
+As the Symfony UX controllers, `gm-cms-wysiwyg` dispatches `gm-cms-wysiwyg:pre-connect` before
+creating the editor: a project listener adds TipTap extensions and toolbar buttons for the preset
+entries it handles (`detail.names`). `detail.extensions` (TipTap extensions), `detail.buttons` (by
+name: `icon`, `label`, `action(editor, labels)`, `active`, `isDisabled(editor)`) and `detail.groups`
+(an entry giving several buttons) are mutable; `detail.tiptap` holds the loaded TipTap modules.
+`gm-cms-wysiwyg:connect` then gives the `editor`.
+
+```js
+// assets/app.js
+import { Highlight } from '@tiptap/extension-highlight';
+
+document.addEventListener('gm-cms-wysiwyg:pre-connect', ({ detail }) => {
+    if (detail.names.includes('highlight')) {
+        detail.extensions.push(Highlight);
+        detail.buttons.highlight = {
+            icon: 'bi-highlighter',
+            label: 'highlight', // a key of the `labels` value, or the label itself
+            active: 'highlight',
+            action: (editor) => editor.chain().focus().toggleHighlight().run(),
+        };
+    }
+});
+```
+
+```yaml
+gingerminds_cms:
+    wysiwyg:
+        presets:
+            news: { extensions: [bold, italic, link, highlight] }
+```
+
+Allow the elements it produces in the sanitizer (`mark` above).
+
 ## `SlugType`
 
 A URL segment (page slug, category prefix): the server slugifies the submitted value

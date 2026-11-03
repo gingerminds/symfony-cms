@@ -44,7 +44,7 @@ trait PageApiFieldsTrait
     {
         $translation = $this->getCurrentTranslation();
 
-        return $translation instanceof PageTranslation ? $translation->getContent() : null;
+        return $translation instanceof PageTranslationInterface ? $translation->getContent() : null;
     }
 
     /**
@@ -55,7 +55,7 @@ trait PageApiFieldsTrait
     public function getApiMainVisual(): ?string
     {
         $translation = $this->getCurrentTranslation();
-        $file = ($translation instanceof PageTranslation ? $translation->getMainVisual() : null) ?? $this->getMainVisual();
+        $file = ($translation instanceof PageTranslationInterface ? $translation->getMainVisual() : null) ?? $this->getMainVisual();
 
         return $file?->getId();
     }
@@ -65,7 +65,7 @@ trait PageApiFieldsTrait
     public function getApiThumbnail(): ?string
     {
         $translation = $this->getCurrentTranslation();
-        $file = ($translation instanceof PageTranslation ? $translation->getThumbnail() : null) ?? $this->getThumbnail();
+        $file = ($translation instanceof PageTranslationInterface ? $translation->getThumbnail() : null) ?? $this->getThumbnail();
 
         return $file?->getId();
     }
@@ -91,7 +91,7 @@ trait PageApiFieldsTrait
         }
 
         foreach ($this->getTranslations() as $translation) {
-            if ($translation instanceof PageTranslation && $translation->getLanguage() instanceof LanguageInterface && '' !== (string) $translation->getTitle()) {
+            if ($translation instanceof PageTranslationInterface && $translation->getLanguage() instanceof LanguageInterface && '' !== (string) $translation->getTitle()) {
                 $paths[(string) $translation->getLanguage()->getIso()] = $this->getFullPath($translation->getLanguage());
             }
         }

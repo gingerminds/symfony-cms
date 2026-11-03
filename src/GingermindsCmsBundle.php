@@ -15,10 +15,16 @@ use Gingerminds\CmsBundle\Entity\Menu\Menu;
 use Gingerminds\CmsBundle\Entity\Menu\MenuInterface;
 use Gingerminds\CmsBundle\Entity\Menu\MenuItem;
 use Gingerminds\CmsBundle\Entity\Menu\MenuItemInterface;
+use Gingerminds\CmsBundle\Entity\Menu\MenuItemTranslation;
+use Gingerminds\CmsBundle\Entity\Menu\MenuItemTranslationInterface;
 use Gingerminds\CmsBundle\Entity\Page\Page;
 use Gingerminds\CmsBundle\Entity\Page\PageCategory;
 use Gingerminds\CmsBundle\Entity\Page\PageCategoryInterface;
+use Gingerminds\CmsBundle\Entity\Page\PageCategoryTranslation;
+use Gingerminds\CmsBundle\Entity\Page\PageCategoryTranslationInterface;
 use Gingerminds\CmsBundle\Entity\Page\PageInterface;
+use Gingerminds\CmsBundle\Entity\Page\PageTranslation;
+use Gingerminds\CmsBundle\Entity\Page\PageTranslationInterface;
 use Gingerminds\CmsBundle\Form\Menu\MenuItemType;
 use Gingerminds\CmsBundle\Form\Menu\MenuType;
 use Gingerminds\CmsBundle\Form\Page\PageCategoryType;
@@ -75,6 +81,22 @@ final class GingermindsCmsBundle extends AbstractResourceBundle
             'form' => PageType::class,
             'path' => 'pages',
             'permission' => 'pages',
+        ],
+        // Entities only (no admin): their `entity` replaces them, resolved from their interface.
+        'menu_item_translation' => [
+            'entity' => MenuItemTranslation::class,
+            'interface' => MenuItemTranslationInterface::class,
+            'admin' => false,
+        ],
+        'page_category_translation' => [
+            'entity' => PageCategoryTranslation::class,
+            'interface' => PageCategoryTranslationInterface::class,
+            'admin' => false,
+        ],
+        'page_translation' => [
+            'entity' => PageTranslation::class,
+            'interface' => PageTranslationInterface::class,
+            'admin' => false,
         ],
     ];
 

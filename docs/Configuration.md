@@ -11,6 +11,8 @@ gingerminds_cms:
             entity: App\Entity\Page        # extends BasePage
             controller: ~                  # extends PageController
             form: ~                        # extends PageType
+        page_translation:
+            entity: App\Entity\PageTranslation  # extends BasePageTranslation
     wysiwyg:
         presets:
             default: { extensions: [bold, italic, underline, strike, link, bulletList, orderedList, history] }
@@ -49,11 +51,35 @@ registered as [core resources](https://github.com/gingerminds/symfony-core/blob/
 To add a few fields, prefer a form type extension and the form include slots (see below) to a new
 form.
 
+`resources.menu_item_translation`, `resources.page_category_translation` and
+`resources.page_translation` take an `entity` only (no admin of their own): your translation,
+extending `BaseMenuItemTranslation`, `BasePageCategoryTranslation` or `BasePageTranslation`, to add
+a translated field. Restate the class-level attributes of the bundle entity (`#[ORM\Entity]`,
+`#[ORM\Table]`, its `#[ORM\UniqueConstraint]`, `#[ORM\HasLifecycleCallbacks]`); the relations
+point at it through its interface (`PageTranslationInterface`...) and the translation form types use
+it as `data_class`. Add the field to the form with a type extension of `PageTranslationType`
+(`MenuItemTranslationType`, `PageCategoryTranslationType`):
+
+```php
+#[ORM\Entity]
+#[ORM\Table(name: 'page_translations')]
+#[ORM\UniqueConstraint(name: 'page_translations_page_id_language_id_unique', columns: ['page_id', 'language_id'])]
+#[ORM\HasLifecycleCallbacks]
+class PageTranslation extends BasePageTranslation
+{
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $subtitle = null;
+
+    // getSubtitle(), setSubtitle()
+}
+```
+
 ## WYSIWYG presets
 
-`wysiwyg.presets` names the toolbars of [`WysiwygType`](Forms.md#wysiwygtype). The extensions, in
+`wysiwyg.presets` names the toolbars of [`WysiwygType`](Forms.md#wysiwygtype). The entries, in
 display order: `bold`, `italic`, `underline`, `strike`, `link`, `bulletList`, `orderedList`,
-`blockquote`, `heading`, `horizontalRule`, `table`, `history` (undo / redo). Defaults:
+`blockquote`, `heading`, `horizontalRule`, `table`, `history` (undo / redo), or the name of an
+entry added by the project ([TipTap extensions](Forms.md#tiptap-extensions)). Defaults:
 
 | Preset | Extensions |
 |---|---|

@@ -41,6 +41,7 @@ return static function (ContainerConfigurator $container): void {
         ->tag('form.type');
 
     $services->set('gingerminds_cms.form.type.menu_item_translation', MenuItemTranslationType::class)
+        ->args([param('gingerminds_cms.resource.menu_item_translation.entity')])
         ->tag('form.type');
 
     $services->set('gingerminds_cms.form.type.page_category', PageCategoryType::class)
@@ -53,6 +54,7 @@ return static function (ContainerConfigurator $container): void {
         ->tag('form.type');
 
     $services->set('gingerminds_cms.form.type.page_category_translation', PageCategoryTranslationType::class)
+        ->args([param('gingerminds_cms.resource.page_category_translation.entity')])
         ->tag('form.type');
 
     $services->set('gingerminds_cms.form.type.page', PageType::class)
@@ -66,6 +68,7 @@ return static function (ContainerConfigurator $container): void {
         ->tag('form.type');
 
     $services->set('gingerminds_cms.form.type.page_translation', PageTranslationType::class)
+        ->args([param('gingerminds_cms.resource.page_translation.entity')])
         ->tag('form.type');
 
     $services->set('gingerminds_cms.form.type.publication_status', PublicationStatusType::class)

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gingerminds\CmsBundle\Form\Page;
 
-use Gingerminds\CmsBundle\Entity\Page\PageTranslation;
+use Gingerminds\CmsBundle\Entity\Page\PageTranslationInterface;
 use Gingerminds\CmsBundle\Form\Block\BlockCanvasType;
 use Gingerminds\CmsBundle\Form\Type\SlugType;
 use Gingerminds\CmsBundle\Form\Type\WysiwygType;
@@ -20,10 +20,18 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  * input group starts with the category path (PageType). The hook is a WYSIWYG, the content is made
  * of blocks (BlockCanvasType).
  *
- * @extends AbstractType<PageTranslation>
+ * @extends AbstractType<PageTranslationInterface>
  */
 class PageTranslationType extends AbstractType
 {
+    /**
+     * @param class-string<PageTranslationInterface> $dataClass the configured entity (`resources.page_translation.entity`)
+     */
+    public function __construct(
+        private readonly string $dataClass,
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -69,7 +77,7 @@ class PageTranslationType extends AbstractType
     {
         $resolver
             ->setDefaults([
-                'data_class' => PageTranslation::class,
+                'data_class' => $this->dataClass,
                 'translation_domain' => GingermindsCmsBundle::TRANSLATION_DOMAIN,
                 'slug_overwrite' => true,
             ])

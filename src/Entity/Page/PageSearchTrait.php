@@ -32,7 +32,7 @@ trait PageSearchTrait
         foreach ($this->getTranslations() as $translation) {
             $language = $translation->getLanguage();
 
-            if (!$translation instanceof PageTranslation || null === $language || '' === trim((string) $translation->getTitle())) {
+            if (!$translation instanceof PageTranslationInterface || null === $language || '' === trim((string) $translation->getTitle())) {
                 continue;
             }
 

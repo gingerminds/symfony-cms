@@ -65,7 +65,7 @@ abstract class BasePageCategory implements PageCategoryInterface, ExcludableFrom
 
     public static function getTranslationEntityClass(): string
     {
-        return PageCategoryTranslation::class;
+        return PageCategoryTranslationInterface::class;
     }
 
     public function getId(): ?int

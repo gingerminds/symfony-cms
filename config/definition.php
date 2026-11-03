@@ -6,9 +6,7 @@ use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 
 return static function (DefinitionConfigurator $definition): void {
-    $extensions = ['bold', 'italic', 'underline', 'strike', 'link', 'bulletList', 'orderedList', 'blockquote', 'heading', 'horizontalRule', 'table', 'history'];
-
-    $wysiwyg = static function (NodeBuilder $children) use ($extensions): void {
+    $wysiwyg = static function (NodeBuilder $children): void {
         $children
             ->arrayNode('wysiwyg')
                 ->info('WYSIWYG (TipTap) editor.')
@@ -20,10 +18,11 @@ return static function (DefinitionConfigurator $definition): void {
                         ->arrayPrototype()
                             ->children()
                                 ->arrayNode('extensions')
-                                    ->info('TipTap extensions of the toolbar, in display order.')
+                                    ->info('Toolbar entries, in display order: bold, italic, underline, strike, link, bulletList, orderedList,'
+                                        . ' blockquote, heading, horizontalRule, table, history, or a name added by a gm-cms-wysiwyg:pre-connect listener.')
                                     ->isRequired()
                                     ->requiresAtLeastOneElement()
-                                    ->enumPrototype()->values($extensions)->end()
+                                    ->scalarPrototype()->cannotBeEmpty()->end()
                                 ->end()
                             ->end()
                         ->end()
@@ -63,6 +62,19 @@ return static function (DefinitionConfigurator $definition): void {
             ->end();
     };
 
+    $entity = static function (NodeBuilder $children, string $name, string $baseClass): void {
+        $children
+            ->arrayNode($name)
+                ->addDefaultsIfNotSet()
+                ->children()
+                    ->scalarNode('entity')
+                        ->info('Entity class, extending the bundle Base' . $baseClass . ' (null: the bundle one).')
+                        ->defaultNull()
+                    ->end()
+                ->end()
+            ->end();
+    };
+
     $children = $definition->rootNode()->children();
 
     $resources = $children->arrayNode('resources')
@@ -73,6 +85,9 @@ return static function (DefinitionConfigurator $definition): void {
     $resource($resources, 'menu_item', 'MenuItem');
     $resource($resources, 'page_category', 'PageCategory');
     $resource($resources, 'page', 'Page');
+    $entity($resources, 'menu_item_translation', 'MenuItemTranslation');
+    $entity($resources, 'page_category_translation', 'PageCategoryTranslation');
+    $entity($resources, 'page_translation', 'PageTranslation');
     $resources->end()->end();
 
     $wysiwyg($children);

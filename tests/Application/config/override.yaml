@@ -1,0 +1,23 @@
+# `test_override` environment: the page and its translation overridden by project entities.
+doctrine:
+    orm:
+        mappings:
+            TestOverride:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/Override'
+                prefix: 'Gingerminds\CmsBundle\Tests\Application\Override'
+
+gingerminds_cms:
+    resources:
+        page:
+            entity: Gingerminds\CmsBundle\Tests\Application\Override\Page
+        page_translation:
+            entity: Gingerminds\CmsBundle\Tests\Application\Override\PageTranslation
+
+# The static metadata cache and connection of DAMA are shared by the kernels of a test run: the
+# bundle Page and the `test` database would leak into this environment.
+dama_doctrine_test:
+    enable_static_meta_data_cache: false
+    connection_keys:
+        default: test_override

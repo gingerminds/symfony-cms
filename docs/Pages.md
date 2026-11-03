@@ -6,7 +6,8 @@ workflow, their content made of [blocks](Blocks.md).
 ## Page categories
 
 `PageCategory` (`page_categories`, overridable `BasePageCategory`, `resources.page_category`) and
-`PageCategoryTranslation` (`page_category_translations`: `name`, `prefix`):
+`PageCategoryTranslation` (`page_category_translations`: `name`, `prefix`; overridable
+`BasePageCategoryTranslation`, `resources.page_category_translation`):
 
 | Field | |
 |---|---|
@@ -28,7 +29,8 @@ prefix after the path of the parent and filled from the name ([`SlugType`](Forms
 ## Pages
 
 `Page` (`pages`, overridable `BasePage`, `resources.page`) and `PageTranslation`
-(`page_translations`):
+(`page_translations`, overridable `BasePageTranslation`, `resources.page_translation`, see
+[Configuration](Configuration.md#resources)):
 
 | Field | |
 |---|---|

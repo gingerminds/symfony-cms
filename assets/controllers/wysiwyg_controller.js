@@ -11,12 +11,27 @@ import { Controller } from '@hotwired/stimulus';
  *         <div data-gm-cms-wysiwyg-target="editor"></div>
  *         <textarea data-gm-cms-wysiwyg-target="input" hidden></textarea>
  *     </div>
+ *
+ * Extensible as the Symfony UX controllers: `gm-cms-wysiwyg:pre-connect` (before the editor is
+ * created) lets a project listener add TipTap extensions and toolbar buttons (`detail`: `names`,
+ * the preset entries, `extensions`, `buttons` and `groups`, mutable, and `tiptap`, the loaded
+ * modules); `gm-cms-wysiwyg:connect` gives the `editor`.
+ *
+ *     document.addEventListener('gm-cms-wysiwyg:pre-connect', ({ detail }) => {
+ *         if (detail.names.includes('highlight')) {
+ *             detail.extensions.push(Highlight);
+ *             detail.buttons.highlight = { icon: 'bi-highlighter', label: 'highlight', active: 'highlight',
+ *                 action: (editor) => editor.chain().focus().toggleHighlight().run() };
+ *         }
+ *     });
  */
 export default class extends Controller {
     static targets = ['toolbar', 'editor', 'input'];
     static values = { extensions: Array, labels: Object, rows: { type: Number, default: 6 } };
 
     #editor = null;
+
+    #buttons = BUTTONS;
 
     async connect() {
         const tiptap = await loadTiptap();
@@ -26,20 +41,32 @@ export default class extends Controller {
             return;
         }
 
+        const options = {
+            names: this.extensionsValue,
+            extensions: buildExtensions(tiptap, this.extensionsValue),
+            buttons: { ...BUTTONS },
+            groups: { ...GROUPS },
+            tiptap,
+        };
+
+        this.dispatch('pre-connect', { detail: options });
+        this.#buttons = options.buttons;
+
         this.#editor = new tiptap.Editor({
             element: this.editorTarget,
-            extensions: buildExtensions(tiptap, this.extensionsValue),
+            extensions: options.extensions,
             content: unwrapTableCellParagraphs(this.inputTarget.value),
             onUpdate: ({ editor }) => {
                 this.inputTarget.value = editor.isEmpty ? '' : editor.getHTML();
             },
-            onTransaction: ({ editor }) => refreshToolbar(this.toolbarTarget, editor),
+            onTransaction: ({ editor }) => refreshToolbar(this.toolbarTarget, editor, this.#buttons),
         });
 
         this.#editor.view.dom.style.minHeight = `${this.rowsValue * 24}px`;
         this.#editor.view.dom.style.outline = 'none';
-        buildToolbar(this.toolbarTarget, this.#editor, this.extensionsValue, this.labelsValue);
+        buildToolbar(this.toolbarTarget, this.#editor, options, this.labelsValue);
         this.#labels().forEach((label) => label.addEventListener('click', this.focus));
+        this.dispatch('connect', { detail: { editor: this.#editor } });
     }
 
     disconnect() {
@@ -169,11 +196,11 @@ function isDisabled(button, editor) {
     return (button.isDisabled ?? never)(editor);
 }
 
-function buildToolbar(toolbar, editor, names, labels) {
-    const buttons = names.flatMap((name) => GROUPS[name] ?? [name]).filter((name) => BUTTONS[name]);
+function buildToolbar(toolbar, editor, { names, buttons, groups }, labels) {
+    const shown = names.flatMap((name) => groups[name] ?? [name]).filter((name) => buttons[name]);
 
-    toolbar.replaceChildren(...buttons.map((name) => {
-        const button = BUTTONS[name];
+    toolbar.replaceChildren(...shown.map((name) => {
+        const button = buttons[name];
         const element = document.createElement('button');
         const icon = document.createElement('i');
 
@@ -189,12 +216,12 @@ function buildToolbar(toolbar, editor, names, labels) {
 
         return element;
     }));
-    refreshToolbar(toolbar, editor);
+    refreshToolbar(toolbar, editor, buttons);
 }
 
-function refreshToolbar(toolbar, editor) {
+function refreshToolbar(toolbar, editor, buttons) {
     toolbar.querySelectorAll('[data-name]').forEach((element) => {
-        const button = BUTTONS[element.dataset.name];
+        const button = buttons[element.dataset.name];
 
         const active = isActive(button, editor);
 

@@ -15,14 +15,14 @@ trait PageCategoryTranslatedFieldsTrait
     {
         $translation = $this->getCurrentTranslation();
 
-        return $translation instanceof PageCategoryTranslation ? $translation->getName() : null;
+        return $translation instanceof PageCategoryTranslationInterface ? $translation->getName() : null;
     }
 
     public function getPrefix(LanguageInterface|int|null $language = null): ?string
     {
         $translation = null === $language ? $this->getCurrentTranslation() : $this->getTranslation($language, false);
 
-        return $translation instanceof PageCategoryTranslation ? $translation->getPrefix() : null;
+        return $translation instanceof PageCategoryTranslationInterface ? $translation->getPrefix() : null;
     }
 
     public function getFullPath(LanguageInterface|int|null $language = null): string
