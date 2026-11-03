@@ -48,6 +48,9 @@ final class PageAdminTest extends ApiTestCase
         );
         // The status filter offers the project statuses too.
         self::assertCount(1, $crawler->filter('select[name="status[]"] option[value="review"]'));
+        // Its choices translated in the GingermindsCms domain (core ^1.10.3), not raw keys.
+        self::assertSame('Draft', $crawler->filter('select[name="status[]"] option[value="draft"]')->text());
+        self::assertSame('In review', $crawler->filter('select[name="status[]"] option[value="review"]')->text());
         // Pages first in the CMS section.
         self::assertSame('/admin/pages', $crawler->filter('#gm-sidebar a[href^="/admin/page"], #gm-sidebar a[href="/admin/menus"]')->first()->attr('href'));
 
