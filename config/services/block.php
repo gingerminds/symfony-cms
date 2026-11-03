@@ -74,18 +74,19 @@ return static function (ContainerConfigurator $container): void {
         ->args([service('gingerminds_cms.block.registry')]);
     $services->alias(BlockContentNormalizer::class, 'gingerminds_cms.block.content_normalizer');
 
+    // Autoconfigured: tagged, and indexed by their #[AsTaggedItem] form type.
     $services->set('gingerminds_cms.block.reference.file', FileReferenceResolver::class)
         ->args([service('doctrine.orm.entity_manager'), service('gingerminds_media_manager.twig.extension'), param('gingerminds_media_manager.images.presets')])
-        ->tag(BlockReferenceResolverInterface::TAG);
+        ->autoconfigure();
 
     $services->set('gingerminds_cms.block.reference.media', MediaReferenceResolver::class)
         ->args([service('doctrine.orm.entity_manager'), service('serializer')])
-        ->tag(BlockReferenceResolverInterface::TAG);
+        ->autoconfigure();
 
     $services->set('gingerminds_cms.block.reference_resolver', ContentReferenceResolver::class)
         ->args([
             service('gingerminds_cms.block.registry'),
-            tagged_locator(BlockReferenceResolverInterface::TAG, defaultIndexMethod: 'getFormType'),
+            tagged_locator(BlockReferenceResolverInterface::TAG),
             service('cache.system'),
         ]);
     $services->alias(ContentReferenceResolver::class, 'gingerminds_cms.block.reference_resolver');

@@ -56,7 +56,7 @@ abstract class BaseMenu implements MenuInterface
      * @var Collection<int, MenuItemInterface>
      */
     #[ORM\OneToMany(targetEntity: MenuItemInterface::class, mappedBy: 'menu')]
-    #[ORM\OrderBy(['position' => 'ASC', 'id' => 'ASC'])]
+    #[ORM\OrderBy(['position' => \SortDirection::Ascending, 'id' => \SortDirection::Ascending])]
     #[EagerLoad(paths: ['translations', 'translations.language'])]
     protected Collection $items;
 

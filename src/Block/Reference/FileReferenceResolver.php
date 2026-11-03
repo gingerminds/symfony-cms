@@ -9,12 +9,14 @@ use Gingerminds\MediaManagerBundle\Entity\File\FileInterface;
 use Gingerminds\MediaManagerBundle\File\FileLibraryPresenter;
 use Gingerminds\MediaManagerBundle\Form\File\FilePickerType;
 use Gingerminds\MediaManagerBundle\Twig\MediaManagerExtension;
+use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 use Symfony\Component\Uid\Uuid;
 
 /**
  * FilePickerType fields: `{id, url, thumbnail_url, mime_type, original_name, size, is_image}` (as Laravel),
  * `thumbnail_url` being the `thumbnail` preset of an image (null otherwise, or without the preset).
  */
+#[AsTaggedItem(index: FilePickerType::class)]
 final readonly class FileReferenceResolver implements BlockReferenceResolverInterface
 {
     /**
@@ -25,11 +27,6 @@ final readonly class FileReferenceResolver implements BlockReferenceResolverInte
         private MediaManagerExtension $urls,
         private array $presets,
     ) {
-    }
-
-    public static function getFormType(): string
-    {
-        return FilePickerType::class;
     }
 
     public function load(array $ids): array

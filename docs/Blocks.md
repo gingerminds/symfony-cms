@@ -225,19 +225,16 @@ responses.
 ### Another reference type
 
 A form type of the project pointing at its own entities (its data: an id, a list of ids with
-`multiple`) gets resolved by a `BlockReferenceResolverInterface` (autoconfigured, indexed by
-`getFormType()`, the fields of a child type included):
+`multiple`) gets resolved by a `BlockReferenceResolverInterface` (autoconfigured), indexed by its form type with
+`#[AsTaggedItem]` (the fields of a child type included):
 
 ```php
 use Gingerminds\CmsBundle\Block\Reference\BlockReferenceResolverInterface;
+use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 
+#[AsTaggedItem(index: ProductPickerType::class)]
 final readonly class ProductReferenceResolver implements BlockReferenceResolverInterface
 {
-    public static function getFormType(): string
-    {
-        return ProductPickerType::class;
-    }
-
     public function load(array $ids): array
     {
         // One query for every id of the content, by id.

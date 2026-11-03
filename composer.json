@@ -13,7 +13,7 @@
         "api-platform/doctrine-orm": "^4.4",
         "api-platform/symfony": "^4.4",
         "doctrine/doctrine-bundle": "^2.18 || ^3.0",
-        "doctrine/orm": "^3.5",
+        "doctrine/orm": "^3.7",
         "gingerminds/symfony-core": "^1.10",
         "gingerminds/symfony-media-manager": "^1.3",
         "gingerminds/symfony-multisite": "^1.4",

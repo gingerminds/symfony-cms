@@ -29,7 +29,7 @@ trait MenuItemTreeTrait
      * @var Collection<int, MenuItemInterface>
      */
     #[ORM\OneToMany(targetEntity: MenuItemInterface::class, mappedBy: 'parent')]
-    #[ORM\OrderBy(['position' => 'ASC', 'id' => 'ASC'])]
+    #[ORM\OrderBy(['position' => \SortDirection::Ascending, 'id' => \SortDirection::Ascending])]
     protected Collection $children;
 
     public function getMenu(): ?MenuInterface

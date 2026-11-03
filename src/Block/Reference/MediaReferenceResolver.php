@@ -8,23 +8,20 @@ use Doctrine\ORM\EntityManagerInterface;
 use Gingerminds\MediaManagerBundle\Entity\Media\BaseMedia;
 use Gingerminds\MediaManagerBundle\Entity\Media\MediaInterface;
 use Gingerminds\MediaManagerBundle\Form\Media\MediaSelectType;
+use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * MediaSelectType fields: a media as in `GET /api/media` (`media:list` group, the project media included),
  * loaded with its files and category.
  */
+#[AsTaggedItem(index: MediaSelectType::class)]
 final readonly class MediaReferenceResolver implements BlockReferenceResolverInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
         private NormalizerInterface $normalizer,
     ) {
-    }
-
-    public static function getFormType(): string
-    {
-        return MediaSelectType::class;
     }
 
     public function load(array $ids): array

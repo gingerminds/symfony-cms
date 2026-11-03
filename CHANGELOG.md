@@ -153,6 +153,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Requires `doctrine/orm` ^3.7: the `#[ORM\OrderBy]` of the menu items and page categories use
+  `\SortDirection` (polyfilled by `symfony/polyfill-php86`, a dependency of the ORM).
 - **BC break** Overridable translations: `BasePageTranslation`, `BasePageCategoryTranslation`,
   `BaseMenuItemTranslation` (mapped superclasses) and their interfaces, resources
   `page_translation`, `page_category_translation`, `menu_item_translation` (`entity` only, no
@@ -185,8 +187,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   form (`ValidBlocks`). The bundled blocks are `TitleTextType`, `TextImageType`, `MediaType`,
   `VideoType`, `CardsType`, `SliderType`, `LinkListType`, `MediaListType` and `FaqType`; a block is
   extended by a form type extension, replaced through its service (`gingerminds_cms.block.<key>`).
-  `BlockReferenceResolverInterface::getFormType()` replaces `getFieldType()`: the reference fields
-  of a block are found in its form (cached in `cache.system`). `make:gm:cms-block` generates a form
+  A `BlockReferenceResolverInterface` is indexed by its form type with `#[AsTaggedItem(index:)]`
+  (`getFieldType()` removed): the reference fields of a block are found in its form (cached in
+  `cache.system`). `make:gm:cms-block` generates a form
   type. Removed: `BlockInterface`, `AbstractBlock`, `BlockField`, `BlockFieldFactoryTrait`,
   `BlockDataType`, `BlockConstraints`, `BlockExtensionInterface`, `BlockPass`,
   `DuplicateBlockKeyException`, `BlockRegistry::getFields()` / `getDefaults()` / `getFieldLabel()`;

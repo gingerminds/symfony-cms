@@ -24,7 +24,7 @@ trait PageCategoryTreeTrait
      * @var Collection<int, PageCategoryInterface>
      */
     #[ORM\OneToMany(targetEntity: PageCategoryInterface::class, mappedBy: 'parent')]
-    #[ORM\OrderBy(['position' => 'ASC', 'code' => 'ASC'])]
+    #[ORM\OrderBy(['position' => \SortDirection::Ascending, 'code' => \SortDirection::Ascending])]
     protected Collection $children;
 
     /**
