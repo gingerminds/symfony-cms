@@ -104,6 +104,24 @@ final class SearchApiTest extends ApiTestCase
         self::assertSame(3, $data['totalItems']);
     }
 
+    public function testTheResultsQueryCountDoesNotDependOnTheCategories(): void
+    {
+        $this->client->disableReboot();
+        $few = $this->queryCount('/api/search-results?search=tracteur&itemsPerPage=1');
+
+        // More hits in more categories, beyond the page: more category facets, labelled from their
+        // translations.
+        $site = $this->entityManager()->find(Site::class, $this->site->getId());
+        self::assertInstanceOf(Site::class, $site);
+
+        foreach (['a', 'b', 'c'] as $code) {
+            $category = $this->fixtures->pageCategory($site, 'category-' . $code, ['fr' => ['Rubrique ' . $code, 'rubrique-' . $code]]);
+            $this->fixtures->page($site, 'page-' . $code, ['fr' => ['Tracteur ' . $code, 'tracteur-' . $code]], $category, 'published');
+        }
+
+        self::assertSame($few, $this->queryCount('/api/search-results?search=tracteur&itemsPerPage=1'));
+    }
+
     public function testTheLanguagesWithTheFallback(): void
     {
         // English: the English version of the tractor, the French one of the untranslated pages.
@@ -125,5 +143,18 @@ final class SearchApiTest extends ApiTestCase
         usort($categories, fn (array $a, array $b): int => ($a['value'] === 'page:' . $this->products->getId() ? 0 : 1) <=> ($b['value'] === 'page:' . $this->products->getId() ? 0 : 1));
 
         return [...array_values(array_filter($options, static fn (array $option): bool => null === $option['group'])), ...$categories];
+    }
+
+    private function queryCount(string $uri): int
+    {
+        $this->entityManager()->clear();
+        $queries = self::getContainer()->get('doctrine.debug_data_holder');
+        $queries->reset();
+        self::getContainer()->get('gingerminds_core.resource_cache')->clear();
+
+        $this->api('GET', $uri, locale: 'fr');
+        self::assertStatus(200);
+
+        return \count($queries->getData()['default'] ?? []);
     }
 }

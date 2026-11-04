@@ -49,6 +49,27 @@ final class PageApiTest extends ApiTestCase
         self::assertSame(['tractor'], array_column($data['member'], 'code'));
     }
 
+    public function testTheCollectionQueryCountDoesNotDependOnTheCategories(): void
+    {
+        $this->publishedInCategory('a');
+        $this->client->disableReboot();
+        $few = $this->queryCount('/api/pages');
+
+        // More categories with pages: more category facets, labelled from their translations.
+        $site = $this->entityManager()->find(Site::class, $this->site->getId());
+        self::assertInstanceOf(Site::class, $site);
+        $this->site = $site;
+
+        foreach (['b', 'c', 'd'] as $code) {
+            $this->publishedInCategory($code);
+        }
+
+        self::assertSame($few, $this->queryCount('/api/pages'));
+        $labels = array_column($this->api('GET', '/api/pages?itemsPerPage=1')['filters']['category']['options'], 'label');
+        sort($labels);
+        self::assertSame(['Rubrique a', 'Rubrique b', 'Rubrique c', 'Rubrique d'], $labels);
+    }
+
     public function testAPublishedItemIsPublic(): void
     {
         $page = $this->fixtures->page($this->site, 'about', ['fr' => ['À propos', 'a-propos']], status: 'published');
@@ -217,5 +238,25 @@ final class PageApiTest extends ApiTestCase
         self::assertInstanceOf(PageInterface::class, $page);
 
         return $page->getId();
+    }
+
+    private function publishedInCategory(string $code): void
+    {
+        $category = $this->fixtures->pageCategory($this->site, 'category-' . $code, ['fr' => ['Rubrique ' . $code, 'rubrique-' . $code]]);
+        $this->fixtures->page($this->site, 'page-' . $code, ['fr' => ['Page ' . $code, 'page-' . $code]], $category, 'published');
+    }
+
+    private function queryCount(string $uri): int
+    {
+        $this->entityManager()->clear();
+        $queries = self::getContainer()->get('doctrine.debug_data_holder');
+        $queries->reset();
+
+        // Anonymous, but never served from the cache.
+        self::getContainer()->get('gingerminds_core.resource_cache')->clear();
+        $this->api('GET', $uri);
+        self::assertStatus(200);
+
+        return \count($queries->getData()['default'] ?? []);
     }
 }

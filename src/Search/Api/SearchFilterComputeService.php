@@ -9,6 +9,7 @@ use Gingerminds\CmsBundle\Search\SearchQuery;
 use Gingerminds\CmsBundle\Search\SearchResource;
 use Gingerminds\CmsBundle\Search\SearchResourceRegistry;
 use Gingerminds\CmsBundle\Search\SearchResult;
+use Gingerminds\CoreBundle\Repository\RepositoryInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -92,9 +93,22 @@ class SearchFilterComputeService
         }
 
         $labels = [];
+        $repository = $this->entityManager->getRepository($metadata->getAssociationTargetClass($resource->category));
 
-        foreach ($this->entityManager->getRepository($metadata->getAssociationTargetClass($resource->category))->findBy(['id' => $ids]) as $category) {
-            $id = method_exists($category, 'getId') ? $category->getId() : null;
+        // A core repository: its list query, the translations fetch-joined (`#[EagerLoad]`), not
+        // one query per label.
+        if ($repository instanceof RepositoryInterface) {
+            $qb = $repository->createListQueryBuilder();
+            $categories = $qb->andWhere($qb->getRootAliases()[0] . '.id IN (:gm_category_ids)')
+                ->setParameter('gm_category_ids', $ids)
+                ->getQuery()
+                ->getResult();
+        } else {
+            $categories = $repository->findBy(['id' => $ids]);
+        }
+
+        foreach ($categories as $category) {
+            $id = \is_object($category) && method_exists($category, 'getId') ? $category->getId() : null;
 
             if (\is_int($id) && $category instanceof \Stringable) {
                 $labels[$id] = (string) $category;
