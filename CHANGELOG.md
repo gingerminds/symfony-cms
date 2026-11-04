@@ -153,6 +153,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- API: the category facets of `/api/pages` and `/api/search-results` load their categories with
+  the list query (translations fetch-joined), not one query per category label.
 - Requires `gingerminds/symfony-core` ^1.10.3: the choices of the `status` filter of the page list
   are translated (`publication.status.*` keys were shown).
 - Requires `doctrine/orm` ^3.7: the `#[ORM\OrderBy]` of the menu items and page categories use

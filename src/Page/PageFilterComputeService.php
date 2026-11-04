@@ -56,7 +56,15 @@ class PageFilterComputeService
         $ids = array_values(array_unique([...array_map(intval(...), array_keys($counts)), ...$selected]));
         $options = [];
 
-        foreach ([] === $ids ? [] : $this->categories->findBy(['id' => $ids]) as $category) {
+        // The list query: their translations fetch-joined (`#[EagerLoad]`), labelled without a
+        // query per category.
+        $found = [] === $ids ? [] : $this->categories->createListQueryBuilder()
+            ->andWhere('o.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getResult();
+
+        foreach ($found as $category) {
             $id = (int) $category->getId();
             $total = $counts[$id] ?? 0;
 
